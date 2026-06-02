@@ -30,6 +30,21 @@ export class FamilyTreeEngine {
         const rows = await window.api.db.all('SELECT * FROM people');
         this.clear(true); // clear without saving to DB
         for (const row of rows) {
+          let birthYear = null;
+          let deathYear = null;
+          let notesText = '';
+          if (row.notes) {
+            try {
+              const extra = JSON.parse(row.notes);
+              if (extra && typeof extra === 'object') {
+                birthYear = extra.birthYear !== undefined ? extra.birthYear : null;
+                deathYear = extra.deathYear !== undefined ? extra.deathYear : null;
+                notesText = extra.notesText || '';
+              }
+            } catch (e) {
+              notesText = row.notes;
+            }
+          }
           const person = {
             id: row.id,
             name: row.name,
@@ -41,6 +56,9 @@ export class FamilyTreeEngine {
             motherName: row.motherName,
             grandfatherName: row.grandfatherName,
             photo: row.photo || '',
+            notes: notesText,
+            birthYear: birthYear,
+            deathYear: deathYear,
             children: []
           };
           this.people.set(person.id, person);
@@ -69,7 +87,26 @@ export class FamilyTreeEngine {
     if (window.api && window.api.db) {
       if (this.saveTimeout) clearTimeout(this.saveTimeout);
       this.saveTimeout = setTimeout(() => {
-        const persons = Array.from(this.people.values());
+        const persons = Array.from(this.people.values()).map(p => {
+          const notesObj = {
+            birthYear: p.birthYear !== undefined ? p.birthYear : null,
+            deathYear: p.deathYear !== undefined ? p.deathYear : null,
+            notesText: p.notes || ''
+          };
+          return {
+            id: p.id,
+            name: p.name,
+            gender: p.gender,
+            spouses: p.spouses,
+            fatherId: p.fatherId,
+            fatherName: p.fatherName,
+            motherId: p.motherId,
+            motherName: p.motherName,
+            grandfatherName: p.grandfatherName,
+            photo: p.photo,
+            notes: JSON.stringify(notesObj)
+          };
+        });
         window.api.db.batch(persons).catch(err => console.error("SQLite Batch Save Error:", err));
       }, 1000);
     }
@@ -176,7 +213,7 @@ export class FamilyTreeEngine {
 
   // Add or update person
   addPerson(data) {
-    let { id, name, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId, photo } = data;
+    let { id, name, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId, photo, birthYear, deathYear, notes } = data;
     
     if (!name) return null;
     name = name.trim();
@@ -275,6 +312,9 @@ export class FamilyTreeEngine {
       }
       person.gender = gender;
       if (photo !== undefined) person.photo = photo.trim();
+      if (birthYear !== undefined) person.birthYear = birthYear !== null && birthYear !== '' ? parseInt(birthYear) : null;
+      if (deathYear !== undefined) person.deathYear = deathYear !== null && deathYear !== '' ? parseInt(deathYear) : null;
+      if (notes !== undefined) person.notes = notes;
       
       // Update spouses list
       spouseList.forEach(spName => {
@@ -304,6 +344,9 @@ export class FamilyTreeEngine {
         motherName: motherName ? motherName.trim() : '',
         grandfatherName: grandfatherName ? grandfatherName.trim() : '',
         photo: photo ? photo.trim() : '',
+        birthYear: birthYear !== undefined && birthYear !== null && birthYear !== '' ? parseInt(birthYear) : null,
+        deathYear: deathYear !== undefined && deathYear !== null && deathYear !== '' ? parseInt(deathYear) : null,
+        notes: notes || '',
         children: []
       };
       this.people.set(id, person);
@@ -1080,24 +1123,34 @@ export class FamilyTreeEngine {
 
     // Inject Roots
     const rootNodes = roots.map(r => {
+      const birth = 1840 + Math.floor(Math.random() * 20); // 1840 - 1860
+      const death = birth + 60 + Math.floor(Math.random() * 30); // lifespan 60-90
       const p = this.addPerson({
         name: r.name,
         gender: 'M',
-        spouse: r.spouse
+        spouse: r.spouse,
+        birthYear: birth,
+        deathYear: death,
+        photo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'
       });
       
       // Add the spouse to the tree as well!
+      const spouseBirth = birth - 5 + Math.floor(Math.random() * 10);
+      const spouseDeath = spouseBirth + 60 + Math.floor(Math.random() * 30);
       this.addPerson({
         name: r.spouse,
         gender: 'F',
-        spouse: r.name
+        spouse: r.name,
+        birthYear: spouseBirth,
+        deathYear: spouseDeath,
+        photo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'
       });
 
       return p;
     });
 
     let currentGeneration = [...rootNodes];
-    let totalTarget = 1050;
+    let totalTarget = 2050;
     let currentTotal = this.people.size;
     let generationIndex = 1;
 
@@ -1128,20 +1181,35 @@ export class FamilyTreeEngine {
           const spouseLast = lastNames[Math.floor(Math.random() * lastNames.length)];
           const spouseName = `${spouseGiven} ${spouseLast}`;
 
+          // Birth/death years for children
+          const pBirth = parent.birthYear || 1850;
+          const birth = pBirth + 25 + Math.floor(Math.random() * 8); 
+          const lifespan = 55 + Math.floor(Math.random() * 38);
+          const death = (birth + lifespan > 2026) ? null : (birth + lifespan);
+
           // Add child
           const childNode = this.addPerson({
             name: fullName,
             fatherName: parent.name,
             grandfatherName: parent.fatherName || '',
             gender: gender,
-            spouse: spouseName
+            spouse: spouseName,
+            birthYear: birth,
+            deathYear: death,
+            photo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'
           });
 
           // Add Spouse as well
+          const sBirth = birth - 3 + Math.floor(Math.random() * 6);
+          const sLifespan = 55 + Math.floor(Math.random() * 38);
+          const sDeath = (sBirth + sLifespan > 2026) ? null : (sBirth + sLifespan);
           this.addPerson({
             name: spouseName,
             gender: sGender,
-            spouse: fullName
+            spouse: fullName,
+            birthYear: sBirth,
+            deathYear: sDeath,
+            photo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'
           });
 
           nextGen.push(childNode);
@@ -1191,6 +1259,11 @@ export class FamilyTreeEngine {
       const fName = `${maleFirstNames[i % maleFirstNames.length]} ${lastName} ${currentIdNum}`;
       const mName = `${femaleFirstNames[i % femaleFirstNames.length]} ${lastName} ${currentIdNum + 1}`;
 
+      const birth = 1800 + Math.floor(Math.random() * 20); // 1800-1820
+      const death = birth + 55 + Math.floor(Math.random() * 35); // 55-90 lifespan
+      const spouseBirth = birth - 5 + Math.floor(Math.random() * 10);
+      const spouseDeath = spouseBirth + 55 + Math.floor(Math.random() * 35);
+
       const father = {
         id: fId,
         name: fName,
@@ -1201,6 +1274,8 @@ export class FamilyTreeEngine {
         motherId: '',
         motherName: '',
         grandfatherName: '',
+        birthYear: birth,
+        deathYear: death,
         children: []
       };
       const mother = {
@@ -1213,6 +1288,8 @@ export class FamilyTreeEngine {
         motherId: '',
         motherName: '',
         grandfatherName: '',
+        birthYear: spouseBirth,
+        deathYear: spouseDeath,
         children: []
       };
       
@@ -1242,6 +1319,12 @@ export class FamilyTreeEngine {
             : femaleFirstNames[currentIdNum % femaleFirstNames.length];
           const childName = `${childGiven} ${couple.lastName} ${currentIdNum}`;
           
+          const parentNode = this.people.get(couple.fatherId);
+          const pBirth = parentNode ? (parentNode.birthYear || 1810) : 1810;
+          const birth = pBirth + 25 + Math.floor(Math.random() * 8); 
+          const lifespan = 55 + Math.floor(Math.random() * 35);
+          const death = (birth + lifespan > 2026) ? null : (birth + lifespan);
+
           // Spouse
           if (currentIdNum >= totalSize) {
             // Add single child without spouse
@@ -1255,6 +1338,8 @@ export class FamilyTreeEngine {
               motherId: couple.motherId,
               motherName: this.people.get(couple.motherId).name,
               grandfatherName: this.people.get(couple.fatherId).fatherName || '',
+              birthYear: birth,
+              deathYear: death,
               children: []
             };
             this.people.set(childId, childNode);
@@ -1272,6 +1357,10 @@ export class FamilyTreeEngine {
           const spouseLastName = lastNames[Math.floor(currentIdNum / 7) % lastNames.length];
           const spouseName = `${spouseGiven} ${spouseLastName} ${currentIdNum}`;
 
+          const spouseBirth = birth - 3 + Math.floor(Math.random() * 6);
+          const spouseLifespan = 55 + Math.floor(Math.random() * 35);
+          const spouseDeath = (spouseBirth + spouseLifespan > 2026) ? null : (spouseBirth + spouseLifespan);
+
           const childNode = {
             id: childId,
             name: childName,
@@ -1282,6 +1371,8 @@ export class FamilyTreeEngine {
             motherId: couple.motherId,
             motherName: this.people.get(couple.motherId).name,
             grandfatherName: this.people.get(couple.fatherId).fatherName || '',
+            birthYear: birth,
+            deathYear: death,
             children: []
           };
 
@@ -1295,6 +1386,8 @@ export class FamilyTreeEngine {
             motherId: '',
             motherName: '',
             grandfatherName: '',
+            birthYear: spouseBirth,
+            deathYear: spouseDeath,
             children: []
           };
 
@@ -1387,7 +1480,7 @@ export class FamilyTreeEngine {
     if (!this.people.has(id)) return null;
     const person = this.people.get(id);
 
-    let { name, gender, spouses, fatherName, motherName, grandfatherName, photo } = data;
+    let { name, gender, spouses, fatherName, motherName, grandfatherName, photo, birthYear, deathYear, notes } = data;
     name = name.trim();
 
     // 1. Update Name & Indexing
@@ -1422,6 +1515,9 @@ export class FamilyTreeEngine {
     gender = (gender || 'M').toString().toUpperCase().trim();
     person.gender = gender === 'F' ? 'F' : 'M';
     if (photo !== undefined) person.photo = photo.trim();
+    person.birthYear = birthYear !== undefined && birthYear !== null && birthYear !== '' ? parseInt(birthYear) : null;
+    person.deathYear = deathYear !== undefined && deathYear !== null && deathYear !== '' ? parseInt(deathYear) : null;
+    if (notes !== undefined) person.notes = notes;
 
     // 3. Update Spouses
     const spouseList = spouses ? spouses.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -1625,6 +1721,7 @@ export class FamilyTreeEngine {
       }
     }
 
+    this.saveToDB();
     return person;
   }
 
@@ -1736,5 +1833,57 @@ export class FamilyTreeEngine {
 
     this.rebuildTokenIndex();
     return true;
+  }
+
+  // Feature 4: Relationship Path Finder
+  findRelationshipPath(startId, endId) {
+    if (!this.people.has(startId) || !this.people.has(endId)) return null;
+    
+    // Build adjacency list for undirected graph traversal
+    const graph = new Map();
+    const addEdge = (u, v) => {
+      if (!u || !v) return;
+      if (!graph.has(u)) graph.set(u, new Set());
+      if (!graph.has(v)) graph.set(v, new Set());
+      graph.get(u).add(v);
+      graph.get(v).add(u);
+    };
+
+    for (const p of this.people.values()) {
+      if (p.fatherId) addEdge(p.id, p.fatherId);
+      if (p.motherId) addEdge(p.id, p.motherId);
+      for (const sp of p.spouses || []) {
+        if (sp) {
+          const spouseNode = this.findPatriarchNode(sp);
+          if (spouseNode) {
+            addEdge(p.id, spouseNode.id);
+          }
+        }
+      }
+      for (const ch of p.children || []) {
+        if (ch) addEdge(p.id, ch);
+      }
+    }
+
+    // BFS
+    const queue = [[startId]];
+    const visited = new Set([startId]);
+
+    while (queue.length > 0) {
+      const path = queue.shift();
+      const current = path[path.length - 1];
+
+      if (current === endId) return path;
+
+      const neighbors = graph.get(current) || new Set();
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push([...path, neighbor]);
+        }
+      }
+    }
+
+    return null; // No path found
   }
 }

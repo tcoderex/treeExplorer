@@ -70,14 +70,13 @@
               </div>
             </button>
           </div>
-        </div>
-
-        <!-- Settings Button -->
+             <!-- Settings Button -->
         <button class="titlebar-btn settings" id="btn-titlebar-settings" title="Personalization & Theme Settings" aria-label="Settings Actions">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+            <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49-.12-.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
           </svg>
         </button>
+        </div>
 
         <!-- Native-looking Mock Control Buttons -->
         <button class="titlebar-btn minimize" aria-label="Minimize">
@@ -178,7 +177,7 @@
                 🚀 Start Interactive Tour
               </button>
               <button id="btn-dash-import-mock" class="fluent-btn btn-secondary">
-                ⚡ Load 1000+ Mock Tree
+                ⚡ Load 2000+ Mock Tree
               </button>
             </div>
           </div>
@@ -373,11 +372,11 @@
                 </div>
                 <!-- Interactive search for focused pedigree tree -->
                 <div class="canvas-search-middle" style="position: relative; display: flex; align-items: center; max-width: 300px; width: 100%;">
-                  <input type="text" id="explorer-search-input" class="fluent-input header-search-box" placeholder="Filter/Search focused person..." autocomplete="off" style="width: 100%; height: 28px; font-size: 12px; padding: 0 10px; border-radius: 4px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); backdrop-filter: blur(8px); color: var(--win-text-primary);">
+                  <input type="text" id="explorer-search-input" class="fluent-input header-search-box" placeholder="Filter/Search focused person..." autocomplete="off" style="width: 100%; height: 28px; font-size: 12px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); backdrop-filter: blur(8px); color: var(--win-text-primary);">
                   <div id="explorer-search-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 32px; left: 0; width: 100%; z-index: 1000; max-height: 250px; overflow-y: auto; background: var(--win-card-bg); backdrop-filter: blur(20px); border: 1px solid var(--win-border-light); border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);"></div>
                 </div>
                 <div class="canvas-controls-right" style="display: flex; align-items: center; gap: 6px;">
-                  <button id="btn-explorer-export" class="fluent-btn btn-secondary" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; height: 26px; display: flex; align-items: center; gap: 4px;" title="Export Tree to JSON">
+                  <button id="btn-explorer-export" class="fluent-btn btn-secondary" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; height: 26px; display: flex; align-items: center; gap: 4px;" title="Export Tree to JSON">
                     📥 Export JSON
                   </button>
                   <button id="btn-canvas-zoom-in" class="canvas-control-btn" title="Zoom In">＋</button>
@@ -415,15 +414,15 @@
                 <!-- Interactive search and filters for World Forest -->
                 <div class="canvas-search-middle" style="position: relative; display: flex; align-items: center; gap: 8px; max-width: 450px; width: 100%;">
                   <div style="position: relative; flex: 1;">
-                    <input type="text" id="world-search-input" class="fluent-input header-search-box" placeholder="Filter/Search 100,000+ members..." autocomplete="off" style="width: 100%; height: 28px; font-size: 12px; padding: 0 10px; border-radius: 4px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); backdrop-filter: blur(8px); color: var(--win-text-primary);">
+                    <input type="text" id="world-search-input" class="fluent-input header-search-box" placeholder="Filter/Search 100,000+ members..." autocomplete="off" style="width: 100%; height: 28px; font-size: 12px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); backdrop-filter: blur(8px); color: var(--win-text-primary);">
                     <div id="world-search-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 32px; left: 0; width: 100%; z-index: 1000; max-height: 250px; overflow-y: auto; background: var(--win-card-bg); backdrop-filter: blur(20px); border: 1px solid var(--win-border-light); border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);"></div>
                   </div>
                   
                   <div class="canvas-filter-buttons" style="display: flex; gap: 4px; flex-shrink: 0;">
-                    <button class="fluent-filter-btn active" data-filter="all" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 4px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">All</button>
-                    <button class="fluent-filter-btn" data-filter="M" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 4px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Male</button>
-                    <button class="fluent-filter-btn" data-filter="F" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 4px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Female</button>
-                    <button class="fluent-filter-btn" data-filter="roots" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 4px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Roots</button>
+                    <button class="fluent-filter-btn active" data-filter="all" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">All</button>
+                    <button class="fluent-filter-btn" data-filter="M" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Male</button>
+                    <button class="fluent-filter-btn" data-filter="F" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Female</button>
+                    <button class="fluent-filter-btn" data-filter="roots" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Roots</button>
                   </div>
                 </div>
                 <div class="canvas-controls-right" style="display: flex; align-items: center; gap: 6px;">
@@ -473,8 +472,8 @@
                   <option value="connected">Has Parents</option>
                 </select>
               </div>
-              <button id="btn-grid-clear-filters" class="fluent-btn btn-secondary">Reset Filters</button>
-              <button id="btn-grid-delete-selected" class="fluent-btn btn-danger" style="margin-left: 12px; display: flex; align-items: center; gap: 8px;" disabled>
+              <button id="btn-grid-clear-filters" class="fluent-btn btn-secondary" style="height: 32px; padding: 0 16px; border-radius: 6px; box-sizing: border-box; font-size: 13px;">Reset Filters</button>
+              <button id="btn-grid-delete-selected" class="fluent-btn btn-danger" style="margin-left: 12px; height: 32px; padding: 0 16px; border-radius: 6px; box-sizing: border-box; font-size: 13px; display: flex; align-items: center; gap: 8px;" disabled>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                 Delete Selected
               </button>
@@ -569,6 +568,17 @@
                   </div>
                 </div>
 
+                <div class="form-group-row">
+                  <div class="form-control flex-1">
+                    <label for="input-person-birth">Birth Year <span class="optional">(Optional)</span></label>
+                    <input type="number" id="input-person-birth" placeholder="e.g. 1920">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-person-death">Death Year <span class="optional">(Optional)</span></label>
+                    <input type="number" id="input-person-death" placeholder="e.g. 1995 (leave empty if alive)">
+                  </div>
+                </div>
+
                 <div class="form-control">
                   <label for="input-person-photo">Photo <span class="optional">(Optional)</span></label>
                   <div style="display: flex; gap: 8px;">
@@ -621,20 +631,7 @@
                   </button>
                 </div>
 
-                <!-- Custom ID Syntax Tutorial Guide -->
-                <div class="parser-syntax-help" style="margin: 10px 0; padding: 12px; border-radius: 6px; border: 1px solid var(--win-border-light); background: rgba(96, 205, 255, 0.05); font-size: 11.5px; line-height: 1.55;">
-                  <div style="font-weight: 600; color: var(--win-accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                    <span>💡 Custom ID Formatting Guide:</span>
-                  </div>
-                  <div style="display: flex; flex-direction: column; gap: 6px; color: var(--win-text-secondary);">
-                    <div>• <strong>Linear Chain Delimiters:</strong> Prefix names with a parenthesized <code>(id)</code> or bracketed <code>[id]</code> (must contain at least one digit or hyphen-digit):
-                      <br><span style="color:var(--win-text-primary); font-family:monospace; background:rgba(0,0,0,0.15); padding:2px 5px; border-radius:3px; display:inline-block; margin-top:2px;">(dd5ssd) john son of (f1) ahmad</span>
-                    </div>
-                    <div>• <strong>CSV Format Fields:</strong> Put the ID in the first column (digit-checked to separate it from pure names):
-                      <br><span style="color:var(--win-text-primary); font-family:monospace; background:rgba(0,0,0,0.15); padding:2px 5px; border-radius:3px; display:inline-block; margin-top:2px;">55df, john, ahmad</span> or <span style="color:var(--win-text-primary); font-family:monospace; background:rgba(0,0,0,0.15); padding:2px 5px; border-radius:3px; display:inline-block; margin-top:2px;">1, john, ahmad</span> or <span style="color:var(--win-text-primary); font-family:monospace; background:rgba(0,0,0,0.15); padding:2px 5px; border-radius:3px; display:inline-block; margin-top:2px;">aaaaa-aaa-a1, john, ahmad</span>
-                    </div>
-                  </div>
-                </div>
+
                 
                 <div class="form-control text-area-wrapper">
                   <textarea id="textarea-bulk" rows="8" placeholder="Format options:
@@ -662,7 +659,7 @@ Examples:
                 
                 <div class="form-actions-right mt-15" style="gap: 8px; justify-content: flex-end; display: flex;">
                   <button id="btn-import-mock-giant" class="fluent-btn btn-secondary">
-                    🌳 Load 1,000+ Mock Tree
+                    🌳 Load 2,000+ Mock Tree
                   </button>
                   <button id="btn-import-mock-giant-100k" class="fluent-btn btn-solid bg-blue text-white">
                     🚀 Load 100,000 Mock Tree
@@ -820,6 +817,109 @@ Examples:
                     </div>
                   </div>
                   
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: V8 Advanced Features -->
+            <div class="fluent-card settings-section">
+              <div class="settings-section-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
+                <span class="settings-section-icon" style="font-size: 24px;">⚡</span>
+                <div class="settings-section-text">
+                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">V8 Advanced Features</h2>
+                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Toggle radar maps, story mode, and advanced analytics.</p>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Radar Map -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Radar Map (Mini-map)</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Show a small overview map of the entire tree.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-radar">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Story Mode -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Story Mode Presentation</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Automatically pan and zoom across key ancestors.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-story">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Heatmap -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Lifespan Heatmap</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Color-code canvas nodes based on lifespan duration.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-heatmap">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Command Palette -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Command Palette (Ctrl+K)</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Enable keyboard shortcut to trigger the commands panel.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-palette" checked>
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Sound Effects -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Interface Sound Effects</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Play fluid, soft audio tones on button clicks.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-sounds" checked>
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Generational Timeline -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Generational Timeline guides</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Draw horizontal/vertical guidelines behind canvas generations.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-timeline">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Poster -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Export High-Res Poster</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Save the entire canvas as a giant image file.</div>
+                  </div>
+                  <button class="fluent-btn btn-secondary" id="btn-v8-poster" style="padding: 4px 12px;">Export PNG</button>
+                </div>
+
+                <!-- Stats -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Family Statistics</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">View detailed demographic charts.</div>
+                  </div>
+                  <button class="fluent-btn btn-secondary" id="btn-v8-stats" style="padding: 4px 12px;">View Stats</button>
                 </div>
               </div>
             </div>
@@ -985,6 +1085,17 @@ Examples:
             <input type="text" id="edit-person-spouse" placeholder="e.g. Mary, Jane">
           </div>
 
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="edit-person-birth">Birth Year <span class="optional">(Optional)</span></label>
+              <input type="number" id="edit-person-birth" placeholder="e.g. 1920">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-person-death">Death Year <span class="optional">(Optional)</span></label>
+              <input type="number" id="edit-person-death" placeholder="e.g. 1995 (leave empty if alive)">
+            </div>
+          </div>
+
           <div class="form-control">
             <label for="edit-person-photo">Photo <span class="optional">(Optional)</span></label>
             <div style="display: flex; gap: 8px;">
@@ -1091,6 +1202,43 @@ Examples:
         </div>
         <div class="form-actions-right">
           <button id="btn-conflict-cancel" class="fluent-btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RELATIONSHIP PATH FINDER DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-v8-pathfinder" class="fluent-modal-overlay hidden" style="z-index: 10000;">
+    <div class="fluent-modal-card" style="width: 500px; padding: 24px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔍 Find Relationship Path</h3>
+        <button id="btn-close-pathfinder" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+        <p class="modal-subtitle" style="font-size: 12px; margin-bottom: 5px;">Search and select two family members to calculate the shortest relationship path between them.</p>
+        
+        <div class="form-control" style="position: relative;">
+          <label>Start Member</label>
+          <input type="text" id="path-start-input" placeholder="Type to search start member..." autocomplete="off">
+          <div id="path-start-suggestions" class="suggestions-dropdown hidden" style="position: absolute; width: 100%; z-index: 1010; max-height: 150px; overflow-y: auto;"></div>
+          <input type="hidden" id="path-start-id">
+        </div>
+
+        <div class="form-control" style="position: relative;">
+          <label>End Member</label>
+          <input type="text" id="path-end-input" placeholder="Type to search target member..." autocomplete="off">
+          <div id="path-end-suggestions" class="suggestions-dropdown hidden" style="position: absolute; width: 100%; z-index: 1010; max-height: 150px; overflow-y: auto;"></div>
+          <input type="hidden" id="path-end-id">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+          <button id="btn-pathfinder-clear" class="fluent-btn btn-secondary">Clear</button>
+          <button id="btn-pathfinder-calculate" class="fluent-btn btn-solid">Find Path</button>
+        </div>
+
+        <div id="path-results-container" class="hidden" style="margin-top: 15px; padding: 12px; border-radius: 6px; border: 1px solid var(--win-border-light); background: rgba(0,0,0,0.02);">
+          <h4 style="font-size: 12.5px; font-weight: 600; margin-bottom: 8px; color: var(--win-accent);">Shortest Connection Path:</h4>
+          <div id="path-results-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
       </div>
     </div>

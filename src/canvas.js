@@ -515,11 +515,96 @@ export class LineageCanvas {
     this.ctx.translate(this.panX, this.panY);
     this.ctx.scale(this.zoom, this.zoom);
 
+    // Draw Generational Timeline background guides
+    this.drawGenerationalTimeline();
+
     // Render connection paths
     this.drawConnections();
 
     // Render card nodes
     this.drawNodes();
+
+    this.ctx.restore();
+
+    // Update Radar Map if active
+    if (window.App && window.App.v8) {
+      const radarToggle = document.getElementById('toggle-v8-radar');
+      if (radarToggle && radarToggle.checked) {
+        window.App.v8.drawActualMinimap();
+      }
+    }
+  }
+
+  // Draw generational background timeline lines
+  drawGenerationalTimeline() {
+    const timelineToggle = document.getElementById('toggle-v8-timeline');
+    if (!timelineToggle || !timelineToggle.checked) return;
+
+    // Get all active layers from current nodes
+    const activeLayers = [...new Set(this.nodes.map(n => n.layerIdx))].sort((a, b) => a - b);
+    if (activeLayers.length === 0) return;
+
+    const isDark = document.body.classList.contains('theme-dark');
+    this.ctx.save();
+    
+    // Set dashed line style
+    this.ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([6, 4]);
+
+    // Label style
+    this.ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)';
+    this.ctx.font = 'bold 10px Outfit, sans-serif';
+
+    // Find the world bounds of the screen to draw the lines across the entire viewport
+    const viewWidth = this.canvas.clientWidth;
+    const viewHeight = this.canvas.clientHeight;
+    
+    const wLeft = -this.panX / this.zoom;
+    const wRight = (viewWidth - this.panX) / this.zoom;
+    const wTop = -this.panY / this.zoom;
+    const wBottom = (viewHeight - this.panY) / this.zoom;
+
+    activeLayers.forEach(layerIdx => {
+      let label = '';
+      if (this.isWorldMode) {
+        label = `Generation ${layerIdx}`;
+      } else {
+        if (layerIdx === 0) label = 'Focus Generation';
+        else if (layerIdx === -1) label = 'Parents';
+        else if (layerIdx === -2) label = 'Grandparents';
+        else if (layerIdx === -3) label = 'Great-Grandparents';
+        else if (layerIdx === -4) label = 'G-G-Grandparents';
+        else if (layerIdx === 1) label = 'Children';
+        else if (layerIdx === 2) label = 'Grandchildren';
+        else if (layerIdx === 3) label = 'Great-Grandchild';
+        else if (layerIdx === 4) label = 'G-G-Grandchildren';
+        else label = `Generation ${layerIdx > 0 ? '+' : ''}${layerIdx}`;
+      }
+
+      this.ctx.beginPath();
+      if (this.layoutDirection === 'vertical') {
+        const y = layerIdx * this.levelSpacingY + this.nodeHeight / 2;
+        this.ctx.moveTo(wLeft, y);
+        this.ctx.lineTo(wRight, y);
+        this.ctx.stroke();
+
+        // Draw label text slightly above the line
+        this.ctx.fillText(label.toUpperCase(), wLeft + 20, y - 6);
+      } else {
+        const x = layerIdx * this.levelSpacingY + this.nodeWidth / 2;
+        this.ctx.moveTo(x, wTop);
+        this.ctx.lineTo(x, wBottom);
+        this.ctx.stroke();
+
+        // Draw label text rotated
+        this.ctx.save();
+        this.ctx.translate(x - 6, wTop + 20);
+        this.ctx.rotate(-Math.PI / 2);
+        this.ctx.fillText(label.toUpperCase(), 0, 0);
+        this.ctx.restore();
+      }
+    });
 
     this.ctx.restore();
   }
@@ -669,10 +754,47 @@ export class LineageCanvas {
 
       // Card Fill
       let fillColor = isDark ? '#2d2d2d' : '#ffffff';
-      if (isFocus) {
-        fillColor = isDark ? '#2d2d2d' : '#ffffff';
-      } else if (isHovered) {
-        fillColor = isDark ? '#383838' : '#fafafa';
+      const heatmapToggle = document.getElementById('toggle-v8-heatmap');
+      const isHeatmapActive = heatmapToggle && heatmapToggle.checked;
+      
+      if (isHeatmapActive) {
+        let lifespan = 75; // Default fallback lifespan
+        
+        if (p.birthYear && p.deathYear) {
+          lifespan = p.deathYear - p.birthYear;
+        } else if (p.birthYear) {
+          // If alive, calculate up to current year
+          const currentYear = new Date().getFullYear();
+          lifespan = currentYear - p.birthYear;
+        } else {
+          // Deterministic fallback based on ID hash
+          let hash = 0;
+          const idStr = String(p.id);
+          for (let i = 0; i < idStr.length; i++) {
+            hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          lifespan = 40 + Math.abs(hash % 50); // Fallback between 40 and 90 years
+        }
+        
+        // Clamp lifespan between 0 and 100
+        lifespan = Math.max(0, Math.min(100, lifespan));
+        
+        // Hue: 0 (coral/red) to 200 (teal/blue)
+        const hue = (lifespan / 100) * 200;
+        const sat = isDark ? '40%' : '75%';
+        const light = isDark ? '25%' : '90%';
+        fillColor = `hsl(${hue}, ${sat}, ${light})`;
+        
+        if (isHovered) {
+          const hoverLight = isDark ? '32%' : '84%';
+          fillColor = `hsl(${hue}, ${sat}, ${hoverLight})`;
+        }
+      } else {
+        if (isFocus) {
+          fillColor = isDark ? '#2d2d2d' : '#ffffff';
+        } else if (isHovered) {
+          fillColor = isDark ? '#383838' : '#fafafa';
+        }
       }
 
       // Draw rounded card rectangle

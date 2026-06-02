@@ -561,6 +561,8 @@ export class FamilyTreeUI {
           document.getElementById('edit-person-gender').value = p.gender;
           document.getElementById('edit-person-spouse').value = p.spouses ? p.spouses.join(', ') : '';
           document.getElementById('edit-person-photo').value = p.photo || '';
+          document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null ? p.birthYear : '';
+          document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null ? p.deathYear : '';
           document.getElementById('edit-father-name').value = p.fatherName || '';
           document.getElementById('edit-mother-name').value = p.motherName || '';
           document.getElementById('edit-grandfather-name').value = p.grandfatherName || '';
@@ -588,6 +590,8 @@ export class FamilyTreeUI {
       const gender = document.getElementById('edit-person-gender').value;
       const spouses = document.getElementById('edit-person-spouse').value;
       const photo = document.getElementById('edit-person-photo').value;
+      const birthYear = document.getElementById('edit-person-birth').value;
+      const deathYear = document.getElementById('edit-person-death').value;
       const fatherName = document.getElementById('edit-father-name').value;
       const motherName = document.getElementById('edit-mother-name').value;
       const grandfatherName = document.getElementById('edit-grandfather-name').value;
@@ -606,7 +610,7 @@ export class FamilyTreeUI {
           type: 'edit',
           oldId: id,
           newId: newId,
-          data: { name, gender, spouses, photo, fatherName, motherName, grandfatherName }
+          data: { name, gender, spouses, photo, fatherName, motherName, grandfatherName, birthYear, deathYear }
         };
         
         document.getElementById('modal-id-conflict-choice').classList.remove('hidden');
@@ -618,7 +622,7 @@ export class FamilyTreeUI {
         this.engine.renamePersonId(id, newId);
       }
 
-      const p = this.engine.modifyPerson(newId, { name, gender, spouses, photo, fatherName, motherName, grandfatherName });
+      const p = this.engine.modifyPerson(newId, { name, gender, spouses, photo, fatherName, motherName, grandfatherName, birthYear, deathYear });
       if (p) {
         document.getElementById('modal-member-edit').classList.add('hidden');
         
@@ -806,6 +810,91 @@ export class FamilyTreeUI {
         }
       });
     }
+
+    // V8 Pathfinder Event Bindings
+    const startInput = document.getElementById('path-start-input');
+    const startSuggestions = document.getElementById('path-start-suggestions');
+    if (startInput && startSuggestions) {
+      startInput.addEventListener('input', () => {
+        this.handleCanvasSearchInput('path-start-input', 'path-start-suggestions', (id) => {
+          const p = this.engine.getPerson(id);
+          if (p) {
+            startInput.value = p.name;
+            document.getElementById('path-start-id').value = p.id;
+          }
+        });
+      });
+      startInput.addEventListener('focus', () => {
+        if (startInput.value.trim().length > 0) {
+          startSuggestions.classList.remove('hidden');
+        }
+      });
+    }
+
+    const endInput = document.getElementById('path-end-input');
+    const endSuggestions = document.getElementById('path-end-suggestions');
+    if (endInput && endSuggestions) {
+      endInput.addEventListener('input', () => {
+        this.handleCanvasSearchInput('path-end-input', 'path-end-suggestions', (id) => {
+          const p = this.engine.getPerson(id);
+          if (p) {
+            endInput.value = p.name;
+            document.getElementById('path-end-id').value = p.id;
+          }
+        });
+      });
+      endInput.addEventListener('focus', () => {
+        if (endInput.value.trim().length > 0) {
+          endSuggestions.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Hide path suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (startInput && startSuggestions && !startInput.contains(e.target) && !startSuggestions.contains(e.target)) {
+        startSuggestions.classList.add('hidden');
+      }
+      if (endInput && endSuggestions && !endInput.contains(e.target) && !endSuggestions.contains(e.target)) {
+        endSuggestions.classList.add('hidden');
+      }
+    });
+
+    const pathfinderModal = document.getElementById('modal-v8-pathfinder');
+    const btnClosePathfinder = document.getElementById('btn-close-pathfinder');
+    if (btnClosePathfinder && pathfinderModal) {
+      btnClosePathfinder.addEventListener('click', () => {
+        pathfinderModal.classList.add('hidden');
+      });
+      pathfinderModal.addEventListener('click', (e) => {
+        if (e.target.id === 'modal-v8-pathfinder') {
+          pathfinderModal.classList.add('hidden');
+        }
+      });
+    }
+
+    const btnPathfinderClear = document.getElementById('btn-pathfinder-clear');
+    if (btnPathfinderClear) {
+      btnPathfinderClear.addEventListener('click', () => {
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
+        const startIdEl = document.getElementById('path-start-id');
+        if (startIdEl) startIdEl.value = '';
+        const endIdEl = document.getElementById('path-end-id');
+        if (endIdEl) endIdEl.value = '';
+        const resContainer = document.getElementById('path-results-container');
+        if (resContainer) resContainer.classList.add('hidden');
+        const resList = document.getElementById('path-results-list');
+        if (resList) resList.innerHTML = '';
+      });
+    }
+
+    const btnPathfinderCalculate = document.getElementById('btn-pathfinder-calculate');
+    if (btnPathfinderCalculate) {
+      btnPathfinderCalculate.addEventListener('click', () => {
+        this.calculateRelationshipPath();
+      });
+    }
   }
 
   // Initialize Canvas instance once Explorer tab becomes active
@@ -836,12 +925,22 @@ export class FamilyTreeUI {
   initTheme() {
     const savedTheme = localStorage.getItem('family-tree-theme');
     let useDark = false;
-    if (savedTheme) {
+    if (savedTheme && savedTheme !== 'auto') {
       useDark = savedTheme === 'dark';
     } else {
       useDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     this.setTheme(useDark ? 'dark' : 'light');
+
+    // Setup OS native theme listener for auto-sync
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        const currentSavedTheme = localStorage.getItem('family-tree-theme');
+        if (!currentSavedTheme || currentSavedTheme === 'auto') {
+          this.setTheme(e.matches ? 'dark' : 'light');
+        }
+      });
+    }
   }
 
   setTheme(theme) {
@@ -1379,6 +1478,8 @@ export class FamilyTreeUI {
     const gender = document.getElementById('input-person-gender').value;
     const spouse = document.getElementById('input-person-spouse').value;
     const photo = document.getElementById('input-person-photo').value;
+    const birthYear = document.getElementById('input-person-birth').value;
+    const deathYear = document.getElementById('input-person-death').value;
     const father = document.getElementById('input-father-name').value;
     const mother = document.getElementById('input-mother-name').value;
     const grandfather = document.getElementById('input-grandfather-name').value;
@@ -1391,7 +1492,9 @@ export class FamilyTreeUI {
       grandfatherName: grandfather,
       gender,
       spouse,
-      photo
+      photo,
+      birthYear,
+      deathYear
     });
 
     if (p) {
@@ -1427,7 +1530,7 @@ export class FamilyTreeUI {
   triggerMockGeneration() {
     this.showConfirm(
       "Generate Mock Tree?",
-      "Generating 1,000+ members will wipe any manual entries. Proceed?",
+      "Generating 2,000+ members will wipe any manual entries. Proceed?",
       () => {
         // Fast loading visual feedback
         const btn = document.getElementById('btn-dash-import-mock');
@@ -1757,7 +1860,7 @@ export class FamilyTreeUI {
     genderBadge.className = `gender-badge ${p.gender === 'M' ? 'male' : 'female'}`;
     
     document.getElementById('detail-gen-badge').innerText = `Gen ${gen}`;
-    document.getElementById('detail-full-name').innerText = p.name;
+    document.getElementById('detail-full-name').innerText = p.name + (p.birthYear !== undefined && p.birthYear !== null ? ` (${p.birthYear} - ${p.deathYear || 'Present'})` : '');
     document.getElementById('detail-id').innerText = p.id;
     
     const photoEl = document.getElementById('detail-photo');
@@ -2099,5 +2202,112 @@ export class FamilyTreeUI {
 
     this.refreshAllUI();
     this.pendingConflictAction = null;
+  }
+
+  showPathfinderModal() {
+    // Reset path finder inputs
+    const startInput = document.getElementById('path-start-input');
+    const endInput = document.getElementById('path-end-input');
+    if (startInput) startInput.value = '';
+    if (endInput) endInput.value = '';
+    const startIdEl = document.getElementById('path-start-id');
+    if (startIdEl) startIdEl.value = '';
+    const endIdEl = document.getElementById('path-end-id');
+    if (endIdEl) endIdEl.value = '';
+    const resContainer = document.getElementById('path-results-container');
+    if (resContainer) resContainer.classList.add('hidden');
+    const resList = document.getElementById('path-results-list');
+    if (resList) resList.innerHTML = '';
+
+    // Show modal
+    const pathfinderModal = document.getElementById('modal-v8-pathfinder');
+    if (pathfinderModal) {
+      pathfinderModal.classList.remove('hidden');
+    }
+  }
+
+  calculateRelationshipPath() {
+    const startId = document.getElementById('path-start-id').value;
+    const endId = document.getElementById('path-end-id').value;
+    const startVal = document.getElementById('path-start-input').value.trim();
+    const endVal = document.getElementById('path-end-input').value.trim();
+
+    const resContainer = document.getElementById('path-results-container');
+    const resList = document.getElementById('path-results-list');
+    if (!resContainer || !resList) return;
+
+    if (!startId || !endId || !startVal || !endVal) {
+      this.showNotification("Please select both start and end members from suggestions.", "warning");
+      return;
+    }
+
+    const path = this.engine.findRelationshipPath(startId, endId);
+
+    resContainer.classList.remove('hidden');
+    resList.innerHTML = '';
+
+    if (!path || path.length === 0) {
+      resList.innerHTML = `<div style="font-size:12px; color:var(--win-text-secondary); padding:5px 0; text-align:center;">No relationship connection path found between these members.</div>`;
+      return;
+    }
+
+    // Render path list
+    path.forEach((personId, index) => {
+      const p = this.engine.getPerson(personId);
+      if (!p) return;
+      
+      const item = document.createElement('div');
+      item.style.display = 'flex';
+      item.style.alignItems = 'center';
+      item.style.justifyContent = 'space-between';
+      item.style.padding = '8px 12px';
+      item.style.borderRadius = '4px';
+      item.style.background = 'var(--win-card-bg)';
+      item.style.border = '1px solid var(--win-border-light)';
+      
+      let stepLabel = '';
+      if (index === 0) {
+        stepLabel = '<span style="font-size:9px; font-weight:bold; color:var(--win-accent); text-transform:uppercase;">Start</span>';
+      } else if (index === path.length - 1) {
+        stepLabel = '<span style="font-size:9px; font-weight:bold; color:var(--win-accent); text-transform:uppercase;">End</span>';
+      } else {
+        stepLabel = `<span style="font-size:9px; color:var(--win-text-secondary);">Step ${index}</span>`;
+      }
+
+      item.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+          <span style="font-size:12.5px; font-weight:600; color:var(--win-text-primary);">${p.name}</span>
+          <span style="font-size:10px; color:var(--win-text-secondary);">ID: ${p.id}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${stepLabel}
+          <span class="row-gender-badge badge-${p.gender}" style="font-size:9px; font-weight:bold; padding:2px 6px; border-radius:10px;">${p.gender}</span>
+        </div>
+      `;
+
+      item.style.cursor = 'pointer';
+      item.title = 'Make Focus in Explorer';
+      item.addEventListener('click', () => {
+        this.setFocusPerson(p.id);
+        this.switchTab('explorer');
+        document.getElementById('modal-v8-pathfinder').classList.add('hidden');
+        if (this.canvas) {
+          this.canvas.centerOnNode(p.id);
+        }
+      });
+
+      resList.appendChild(item);
+
+      // Add connection arrow between items
+      if (index < path.length - 1) {
+        const arrow = document.createElement('div');
+        arrow.style.textAlign = 'center';
+        arrow.style.color = 'var(--win-text-disabled)';
+        arrow.style.fontSize = '12px';
+        arrow.style.margin = '2px 0';
+        arrow.innerHTML = '⇅';
+        resList.appendChild(arrow);
+      }
+    });
   }
 }

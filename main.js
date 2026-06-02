@@ -52,10 +52,10 @@ ipcMain.handle('db-all', (event, sql, params = []) => {
 });
 
 ipcMain.handle('db-batch', (event, persons) => {
-  const stmt = db.prepare(`INSERT OR REPLACE INTO people (id, name, gender, spouses, fatherId, fatherName, motherId, motherName, grandfatherName, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '')`);
+  const stmt = db.prepare(`INSERT OR REPLACE INTO people (id, name, gender, spouses, fatherId, fatherName, motherId, motherName, grandfatherName, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
   const insertMany = db.transaction((personsList) => {
     for (const p of personsList) {
-      stmt.run(p.id, p.name, p.gender, JSON.stringify(p.spouses || []), p.fatherId || '', p.fatherName || '', p.motherId || '', p.motherName || '', p.grandfatherName || '', p.photo || '');
+      stmt.run(p.id, p.name, p.gender, JSON.stringify(p.spouses || []), p.fatherId || '', p.fatherName || '', p.motherId || '', p.motherName || '', p.grandfatherName || '', p.photo || '', p.notes || '');
     }
   });
   insertMany(persons);

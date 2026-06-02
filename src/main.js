@@ -5,6 +5,7 @@
 import './style.css';
 import { FamilyTreeEngine } from './engine.js';
 import { FamilyTreeUI } from './ui.js';
+import { V8Features } from './v8-features.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // 1. Instantiate Core Engine
@@ -18,10 +19,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 2. Instantiate View Controller UI
   const ui = new FamilyTreeUI(engine);
 
+  // 2.5 Instantiate V8 Surprise Features
+  const v8 = new V8Features(ui, ui.canvas);
+
   // 3. Attach globally for debugging/fast console tweaks if needed
   window.App = {
     engine,
-    ui
+    ui,
+    v8
   };
 
   // 4. Initial UI repaint (loads elements and statistics charts)
