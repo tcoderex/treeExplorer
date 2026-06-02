@@ -1,0 +1,50 @@
+{
+  "name": "win11-family-tree",
+  "version": "1.0.0",
+  "description": "Windows 11 styled family tree explorer for handling 1000+ members",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:start": "electron .",
+    "build:exe": "vite build && electron-builder --dir"
+  },
+  "keywords": [
+    "family-tree",
+    "windows-11",
+    "fluent",
+    "genealogy"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2",
+    "vite": "^5.3.1"
+  },
+  "build": {
+    "appId": "com.win11.familytree",
+    "productName": "Windows Family Tree Explorer",
+    "win": {
+      "target": [
+        "dir",
+        "zip"
+      ]
+    },
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ]
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.10.0"
+  }
+}
