@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Windows Family Tree Explorer - Loading</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f3f3f3;
+      font-family: 'Outfit', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .theme-dark {
+      background-color: #202020;
+      color: #ffffff;
+    }
+
+    .app-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .app-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1f1f1f;
+      margin-bottom: 8px;
+    }
+
+    .theme-dark .app-title {
+      color: #ffffff;
+    }
+
+    .app-subtitle {
+      font-size: 14px;
+      color: #666666;
+      margin-bottom: 40px;
+    }
+
+    .theme-dark .app-subtitle {
+      color: #aaaaaa;
+    }
+
+    /* Windows 11 style loading dots */
+    .fluent-loader {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #0078d4;
+      animation: fluent-bounce 1.5s infinite cubic-bezier(0.2, 0.6, 0.4, 1);
+    }
+
+    .theme-dark .dot {
+      background-color: #60cdff;
+    }
+
+    .dot:nth-child(1) { animation-delay: 0s; }
+    .dot:nth-child(2) { animation-delay: 0.1s; }
+    .dot:nth-child(3) { animation-delay: 0.2s; }
+    .dot:nth-child(4) { animation-delay: 0.3s; }
+    .dot:nth-child(5) { animation-delay: 0.4s; }
+
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes fluent-bounce {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50% { transform: translateY(-8px); opacity: 1; }
+    }
+  </style>
+  <script>
+    // Apply theme from localStorage before render to prevent flash
+    const savedTheme = localStorage.getItem('family-tree-theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.body.classList.add('theme-dark');
+    }
+  </script>
+</head>
+<body>
+  <div class="app-icon">🌳</div>
+  <div class="app-title">Windows Family Tree Explorer</div>
+  <div class="app-subtitle">Initializing workspace...</div>
+  <div class="fluent-loader">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</body>
+</html>

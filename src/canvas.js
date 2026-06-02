@@ -35,6 +35,9 @@ export class LineageCanvas {
     this.layoutDirection = 'vertical'; // 'vertical' or 'horizontal'
     this.filterType = 'all'; // 'all', 'M', 'F', 'roots'
     this.searchQuery = '';
+    
+    // Photo Image Cache
+    this.imageCache = new Map();
 
     // Initialize Event Listeners
     this.initEvents();
@@ -90,9 +93,27 @@ export class LineageCanvas {
         const pos = this.getMousePos(e);
         const prevHover = this.hoverNode;
         this.hoverNode = this.getNodeAtPosition(pos.x, pos.y);
+        
+        const prevPhotoHover = this.hoverPhotoNode;
+        this.hoverPhotoNode = null;
 
-        if (prevHover !== this.hoverNode) {
-          this.canvas.style.cursor = this.hoverNode ? 'pointer' : 'grab';
+        if (this.hoverNode) {
+          // Check if mouse is exactly over the photo circle (cx = x+24, cy = y+30, r = 14)
+          // scaled by zoom and pan
+          const cx = this.hoverNode.x * this.zoom + this.panX + 24 * this.zoom;
+          const cy = this.hoverNode.y * this.zoom + this.panY + 30 * this.zoom;
+          const r = 14 * this.zoom;
+          
+          const dx = pos.x - cx;
+          const dy = pos.y - cy;
+          
+          if (dx * dx + dy * dy <= r * r) {
+            this.hoverPhotoNode = this.hoverNode;
+          }
+        }
+
+        if (prevHover !== this.hoverNode || prevPhotoHover !== this.hoverPhotoNode) {
+          this.canvas.style.cursor = (this.hoverNode || this.hoverPhotoNode) ? 'pointer' : 'grab';
           this.draw();
         }
       }
@@ -617,6 +638,7 @@ export class LineageCanvas {
       const p = node.person;
       const isFocus = node.id === this.focusPersonId;
       const isHovered = this.hoverNode && this.hoverNode.id === node.id;
+      const isPhotoHovered = this.hoverPhotoNode && this.hoverPhotoNode.id === node.id;
       const isDark = document.body.classList.contains('theme-dark');
 
       // Update screen coordinates for click collision lookups
@@ -678,6 +700,72 @@ export class LineageCanvas {
         this.ctx.stroke();
       }
 
+      // Render Photo Avatar if exists
+      const textOffsetX = p.photo ? 46 : 16;
+      if (p.photo) {
+        if (!this.imageCache.has(p.photo)) {
+          const img = new Image();
+          img.src = p.photo;
+          img.onload = () => {
+            this.imageCache.set(p.photo, img);
+            this.draw(); // Trigger redraw when image loads
+          };
+          img.onerror = () => {
+            this.imageCache.set(p.photo, 'error'); // Mark as error so we don't retry forever
+          };
+          this.imageCache.set(p.photo, 'loading');
+        }
+
+        const img = this.imageCache.get(p.photo);
+        
+        let zoom = 1.0;
+        if (isPhotoHovered) {
+          if (!node.photoZoom) node.photoZoom = 1.0;
+          if (node.photoZoom < 3.0) {
+            node.photoZoom += 0.15;
+            requestAnimationFrame(() => this.draw());
+          }
+          zoom = node.photoZoom;
+        } else {
+          if (node.photoZoom && node.photoZoom > 1.0) {
+            node.photoZoom -= 0.15;
+            if (node.photoZoom < 1.0) node.photoZoom = 1.0;
+            requestAnimationFrame(() => this.draw());
+          }
+          zoom = node.photoZoom || 1.0;
+        }
+
+        const radius = 14 * zoom;
+        const dia = 28 * zoom;
+        const cx = node.x + 24;
+        const cy = node.y + 30;
+
+        if (img instanceof Image) {
+          this.ctx.save();
+          
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          this.ctx.closePath();
+          
+          // Outer accent ring for hovered photo
+          if (isPhotoHovered) {
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeStyle = isDark ? '#60cdff' : '#0078d4';
+            this.ctx.stroke();
+          }
+
+          this.ctx.clip();
+          this.ctx.drawImage(img, cx - radius, cy - radius, dia, dia);
+          this.ctx.restore();
+        } else {
+          // Placeholder circular skeleton while loading or on error
+          this.ctx.fillStyle = isDark ? '#444' : '#e0e0e0';
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, radius, 0, Math.PI * 2, true);
+          this.ctx.fill();
+        }
+      }
+
       // TEXT DRAWING
       this.ctx.font = 'bold 12px Outfit, sans-serif';
       this.ctx.fillStyle = isDark ? '#ffffff' : '#1f1f1f';
@@ -691,7 +779,7 @@ export class LineageCanvas {
         dispName += '...';
       }
 
-      this.ctx.fillText(dispName, node.x + 16, node.y + 24);
+      this.ctx.fillText(dispName, node.x + textOffsetX, node.y + 24);
 
       // Draw subtitle (Gender label / Spouse / Generation badge)
       this.ctx.font = '500 9px Outfit, sans-serif';
@@ -705,7 +793,7 @@ export class LineageCanvas {
           subtitle += ` • Spouses: ${p.spouses.length}`;
         }
       }
-      this.ctx.fillText(subtitle, node.x + 16, node.y + 39);
+      this.ctx.fillText(subtitle, node.x + textOffsetX, node.y + 39);
 
       // Render mini badge indicating generation relationship to focus
       this.ctx.font = 'bold 7px Outfit, sans-serif';
@@ -726,7 +814,7 @@ export class LineageCanvas {
         else if (node.layerIdx === 4) badgeLabel = 'GREAT-GREAT-GRANDCHILD';
       }
 
-      this.ctx.fillText(badgeLabel, node.x + 16, node.y + 50);
+      this.ctx.fillText(badgeLabel, node.x + textOffsetX, node.y + 50);
 
       this.ctx.restore();
     });

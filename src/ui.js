@@ -35,6 +35,10 @@ export class FamilyTreeUI {
 
     // Initialize Spotlight Tour Driver
     this.tour = new FamilyTreeTour(this);
+
+    // Initialize Web Worker for heavy lifting
+    this.worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+    this.worker.onmessage = (e) => this.handleWorkerMessage(e);
   }
 
   // Modern Windows 11 Fluent Toast Notification Manager
@@ -218,6 +222,52 @@ export class FamilyTreeUI {
 
       this.handleManualAdd();
     });
+
+    // 3.5 Photo Upload Bindings
+    const handlePhotoBrowse = (btnId, fileId, inputId) => {
+      document.getElementById(btnId).addEventListener('click', () => {
+        document.getElementById(fileId).click();
+      });
+      document.getElementById(fileId).addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_SIZE = 300;
+              let width = img.width;
+              let height = img.height;
+              
+              if (width > height) {
+                if (width > MAX_SIZE) {
+                  height *= MAX_SIZE / width;
+                  width = MAX_SIZE;
+                }
+              } else {
+                if (height > MAX_SIZE) {
+                  width *= MAX_SIZE / height;
+                  height = MAX_SIZE;
+                }
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              document.getElementById(inputId).value = compressedBase64;
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    };
+    handlePhotoBrowse('btn-browse-photo', 'file-person-photo', 'input-person-photo');
+    handlePhotoBrowse('btn-edit-browse-photo', 'file-edit-person-photo', 'edit-person-photo');
 
     // 4. Bulk Parser Submission
     document.getElementById('btn-submit-bulk').addEventListener('click', () => this.handleBulkImport());
@@ -510,6 +560,7 @@ export class FamilyTreeUI {
           document.getElementById('edit-person-name').value = p.name;
           document.getElementById('edit-person-gender').value = p.gender;
           document.getElementById('edit-person-spouse').value = p.spouses ? p.spouses.join(', ') : '';
+          document.getElementById('edit-person-photo').value = p.photo || '';
           document.getElementById('edit-father-name').value = p.fatherName || '';
           document.getElementById('edit-mother-name').value = p.motherName || '';
           document.getElementById('edit-grandfather-name').value = p.grandfatherName || '';
@@ -536,6 +587,7 @@ export class FamilyTreeUI {
       const name = document.getElementById('edit-person-name').value;
       const gender = document.getElementById('edit-person-gender').value;
       const spouses = document.getElementById('edit-person-spouse').value;
+      const photo = document.getElementById('edit-person-photo').value;
       const fatherName = document.getElementById('edit-father-name').value;
       const motherName = document.getElementById('edit-mother-name').value;
       const grandfatherName = document.getElementById('edit-grandfather-name').value;
@@ -554,7 +606,7 @@ export class FamilyTreeUI {
           type: 'edit',
           oldId: id,
           newId: newId,
-          data: { name, gender, spouses, fatherName, motherName, grandfatherName }
+          data: { name, gender, spouses, photo, fatherName, motherName, grandfatherName }
         };
         
         document.getElementById('modal-id-conflict-choice').classList.remove('hidden');
@@ -566,7 +618,7 @@ export class FamilyTreeUI {
         this.engine.renamePersonId(id, newId);
       }
 
-      const p = this.engine.modifyPerson(newId, { name, gender, spouses, fatherName, motherName, grandfatherName });
+      const p = this.engine.modifyPerson(newId, { name, gender, spouses, photo, fatherName, motherName, grandfatherName });
       if (p) {
         document.getElementById('modal-member-edit').classList.add('hidden');
         
@@ -1326,6 +1378,7 @@ export class FamilyTreeUI {
     const id = document.getElementById('input-person-id').value;
     const gender = document.getElementById('input-person-gender').value;
     const spouse = document.getElementById('input-person-spouse').value;
+    const photo = document.getElementById('input-person-photo').value;
     const father = document.getElementById('input-father-name').value;
     const mother = document.getElementById('input-mother-name').value;
     const grandfather = document.getElementById('input-grandfather-name').value;
@@ -1337,7 +1390,8 @@ export class FamilyTreeUI {
       motherName: mother,
       grandfatherName: grandfather,
       gender,
-      spouse
+      spouse,
+      photo
     });
 
     if (p) {
@@ -1357,26 +1411,17 @@ export class FamilyTreeUI {
       return;
     }
 
-    const { count, firstId } = this.engine.parseLineageText(text);
-    if (count > 0) {
-      this.showNotification(`Success! Engine successfully parsed and linked ${count} lineage strings.`, "success");
-      textarea.value = '';
-      
-      // Focus on the first parsed primary member to show their complete visual tree
-      if (firstId) {
-        this.setFocusPerson(firstId);
-      } else {
-        const list = this.engine.getAllPeople();
-        if (list.length > 0) {
-          this.setFocusPerson(list[list.length - 1].id);
-        }
-      }
-      
-      this.refreshAllUI();
-      // Stay on the active tab (no switchTab!) as requested by the user
-    } else {
-      this.showNotification("Failed to parse relationships. Check lineage formatting syntax.", "error");
-    }
+    // Show loading UI
+    const btn = document.getElementById('btn-submit-bulk');
+    const originalText = btn.innerText;
+    btn.innerText = '⏳ Parsing...';
+    btn.disabled = true;
+
+    // Send to Web Worker
+    this.worker.postMessage({
+      type: 'PARSE_TEXT',
+      payload: { text }
+    });
   }
 
   triggerMockGeneration() {
@@ -1417,26 +1462,71 @@ export class FamilyTreeUI {
         const overlay = document.getElementById('fluent-loading-overlay');
         if (overlay) overlay.classList.remove('hidden');
 
-        setTimeout(() => {
-          const startTime = performance.now();
-          const size = this.engine.generateGiantMockTree(100000);
-          const endTime = performance.now();
-          console.log(`Generated 100,000 members in ${(endTime - startTime).toFixed(1)}ms`);
-
-          const roots = this.engine.getRoots();
-          if (roots.length > 0) {
-            this.setFocusPerson(roots[0].id);
-          }
-
-          this.refreshAllUI();
-          
-          if (overlay) overlay.classList.add('hidden');
-
-          this.showNotification(`Success! Family Tree Engine populated ${size.toLocaleString()} members in ${(endTime - startTime).toFixed(0)}ms.`, "success");
-          this.switchTab('dashboard');
-        }, 80);
+        this.mockStartTime = performance.now();
+        this.worker.postMessage({
+          type: 'GENERATE_MOCK_GIANT',
+          payload: { size: 100000 }
+        });
       }
     );
+  }
+
+  handleWorkerMessage(e) {
+    const { type, result, count, firstId } = e.data;
+
+    if (type === 'MOCK_GIANT_DONE') {
+      const endTime = performance.now();
+      console.log(`Worker generated 100,000 members in ${(endTime - this.mockStartTime).toFixed(1)}ms`);
+
+      this.engine.clear();
+      result.forEach(p => {
+        this.engine.people.set(p.id, p);
+        this.engine.indexName(p.name, p.id);
+      });
+      this.engine.saveToDB();
+
+      const roots = this.engine.getRoots();
+      if (roots.length > 0) {
+        this.setFocusPerson(roots[0].id);
+      }
+
+      this.refreshAllUI();
+      
+      const overlay = document.getElementById('fluent-loading-overlay');
+      if (overlay) overlay.classList.add('hidden');
+
+      this.showNotification(`Success! Worker populated ${result.length.toLocaleString()} members in ${(endTime - this.mockStartTime).toFixed(0)}ms.`, "success");
+      this.switchTab('dashboard');
+    } 
+    else if (type === 'PARSE_TEXT_DONE') {
+      const btn = document.getElementById('btn-submit-bulk');
+      btn.innerText = '⚡ Parse & Link Text';
+      btn.disabled = false;
+
+      if (count > 0) {
+        this.engine.clear();
+        result.forEach(p => {
+          this.engine.people.set(p.id, p);
+          this.engine.indexName(p.name, p.id);
+        });
+        this.engine.saveToDB();
+
+        this.showNotification(`Success! Worker parsed and linked ${count} lineage strings.`, "success");
+        document.getElementById('textarea-bulk').value = '';
+        
+        if (firstId) {
+          this.setFocusPerson(firstId);
+        } else {
+          const list = this.engine.getAllPeople();
+          if (list.length > 0) {
+            this.setFocusPerson(list[list.length - 1].id);
+          }
+        }
+        this.refreshAllUI();
+      } else {
+        this.showNotification("Failed to parse relationships. Check lineage formatting syntax.", "error");
+      }
+    }
   }
 
   handleExportJSON() {
@@ -1669,7 +1759,14 @@ export class FamilyTreeUI {
     document.getElementById('detail-gen-badge').innerText = `Gen ${gen}`;
     document.getElementById('detail-full-name').innerText = p.name;
     document.getElementById('detail-id').innerText = p.id;
-
+    
+    const photoEl = document.getElementById('detail-photo');
+    if (p.photo) {
+      photoEl.src = p.photo;
+      photoEl.classList.remove('hidden');
+    } else {
+      photoEl.classList.add('hidden');
+    }
     // Parent chains links
     const fatherVal = document.getElementById('detail-father-link');
     if (p.fatherId) {

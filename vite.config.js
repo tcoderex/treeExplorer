@@ -8,6 +8,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          engine: ['./src/engine.js'],
+          canvas: ['./src/canvas.js']
+        }
+      }
+    }
   }
 });

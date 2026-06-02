@@ -1,3 +1,4 @@
+
 import electron from 'electron';
 const { app, BrowserWindow, ipcMain } = electron;
 import path from 'path';
@@ -23,9 +24,16 @@ db.exec(`
     motherId TEXT,
     motherName TEXT,
     grandfatherName TEXT,
+    photo TEXT,
     notes TEXT
   )
 `);
+
+try {
+  db.exec(`ALTER TABLE people ADD COLUMN photo TEXT DEFAULT ''`);
+} catch (e) {
+  // Column likely already exists
+}
 
 // Setup IPC handlers for the database
 ipcMain.handle('db-run', (event, sql, params = []) => {
@@ -44,10 +52,10 @@ ipcMain.handle('db-all', (event, sql, params = []) => {
 });
 
 ipcMain.handle('db-batch', (event, persons) => {
-  const stmt = db.prepare(`INSERT OR REPLACE INTO people (id, name, gender, spouses, fatherId, fatherName, motherId, motherName, grandfatherName, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '')`);
+  const stmt = db.prepare(`INSERT OR REPLACE INTO people (id, name, gender, spouses, fatherId, fatherName, motherId, motherName, grandfatherName, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '')`);
   const insertMany = db.transaction((personsList) => {
     for (const p of personsList) {
-      stmt.run(p.id, p.name, p.gender, JSON.stringify(p.spouses || []), p.fatherId || '', p.fatherName || '', p.motherId || '', p.motherName || '', p.grandfatherName || '');
+      stmt.run(p.id, p.name, p.gender, JSON.stringify(p.spouses || []), p.fatherId || '', p.fatherName || '', p.motherId || '', p.motherName || '', p.grandfatherName || '', p.photo || '');
     }
   });
   insertMany(persons);
@@ -58,8 +66,29 @@ ipcMain.handle('db-exec', (event, sql) => {
 });
 
 let mainWindow;
+let splashWindow;
 
 function createWindow() {
+  // Create Splash Window
+  splashWindow = new BrowserWindow({
+    width: 400,
+    height: 500,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  });
+
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.once('ready-to-show', () => {
+    splashWindow.show();
+  });
+
+  // Create Main Window
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 850,
@@ -73,23 +102,27 @@ function createWindow() {
     },
     show: false,
     title: "Windows Family Tree Explorer",
-    // Premium style
     backgroundColor: '#f3f3f3',
   });
 
-  // Check if we are running in dev mode
-  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  const isDev = process.env.VITE_DEV_SERVER === 'true';
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');
   } else {
     mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
-    // Open DevTools in production to diagnose loading errors
-    mainWindow.webContents.openDevTools();
   }
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+  // Optimize load by showing main window only when the renderer says it's ready
+  ipcMain.once('app-ready', () => {
+    // Artificial 2500ms delay to give the splash screen time to animate
+    setTimeout(() => {
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        splashWindow.close();
+        splashWindow = null;
+      }
+      mainWindow.show();
+    }, 2500);
   });
 
   mainWindow.on('closed', () => {

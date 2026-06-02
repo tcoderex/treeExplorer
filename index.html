@@ -271,7 +271,7 @@
                 </li>
               </ul>
               <div class="diag-actions">
-                <button id="btn-goto-unlinked" class="fluent-btn btn-link">View unlinked members</button>
+                <button id="btn-goto-unlinked" class="fluent-btn btn-secondary">View unlinked members</button>
               </div>
             </div>
           </div>
@@ -283,7 +283,7 @@
               <p>This light edition uses advanced recursive heuristics to parse name paths (e.g., "Ahmad bin Ali bin Hassan"). You can add members individually, import lines in bulk, or use the Mock Generator to instantly populate a massive, interconnected tree with 1,000+ nodes to test our layout capabilities and responsive rendering speed.</p>
               <div class="welcome-buttons">
                 <button id="btn-banner-mock" class="fluent-btn btn-solid">⚡ Load 1000+ Mock Members</button>
-                <button id="btn-banner-add" class="fluent-btn btn-outline">＋ Add First Member</button>
+                <button id="btn-banner-add" class="fluent-btn btn-secondary">+ Add First Member</button>
               </div>
             </div>
             <div class="welcome-graphic">🌳</div>
@@ -473,8 +473,8 @@
                   <option value="connected">Has Parents</option>
                 </select>
               </div>
-              <button id="btn-grid-clear-filters" class="fluent-btn btn-link">Reset Filters</button>
-              <button id="btn-grid-delete-selected" class="fluent-btn btn-outline" style="margin-left: 12px; display: flex; align-items: center; gap: 8px;" disabled>
+              <button id="btn-grid-clear-filters" class="fluent-btn btn-secondary">Reset Filters</button>
+              <button id="btn-grid-delete-selected" class="fluent-btn btn-danger" style="margin-left: 12px; display: flex; align-items: center; gap: 8px;" disabled>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                 Delete Selected
               </button>
@@ -567,6 +567,16 @@
                     <label for="input-person-spouse">Spouse Name <span class="optional">(Optional)</span></label>
                     <input type="text" id="input-person-spouse" placeholder="e.g. Mary, Jane (comma-separated)">
                   </div>
+                </div>
+
+                <div class="form-control">
+                  <label for="input-person-photo">Photo <span class="optional">(Optional)</span></label>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" id="input-person-photo" placeholder="e.g. https://example.com/photo.jpg" style="flex: 1;">
+                    <button type="button" id="btn-browse-photo" class="fluent-btn btn-secondary">Browse...</button>
+                    <input type="file" id="file-person-photo" accept="image/*" style="display: none;">
+                  </div>
+                  <span class="input-helper">Provide a URL or upload a local image to display an avatar on the lineage graph.</span>
                 </div>
 
                 <hr class="form-divider">
@@ -867,8 +877,13 @@ Examples:
       </div>
 
       <div class="modal-body">
-        <h2 id="detail-full-name" class="modal-title">John Robert William</h2>
-        <p class="modal-subtitle">ID: <span id="detail-id">P-12345</span></p>
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+          <img id="detail-photo" class="hidden" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #0078d4;" />
+          <div>
+            <h2 id="detail-full-name" class="modal-title" style="margin-bottom: 0; padding-bottom: 0;">John Robert William</h2>
+            <p class="modal-subtitle">ID: <span id="detail-id">P-12345</span></p>
+          </div>
+        </div>
 
         <div class="modal-tabs">
           <span class="modal-tab-indicator active" id="modal-tab-indicator">Lineage Details</span>
@@ -968,6 +983,16 @@ Examples:
           <div class="form-control">
             <label for="edit-person-spouse">Spouse Name(s) <span class="optional">(Optional, comma-separated)</span></label>
             <input type="text" id="edit-person-spouse" placeholder="e.g. Mary, Jane">
+          </div>
+
+          <div class="form-control">
+            <label for="edit-person-photo">Photo <span class="optional">(Optional)</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="edit-person-photo" placeholder="e.g. https://example.com/photo.jpg" style="flex: 1;">
+              <button type="button" id="btn-edit-browse-photo" class="fluent-btn btn-secondary">Browse...</button>
+              <input type="file" id="file-edit-person-photo" accept="image/*" style="display: none;">
+            </div>
+            <span class="input-helper">Provide a URL or upload a local image to update the member's avatar on the lineage graph.</span>
           </div>
 
           <hr class="form-divider">

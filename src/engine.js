@@ -40,6 +40,7 @@ export class FamilyTreeEngine {
             motherId: row.motherId,
             motherName: row.motherName,
             grandfatherName: row.grandfatherName,
+            photo: row.photo || '',
             children: []
           };
           this.people.set(person.id, person);
@@ -175,7 +176,7 @@ export class FamilyTreeEngine {
 
   // Add or update person
   addPerson(data) {
-    let { id, name, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId } = data;
+    let { id, name, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId, photo } = data;
     
     if (!name) return null;
     name = name.trim();
@@ -273,6 +274,7 @@ export class FamilyTreeEngine {
         this.indexName(name, person.id);
       }
       person.gender = gender;
+      if (photo !== undefined) person.photo = photo.trim();
       
       // Update spouses list
       spouseList.forEach(spName => {
@@ -301,6 +303,7 @@ export class FamilyTreeEngine {
         motherId: '',
         motherName: motherName ? motherName.trim() : '',
         grandfatherName: grandfatherName ? grandfatherName.trim() : '',
+        photo: photo ? photo.trim() : '',
         children: []
       };
       this.people.set(id, person);
@@ -1384,7 +1387,7 @@ export class FamilyTreeEngine {
     if (!this.people.has(id)) return null;
     const person = this.people.get(id);
 
-    let { name, gender, spouses, fatherName, motherName, grandfatherName } = data;
+    let { name, gender, spouses, fatherName, motherName, grandfatherName, photo } = data;
     name = name.trim();
 
     // 1. Update Name & Indexing
@@ -1415,9 +1418,10 @@ export class FamilyTreeEngine {
       this.indexName(name, person.id);
     }
 
-    // 2. Update Gender
+    // 2. Update Gender & Photo
     gender = (gender || 'M').toString().toUpperCase().trim();
     person.gender = gender === 'F' ? 'F' : 'M';
+    if (photo !== undefined) person.photo = photo.trim();
 
     // 3. Update Spouses
     const spouseList = spouses ? spouses.split(',').map(s => s.trim()).filter(Boolean) : [];
