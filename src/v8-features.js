@@ -285,11 +285,104 @@ export class V8Features {
       document.getElementById('v8-export-modal').remove();
     });
 
-    const triggerDownload = (type) => {
+    const loadJsPDF = () => {
+      return new Promise((resolve) => {
+        if (window.jspdf) {
+          resolve(true);
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = './jspdf.umd.min.js';
+        script.onload = () => resolve(!!window.jspdf);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      });
+    };
+
+    const triggerDownload = async (type) => {
       document.getElementById('v8-export-modal').remove();
       
       if (type === 'pdf') {
-        this.ui.showNotification("PDF Export requires additional browser plugins. Please use browser print (Ctrl+P) for now.", "warning");
+        this.ui.showNotification("Checking PDF library status...", "info");
+        const loaded = await loadJsPDF();
+        if (!loaded) {
+          alert(
+            "PDF Plugin Required!\n\n" +
+            "To export a PDF table of all family members, please follow these steps:\n" +
+            "1. Download the jsPDF library from:\n" +
+            "   https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\n" +
+            "2. Save or copy it into the application root folder (where index.html is located) and rename it to exactly 'jspdf.umd.min.js'.\n\n" +
+            "Once you have placed the file in the app folder, try clicking 'Export to PDF' again."
+          );
+          return;
+        }
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          
+          doc.setFontSize(18);
+          doc.text("Family Tree Members List", 14, 20);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Total Records: ${this.ui.engine.people.size} | Generated on: ${new Date().toLocaleDateString()}`, 14, 26);
+          
+          // Table Headers
+          doc.setFont("helvetica", "bold");
+          doc.text("Name", 14, 35);
+          doc.text("Gender", 75, 35);
+          doc.text("Birth", 100, 35);
+          doc.text("Death", 125, 35);
+          doc.text("Birth Place", 150, 35);
+          
+          doc.line(14, 38, 195, 38);
+          
+          // Table Rows
+          let y = 45;
+          const people = Array.from(this.ui.engine.people.values());
+          
+          doc.setFont("helvetica", "normal");
+          people.forEach((person) => {
+            if (y > 275) {
+              doc.addPage();
+              y = 25;
+              
+              // Header on new page
+              doc.setFont("helvetica", "bold");
+              doc.text("Name", 14, y);
+              doc.text("Gender", 75, y);
+              doc.text("Birth", 100, y);
+              doc.text("Death", 125, y);
+              doc.text("Birth Place", 150, y);
+              doc.line(14, y + 3, 195, y + 3);
+              doc.setFont("helvetica", "normal");
+              y += 10;
+            }
+            
+            const name = `${person.firstName || ''} ${person.lastName || ''}`.trim() || 'Unknown';
+            const gender = person.gender === 'M' ? 'Male' : person.gender === 'F' ? 'Female' : 'Unknown';
+            const birth = person.birthYear || '-';
+            const death = person.deathYear || '-';
+            const place = person.birthPlace || '-';
+            
+            const truncatedName = name.length > 30 ? name.substring(0, 27) + '...' : name;
+            const truncatedPlace = place.length > 22 ? place.substring(0, 19) + '...' : place;
+            
+            doc.text(truncatedName, 14, y);
+            doc.text(gender, 75, y);
+            doc.text(String(birth), 100, y);
+            doc.text(String(death), 125, y);
+            doc.text(truncatedPlace, 150, y);
+            
+            y += 7;
+          });
+          
+          doc.save(`Family_Members_Report_${Date.now()}.pdf`);
+          this.ui.showNotification("PDF Report saved successfully!", "success");
+        } catch (err) {
+          console.error(err);
+          this.ui.showNotification("Failed to generate PDF: " + err.message, "error");
+        }
         return;
       }
 
