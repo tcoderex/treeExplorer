@@ -268,13 +268,16 @@ export class V8Features {
       <div id="v8-export-modal" class="fluent-modal-overlay" style="z-index: 10000;">
         <div class="fluent-modal-card" style="width: 400px; padding: 24px;">
           <div class="modal-header">
-            <h2>Export Graphic</h2>
+            <h2>Export Options</h2>
             <button class="fluent-btn btn-secondary close-export">Close</button>
           </div>
           <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
             <button class="fluent-btn btn-primary" id="btn-export-full">Export Full World Map (PNG)</button>
             <button class="fluent-btn btn-primary" id="btn-export-tree">Export Current Tree (PNG)</button>
-            <button class="fluent-btn btn-primary" id="btn-export-pdf">Export to PDF</button>
+            <button class="fluent-btn btn-primary" id="btn-export-pdf">Export to PDF (Normal List)</button>
+            <button class="fluent-btn btn-primary" id="btn-export-pdf-extended">Export to PDF (Extended Profiles)</button>
+            <button class="fluent-btn btn-primary" id="btn-export-csv">Export to CSV</button>
+            <button class="fluent-btn btn-primary" id="btn-export-json">Export to JSON</button>
           </div>
         </div>
       </div>
@@ -302,82 +305,207 @@ export class V8Features {
     const triggerDownload = async (type) => {
       document.getElementById('v8-export-modal').remove();
       
-      if (type === 'pdf') {
+      if (type === 'pdf' || type === 'pdf-extended') {
         this.ui.showNotification("Checking PDF library status...", "info");
-        const loaded = await loadJsPDF();
+        let loaded = await loadJsPDF();
         if (!loaded) {
-          alert(
-            "PDF Plugin Required!\n\n" +
-            "To export a PDF table of all family members, please follow these steps:\n" +
-            "1. Download the jsPDF library from:\n" +
-            "   https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\n" +
-            "2. Save or copy it into the application root folder (where index.html is located) and rename it to exactly 'jspdf.umd.min.js'.\n\n" +
-            "Once you have placed the file in the app folder, try clicking 'Export to PDF' again."
-          );
+          this.ui.showNotification("PDF plugin missing. Downloading and installing automatically...", "info");
+          try {
+            if (window.api && window.api.downloadJsPDF) {
+              const res = await window.api.downloadJsPDF();
+              if (res && res.success) {
+                this.ui.showNotification("PDF plugin installed successfully. Loading...", "success");
+                loaded = await loadJsPDF();
+              } else {
+                throw new Error(res ? res.message : "Failed to download");
+              }
+            } else {
+              throw new Error("Electron context bridge API is not available.");
+            }
+          } catch (e) {
+            console.error("Failed to auto-download PDF plugin:", e);
+            alert("Failed to automatically install the PDF export plugin: " + e.message + "\n\nPlease ensure you have an active internet connection.");
+            return;
+          }
+        }
+
+        if (!loaded) {
+          this.ui.showNotification("Failed to load PDF library after download.", "error");
           return;
         }
 
         try {
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
-          
-          doc.setFontSize(18);
-          doc.text("Family Tree Members List", 14, 20);
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-          doc.text(`Total Records: ${this.ui.engine.people.size} | Generated on: ${new Date().toLocaleDateString()}`, 14, 26);
-          
-          // Table Headers
-          doc.setFont("helvetica", "bold");
-          doc.text("Name", 14, 35);
-          doc.text("Gender", 75, 35);
-          doc.text("Birth", 100, 35);
-          doc.text("Death", 125, 35);
-          doc.text("Birth Place", 150, 35);
-          
-          doc.line(14, 38, 195, 38);
-          
-          // Table Rows
-          let y = 45;
           const people = Array.from(this.ui.engine.people.values());
           
-          doc.setFont("helvetica", "normal");
-          people.forEach((person) => {
-            if (y > 275) {
-              doc.addPage();
-              y = 25;
+          if (type === 'pdf') {
+            doc.setFontSize(18);
+            doc.text("Family Tree Members List", 14, 20);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Total Records: ${this.ui.engine.people.size} | Generated on: ${new Date().toLocaleDateString()}`, 14, 26);
+            
+            // Table Headers
+            doc.setFont("helvetica", "bold");
+            doc.text("Name", 14, 35);
+            doc.text("Gender", 75, 35);
+            doc.text("Birth", 100, 35);
+            doc.text("Death", 125, 35);
+            doc.text("Birth Place", 150, 35);
+            
+            doc.line(14, 38, 195, 38);
+            
+            // Table Rows
+            let y = 45;
+            
+            doc.setFont("helvetica", "normal");
+            people.forEach((person) => {
+              if (y > 275) {
+                doc.addPage();
+                y = 25;
+                
+                // Header on new page
+                doc.setFont("helvetica", "bold");
+                doc.text("Name", 14, y);
+                doc.text("Gender", 75, y);
+                doc.text("Birth", 100, y);
+                doc.text("Death", 125, y);
+                doc.text("Birth Place", 150, y);
+                doc.line(14, y + 3, 195, y + 3);
+                doc.setFont("helvetica", "normal");
+                y += 10;
+              }
               
-              // Header on new page
+              const name = person.name || 'Unknown';
+              const gender = person.gender === 'M' ? 'Male' : person.gender === 'F' ? 'Female' : 'Unknown';
+              const birth = person.birthYear || '-';
+              const death = person.deathYear || '-';
+              const place = person.birthPlace || '-';
+              
+              const truncatedName = name.length > 30 ? name.substring(0, 27) + '...' : name;
+              const truncatedPlace = place.length > 22 ? place.substring(0, 19) + '...' : place;
+              
+              doc.text(truncatedName, 14, y);
+              doc.text(gender, 75, y);
+              doc.text(String(birth), 100, y);
+              doc.text(String(death), 125, y);
+              doc.text(truncatedPlace, 150, y);
+              
+              y += 7;
+            });
+            
+            doc.save(`Family_Members_Report_${Date.now()}.pdf`);
+          } else if (type === 'pdf-extended') {
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("Extended Family Tree Profiles", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Total Records: ${this.ui.engine.people.size} | Generated on: ${new Date().toLocaleDateString()}`, 14, 26);
+            
+            let y = 35;
+            const levelsMap = this.ui.engine.getGenerationsGrid();
+            
+            for (let i = 0; i < people.length; i++) {
+              const p = people[i];
+              if (y > 230) {
+                doc.addPage();
+                y = 20;
+              }
+              
+              doc.setDrawColor(220);
+              doc.setFillColor(248, 248, 250);
+              doc.roundedRect(14, y, 182, 55, 3, 3, "FD");
+              
+              let currentY = y + 8;
+              let startX = 18;
+              
+              if (p.photo && p.photo.startsWith('data:image')) {
+                 try {
+                   doc.addImage(p.photo, startX, currentY, 18, 18);
+                 } catch(e) {
+                   doc.setFillColor(220);
+                   doc.circle(startX + 9, currentY + 9, 9, "F");
+                 }
+                 startX = 42;
+              } else {
+                 doc.setFillColor(220);
+                 doc.circle(startX + 9, currentY + 9, 9, "F");
+                 doc.setFontSize(8);
+                 doc.setTextColor(150);
+                 doc.text("No Photo", startX + 1, currentY + 10);
+                 startX = 42;
+              }
+              
+              doc.setTextColor(0);
               doc.setFont("helvetica", "bold");
-              doc.text("Name", 14, y);
-              doc.text("Gender", 75, y);
-              doc.text("Birth", 100, y);
-              doc.text("Death", 125, y);
-              doc.text("Birth Place", 150, y);
-              doc.line(14, y + 3, 195, y + 3);
+              doc.setFontSize(14);
+              const nameText = p.name || 'Unknown';
+              doc.text(nameText.substring(0, 30), startX, currentY + 5);
+              
+              const gen = levelsMap.get(p.id) || 1;
+              const genderText = p.gender === 'M' ? 'MALE' : p.gender === 'F' ? 'FEMALE' : 'UNKNOWN';
+              doc.setFontSize(9);
+              doc.setFont("helvetica", "bold");
+              if (p.gender === 'M') doc.setTextColor(0, 120, 212);
+              else if (p.gender === 'F') doc.setTextColor(227, 0, 140);
+              else doc.setTextColor(100);
+              doc.text(`[${genderText}] Gen ${gen} | ID: ${p.id}`, startX, currentY + 11);
+              
+              currentY += 20;
+              doc.setFontSize(9);
+              doc.setTextColor(100);
               doc.setFont("helvetica", "normal");
-              y += 10;
+              doc.text("Father:", startX, currentY);
+              doc.text("Mother:", startX, currentY + 6);
+              doc.text("Spouse:", startX, currentY + 12);
+              doc.text("Lifespan:", startX, currentY + 18);
+              
+              doc.setTextColor(0, 102, 204);
+              doc.setFont("helvetica", "bold");
+              doc.text((p.fatherName || 'Unlinked').substring(0, 20), startX + 16, currentY);
+              doc.text((p.motherName || 'Unlinked').substring(0, 20), startX + 16, currentY + 6);
+              const spouseStr = (p.spouses && p.spouses.length > 0) ? p.spouses.join(', ') : 'Unmarried';
+              doc.text(spouseStr.substring(0, 20), startX + 16, currentY + 12);
+              
+              doc.setTextColor(0);
+              const birth = p.birthYear || '-';
+              const death = p.deathYear || 'Present';
+              doc.text(`${birth} - ${death}`, startX + 16, currentY + 18);
+              
+              const rightColX = startX + 70;
+              doc.setTextColor(100);
+              doc.setFont("helvetica", "normal");
+              doc.text("Root Patriarch:", rightColX, currentY);
+              doc.text("Descendants:", rightColX, currentY + 6);
+              doc.text("Children:", rightColX, currentY + 12);
+              doc.text("Siblings:", rightColX, currentY + 18);
+              
+              doc.setTextColor(0);
+              doc.setFont("helvetica", "bold");
+              const ancestors = this.ui.engine.getAncestors(p.id);
+              const patriarch = ancestors.length > 0 ? ancestors[ancestors.length - 1] : p;
+              doc.text((patriarch.name || '').substring(0, 20), rightColX + 25, currentY);
+              
+              const descendants = this.ui.engine.getDescendants(p.id);
+              doc.text(`${descendants.length} members`, rightColX + 25, currentY + 6);
+              
+              const childrenNames = p.children.map(cid => {
+                const child = this.ui.engine.getPerson(cid);
+                return child ? child.name.split(' ')[0] : '';
+              }).filter(n => n).join(', ') || 'None';
+              doc.text(childrenNames.substring(0, 22), rightColX + 25, currentY + 12);
+              
+              const siblings = this.ui.engine.getSiblings(p.id);
+              const sibNames = siblings.map(s => s.name.split(' ')[0]).join(', ') || 'None';
+              doc.text(sibNames.substring(0, 22), rightColX + 25, currentY + 18);
+              
+              y += 60;
             }
-            
-            const name = `${person.firstName || ''} ${person.lastName || ''}`.trim() || 'Unknown';
-            const gender = person.gender === 'M' ? 'Male' : person.gender === 'F' ? 'Female' : 'Unknown';
-            const birth = person.birthYear || '-';
-            const death = person.deathYear || '-';
-            const place = person.birthPlace || '-';
-            
-            const truncatedName = name.length > 30 ? name.substring(0, 27) + '...' : name;
-            const truncatedPlace = place.length > 22 ? place.substring(0, 19) + '...' : place;
-            
-            doc.text(truncatedName, 14, y);
-            doc.text(gender, 75, y);
-            doc.text(String(birth), 100, y);
-            doc.text(String(death), 125, y);
-            doc.text(truncatedPlace, 150, y);
-            
-            y += 7;
-          });
-          
-          doc.save(`Family_Members_Report_${Date.now()}.pdf`);
+            doc.save(`Family_Extended_Profiles_${Date.now()}.pdf`);
+          }
           this.ui.showNotification("PDF Report saved successfully!", "success");
         } catch (err) {
           console.error(err);
@@ -418,6 +546,73 @@ export class V8Features {
     document.getElementById('btn-export-full').addEventListener('click', () => triggerDownload('WorldMap'));
     document.getElementById('btn-export-tree').addEventListener('click', () => triggerDownload('Tree'));
     document.getElementById('btn-export-pdf').addEventListener('click', () => triggerDownload('pdf'));
+    document.getElementById('btn-export-pdf-extended').addEventListener('click', () => triggerDownload('pdf-extended'));
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      document.getElementById('v8-export-modal').remove();
+      this.exportCSV();
+    });
+    document.getElementById('btn-export-json').addEventListener('click', () => {
+      document.getElementById('v8-export-modal').remove();
+      this.exportJSON();
+    });
+  }
+
+  exportCSV() {
+    try {
+      const people = Array.from(this.ui.engine.people.values());
+      const headers = ["ID", "Name", "Gender", "Father ID", "Father Name", "Mother ID", "Mother Name", "Grandfather Name", "Birth Year", "Death Year", "Birth Place", "Notes"];
+      const rows = people.map(p => [
+        p.id || '',
+        p.name || '',
+        p.gender || '',
+        p.fatherId || '',
+        p.fatherName || '',
+        p.motherId || '',
+        p.motherName || '',
+        p.grandfatherName || '',
+        p.birthYear || '',
+        p.deathYear || '',
+        p.birthPlace || '',
+        (p.notes || '').replace(/"/g, '""')
+      ]);
+
+      const csvContent = "\uFEFF" + [
+        headers.join(","),
+        ...rows.map(row => row.map(val => `"${val}"`).join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `family_members_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.ui.showNotification("Exported to CSV successfully!", "success");
+    } catch (e) {
+      console.error(e);
+      this.ui.showNotification("Failed to export CSV: " + e.message, "error");
+    }
+  }
+
+  exportJSON() {
+    try {
+      const people = Array.from(this.ui.engine.people.values());
+      const jsonContent = JSON.stringify(people, null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `family_members_${Date.now()}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      this.ui.showNotification("Exported to JSON successfully!", "success");
+    } catch (e) {
+      console.error(e);
+      this.ui.showNotification("Failed to export JSON: " + e.message, "error");
+    }
   }
 
   // Feature 5: Family Statistics Dashboard

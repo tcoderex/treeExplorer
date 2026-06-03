@@ -84,7 +84,7 @@ export class FamilyTreeEngine {
 
   // Save all current data to SQLite Database (Background)
   saveToDB() {
-    if (window.api && window.api.db) {
+    if (typeof window !== 'undefined' && window.api && window.api.db) {
       if (this.saveTimeout) clearTimeout(this.saveTimeout);
       this.saveTimeout = setTimeout(() => {
         const persons = Array.from(this.people.values()).map(p => {
@@ -750,7 +750,23 @@ export class FamilyTreeEngine {
       let grandfatherName = '';
       let gender = 'M';
       let spouse = '';
+      let birthYear = undefined;
+      let deathYear = undefined;
 
+      const lifespanMatch = line.match(/\b(\d{4})\s*-\s*(\d{4}|present|p)\b/i);
+      if (lifespanMatch) {
+        birthYear = parseInt(lifespanMatch[1]);
+        const endPart = lifespanMatch[2].toLowerCase();
+        if (endPart !== 'present' && endPart !== 'p') {
+          deathYear = parseInt(lifespanMatch[2]);
+        }
+      }
+      
+      // Strip all lifespans from the line so they don't pollute names
+      line = line.replace(/\b(\d{4})\s*-\s*(\d{4}|present|p)\b/gi, '').trim();
+
+      let ancestors = [];
+      
       if (line.includes(',')) {
         // Comma-separated parsing
         const parts = line.split(',').map(p => p.trim());
@@ -772,8 +788,7 @@ export class FamilyTreeEngine {
             .map(t => t.trim());
 
           if (normalized.length >= 1) name = normalized[0];
-          if (normalized.length >= 2) fatherName = normalized[1];
-          if (normalized.length >= 3) grandfatherName = normalized[2];
+          ancestors = normalized.slice(1);
           
           // Smart gender/spouse identification
           if (parts.length >= 3) {
@@ -804,79 +819,31 @@ export class FamilyTreeEngine {
             // CSV with ID: parts[0] is the ID
             id = parts[0];
             const subParts = parts.slice(1);
-            
-            // Find gender index in subParts (starting at 1 to support ID, Name, Gender, Spouse)
-            let subGenderIdx = -1;
-            for (let i = 1; i < subParts.length; i++) {
-              if (isGender(subParts[i])) {
-                subGenderIdx = i;
-                break;
-              }
-            }
+            let subGenderIdx = subParts.findIndex(p => isGender(p));
             
             name = subParts[0];
-            
-            if (subGenderIdx === 1) {
-              // ID, Name, Gender, Spouse
-              fatherName = '';
-              grandfatherName = '';
-              gender = subParts[1];
-              spouse = subParts[2] || '';
-            } else if (subGenderIdx === 2) {
-              // ID, Name, Father, Gender, Spouse
-              fatherName = subParts[1] || '';
-              grandfatherName = '';
-              gender = subParts[2];
-              spouse = subParts[3] || '';
-            } else if (subGenderIdx === 3) {
-              // ID, Name, Father, Grandfather, Gender, Spouse
-              fatherName = subParts[1] || '';
-              grandfatherName = subParts[2] || '';
-              gender = subParts[3];
-              spouse = subParts[4] || '';
+            if (subGenderIdx > 0) {
+              ancestors = subParts.slice(1, subGenderIdx);
+              gender = subParts[subGenderIdx];
+              spouse = subParts[subGenderIdx + 1] || '';
             } else {
-              // Fallback default
-              fatherName = subParts[1] || '';
-              grandfatherName = subParts[2] || '';
-              gender = subParts[3] || 'M';
-              spouse = subParts[4] || '';
+              ancestors = subParts.slice(1);
+              gender = 'M';
+              spouse = '';
             }
           } else {
             // CSV without ID
-            let genderIdx = -1;
-            for (let i = 1; i < parts.length; i++) {
-              if (isGender(parts[i])) {
-                genderIdx = i;
-                break;
-              }
-            }
+            let genderIdx = parts.findIndex(p => isGender(p));
             
             name = parts[0];
-            
-            if (genderIdx === 1) {
-              // Name, Gender, Spouse
-              fatherName = '';
-              grandfatherName = '';
-              gender = parts[1];
-              spouse = parts[2] || '';
-            } else if (genderIdx === 2) {
-              // Name, Father, Gender, Spouse
-              fatherName = parts[1] || '';
-              grandfatherName = '';
-              gender = parts[2];
-              spouse = parts[3] || '';
-            } else if (genderIdx === 3) {
-              // Name, Father, Grandfather, Gender, Spouse
-              fatherName = parts[1] || '';
-              grandfatherName = parts[2] || '';
-              gender = parts[3];
-              spouse = parts[4] || '';
+            if (genderIdx > 0) {
+              ancestors = parts.slice(1, genderIdx);
+              gender = parts[genderIdx];
+              spouse = parts[genderIdx + 1] || '';
             } else {
-              // Fallback default
-              fatherName = parts[1] || '';
-              grandfatherName = parts[2] || '';
-              gender = parts[3] || 'M';
-              spouse = parts[4] || '';
+              ancestors = parts.slice(1);
+              gender = 'M';
+              spouse = '';
             }
           }
         }
@@ -893,37 +860,64 @@ export class FamilyTreeEngine {
           .map(t => t.trim());
 
         if (normalized.length >= 1) name = normalized[0];
-        if (normalized.length >= 2) fatherName = normalized[1];
-        if (normalized.length >= 3) grandfatherName = normalized[2];
+        ancestors = normalized.slice(1);
       }
+
+      fatherName = ancestors[0] || '';
+      grandfatherName = ancestors[1] || '';
 
       // Extract optional ID prefixes from all names
       const nameParsed = this.extractIdAndName(name);
-      const fatherParsed = this.extractIdAndName(fatherName);
-      const gfParsed = this.extractIdAndName(grandfatherName);
       const spouseParsed = this.extractIdAndName(spouse);
       const motherParsed = this.extractIdAndName(motherName);
 
       id = id || nameParsed.id;
       name = nameParsed.name;
-      fatherName = fatherParsed.name;
-      grandfatherName = gfParsed.name;
       spouse = spouseParsed.name;
       motherName = motherParsed.name;
 
       if (name) {
+        // Build extended lineage chain for all ancestors beyond grandfather
+        for (let i = ancestors.length - 3; i >= 0; i--) {
+          const ancName = ancestors[i];
+          const ancFather = ancestors[i+1] || '';
+          const ancGF = ancestors[i+2] || '';
+          
+          if (ancName) {
+            const ancParsed = this.extractIdAndName(ancName);
+            const ancFatherParsed = this.extractIdAndName(ancFather);
+            const ancGFParsed = this.extractIdAndName(ancGF);
+            
+            this.addPerson({
+              id: ancParsed.id,
+              name: ancParsed.name,
+              fatherName: ancFatherParsed.name,
+              grandfatherName: ancGFParsed.name,
+              fatherId: ancFatherParsed.id,
+              grandfatherId: ancGFParsed.id,
+              gender: 'M'
+            });
+          }
+        }
+
+        // Add main person
+        const fatherParsed = this.extractIdAndName(fatherName);
+        const gfParsed = this.extractIdAndName(grandfatherName);
+        
         const p = this.addPerson({
           id,
           name,
-          fatherName,
-          grandfatherName,
+          fatherName: fatherParsed.name,
+          grandfatherName: gfParsed.name,
           gender,
           spouse,
           motherName,
           fatherId: fatherParsed.id,
           grandfatherId: gfParsed.id,
           motherId: motherParsed.id,
-          spouseId: spouseParsed.id
+          spouseId: spouseParsed.id,
+          birthYear,
+          deathYear
         });
         if (p && !firstId) {
           firstId = p.id;

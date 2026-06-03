@@ -4,6 +4,8 @@ const { app, BrowserWindow, ipcMain } = electron;
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Database from 'better-sqlite3';
+import fs from 'fs';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,6 +65,50 @@ ipcMain.handle('db-batch', (event, persons) => {
 
 ipcMain.handle('db-exec', (event, sql) => {
   return db.exec(sql);
+});
+
+ipcMain.handle('download-jspdf', () => {
+  return new Promise((resolve, reject) => {
+    const filePath = path.join(process.cwd(), 'jspdf.umd.min.js');
+    const distPath = path.join(process.cwd(), 'dist', 'jspdf.umd.min.js');
+
+    if (fs.existsSync(filePath)) {
+      if (fs.existsSync(path.join(process.cwd(), 'dist')) && !fs.existsSync(distPath)) {
+        try {
+          fs.copyFileSync(filePath, distPath);
+        } catch (e) {
+          console.error("Failed to copy to dist", e);
+        }
+      }
+      return resolve({ success: true, message: 'Already exists locally.' });
+    }
+
+    const file = fs.createWriteStream(filePath);
+    const url = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+
+    https.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download: Status Code ${response.statusCode}`));
+        return;
+      }
+      response.pipe(file);
+      file.on('finish', () => {
+        file.close(() => {
+          if (fs.existsSync(path.join(process.cwd(), 'dist'))) {
+            try {
+              fs.copyFileSync(filePath, distPath);
+            } catch (e) {
+              console.error("Failed to copy to dist after download", e);
+            }
+          }
+          resolve({ success: true, message: 'Downloaded successfully.' });
+        });
+      });
+    }).on('error', (err) => {
+      fs.unlink(filePath, () => {});
+      reject(err);
+    });
+  });
 });
 
 let mainWindow;

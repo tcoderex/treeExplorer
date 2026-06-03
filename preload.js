@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('api', {
     exec: (sql) => ipcRenderer.invoke('db-exec', sql),
     batch: (persons) => ipcRenderer.invoke('db-batch', persons),
   },
-  appReady: () => ipcRenderer.send('app-ready')
+  appReady: () => ipcRenderer.send('app-ready'),
+  downloadJsPDF: () => ipcRenderer.invoke('download-jspdf')
 });
