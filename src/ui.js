@@ -561,8 +561,8 @@ export class FamilyTreeUI {
           document.getElementById('edit-person-gender').value = p.gender;
           document.getElementById('edit-person-spouse').value = p.spouses ? p.spouses.join(', ') : '';
           document.getElementById('edit-person-photo').value = p.photo || '';
-          document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null ? p.birthYear : '';
-          document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null ? p.deathYear : '';
+          document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0 ? p.birthYear : '';
+          document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null && p.deathYear !== 0 ? p.deathYear : '';
           document.getElementById('edit-father-name').value = p.fatherName || '';
           document.getElementById('edit-mother-name').value = p.motherName || '';
           document.getElementById('edit-grandfather-name').value = p.grandfatherName || '';
@@ -822,7 +822,7 @@ export class FamilyTreeUI {
             startInput.value = p.name;
             document.getElementById('path-start-id').value = p.id;
           }
-        });
+        }, true);
       });
       startInput.addEventListener('focus', () => {
         if (startInput.value.trim().length > 0) {
@@ -841,7 +841,7 @@ export class FamilyTreeUI {
             endInput.value = p.name;
             document.getElementById('path-end-id').value = p.id;
           }
-        });
+        }, true);
       });
       endInput.addEventListener('focus', () => {
         if (endInput.value.trim().length > 0) {
@@ -1207,7 +1207,7 @@ export class FamilyTreeUI {
     dropdown.classList.remove('hidden');
   }
 
-  handleCanvasSearchInput(inputId, dropdownId, onSelect) {
+  handleCanvasSearchInput(inputId, dropdownId, onSelect, keepValue = false) {
     const input = document.getElementById(inputId);
     const dropdown = document.getElementById(dropdownId);
     if (!input || !dropdown) return;
@@ -1249,7 +1249,7 @@ export class FamilyTreeUI {
 
       sItem.addEventListener('click', () => {
         onSelect(p.id);
-        input.value = '';
+        if (!keepValue) input.value = '';
         dropdown.classList.add('hidden');
       });
 
@@ -1860,7 +1860,10 @@ export class FamilyTreeUI {
     genderBadge.className = `gender-badge ${p.gender === 'M' ? 'male' : 'female'}`;
     
     document.getElementById('detail-gen-badge').innerText = `Gen ${gen}`;
-    document.getElementById('detail-full-name').innerText = p.name + (p.birthYear !== undefined && p.birthYear !== null ? ` (${p.birthYear} - ${p.deathYear || 'Present'})` : '');
+    document.getElementById('detail-full-name').innerText = p.name;
+    const lifespanStr = (p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0) ? `${p.birthYear} - ${p.deathYear || 'Present'}` : 'Unknown';
+    const lifespanEl = document.getElementById('detail-lifespan-val');
+    if (lifespanEl) lifespanEl.innerText = lifespanStr;
     document.getElementById('detail-id').innerText = p.id;
     
     const photoEl = document.getElementById('detail-photo');

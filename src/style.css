@@ -2413,6 +2413,7 @@ body.theme-dark ::-webkit-scrollbar-thumb:hover {
 
 /* Overriding input values for dark theme readability */
 body.theme-dark input[type="text"],
+body.theme-dark input[type="number"],
 body.theme-dark select,
 body.theme-dark textarea {
   background: rgba(45, 45, 45, 0.8) !important;
@@ -2422,6 +2423,7 @@ body.theme-dark textarea {
 }
 
 body.theme-dark input[type="text"]:focus,
+body.theme-dark input[type="number"]:focus,
 body.theme-dark select:focus,
 body.theme-dark textarea:focus {
   background: rgba(45, 45, 45, 0.95) !important;
@@ -2469,6 +2471,25 @@ body.theme-dark .registry-table tr:hover {
 body.theme-dark .registry-table td {
   border-bottom-color: rgba(255, 255, 255, 0.06) !important;
   color: #dddddd !important;
+}
+
+body.theme-dark .table-search-bar {
+  background: rgba(45, 45, 45, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-dark .table-search-bar input {
+  color: #ffffff !important;
+}
+
+body.theme-dark .grid-table-header {
+  background: rgba(45, 45, 45, 0.3) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-dark .pedigree-scroller {
+  background: rgba(45, 45, 45, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* Modal boxes in Dark Theme */
@@ -2669,7 +2690,11 @@ body.theme-dark .pedigree-node.empty-node {
 }
 
 body.theme-dark .pedigree-node.empty-node:hover {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.theme-dark .focal-node {
+  background: rgba(45, 45, 45, 0.95) !important;
 }
 
 body.theme-dark .spouse-filter-pill {

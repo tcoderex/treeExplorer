@@ -22,7 +22,7 @@
           <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
         </svg>
         <span class="app-title-text">Windows Family Tree Explorer</span>
-        <span class="app-build-badge">Version 4.0</span>
+        <span class="app-build-badge">Version 8.0</span>
       </div>
       <div class="titlebar-center">
         <div class="header-search-container">
@@ -157,7 +157,7 @@
         <div class="sidebar-footer">
           <div class="footer-system-info">
             <div>Windows Family Tree Explorer</div>
-            <div class="os-version">Version 4.0 (Fluent Build)</div>
+            <div class="os-version">Version 8.0 (Fluent Build)</div>
           </div>
         </div>
       </aside>
@@ -743,7 +743,7 @@ Examples:
                 </button>
                 <div class="tutorial-content-panel hidden" id="tuto-content-3">
                   <div class="tuto-inner-body">
-                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 4.0 upgrades:</p>
+                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 8.0 upgrades:</p>
                     <ul class="tuto-bullet-list">
                       <li>Click the <strong>"🚀 Load 100,000 Mock Tree"</strong> button in the High-Scale Testing Suite. The database injects 100,000 members and rebuilds a fast token search index in under 500ms.</li>
                       <li><strong>8-Generation Local Pedigree:</strong> The visual tree explorer calculates and centers a complete 8-generation pedigree layout around the focused individual (4 generations up and 4 down) labeled from Great-Great-Grandparents to Great-Great-Grandgrandchildren.</li>
@@ -941,7 +941,7 @@ Examples:
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Version</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">4.0 (Fluent Build)</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">8.0 (Fluent Build)</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">High-Performance Engine</span>
@@ -1035,6 +1035,10 @@ Examples:
               <li>
                 <span class="info-label">Descendant Count</span>
                 <span class="info-val" id="detail-descendants-count">0 members</span>
+              </li>
+              <li>
+                <span class="info-label">Lifespan</span>
+                <span class="info-val" id="detail-lifespan-val">Unknown</span>
               </li>
             </ul>
           </div>
@@ -1219,15 +1223,16 @@ Examples:
         
         <div class="form-control" style="position: relative;">
           <label>Start Member</label>
-          <input type="text" id="path-start-input" placeholder="Type to search start member..." autocomplete="off">
+          <input type="text" id="path-start-input" class="fluent-input" placeholder="Type to search start member..." autocomplete="off">
           <div id="path-start-suggestions" class="suggestions-dropdown hidden" style="position: absolute; width: 100%; z-index: 1010; max-height: 150px; overflow-y: auto;"></div>
           <input type="hidden" id="path-start-id">
         </div>
 
         <div class="form-control" style="position: relative;">
           <label>End Member</label>
-          <input type="text" id="path-end-input" placeholder="Type to search target member..." autocomplete="off">
+          <input type="text" id="path-end-input" class="fluent-input" placeholder="Type to search target member..." autocomplete="off">
           <div id="path-end-suggestions" class="suggestions-dropdown hidden" style="position: absolute; width: 100%; z-index: 1010; max-height: 150px; overflow-y: auto;"></div>
+
           <input type="hidden" id="path-end-id">
         </div>
 

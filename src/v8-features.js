@@ -264,16 +264,104 @@ export class V8Features {
 
   // Feature 9: High-Res Poster Export
   exportPoster() {
-    this.ui.showNotification("Rendering high-resolution 4K poster...", "info");
-    setTimeout(() => {
-      this.ui.showNotification("Poster export saved to Desktop!", "success");
-    }, 2000);
+    const modalHtml = `
+      <div id="v8-export-modal" class="fluent-modal-overlay" style="z-index: 10000;">
+        <div class="fluent-modal-card" style="width: 400px; padding: 24px;">
+          <div class="modal-header">
+            <h2>Export Graphic</h2>
+            <button class="fluent-btn btn-secondary close-export">Close</button>
+          </div>
+          <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+            <button class="fluent-btn btn-primary" id="btn-export-full">Export Full World Map (PNG)</button>
+            <button class="fluent-btn btn-primary" id="btn-export-tree">Export Current Tree (PNG)</button>
+            <button class="fluent-btn btn-primary" id="btn-export-pdf">Export to PDF</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    document.querySelector('.close-export').addEventListener('click', () => {
+      document.getElementById('v8-export-modal').remove();
+    });
+
+    const triggerDownload = (type) => {
+      document.getElementById('v8-export-modal').remove();
+      
+      if (type === 'pdf') {
+        this.ui.showNotification("PDF Export requires additional browser plugins. Please use browser print (Ctrl+P) for now.", "warning");
+        return;
+      }
+
+      this.ui.showNotification("Rendering high-resolution export...", "info");
+      
+      setTimeout(() => {
+        try {
+          let targetCanvas = null;
+          if (type === 'WorldMap') {
+            targetCanvas = document.getElementById('world-canvas');
+          } else {
+            targetCanvas = document.getElementById('lineage-canvas');
+          }
+          
+          if (targetCanvas) {
+            const dataURL = targetCanvas.toDataURL('image/png', 1.0);
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = `Family_${type}_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            this.ui.showNotification("Export saved successfully!", "success");
+          } else {
+            this.ui.showNotification("Could not locate the requested map/tree canvas.", "error");
+          }
+        } catch (e) {
+          this.ui.showNotification("Failed to export: " + e.message, "error");
+        }
+      }, 500);
+    };
+
+    document.getElementById('btn-export-full').addEventListener('click', () => triggerDownload('WorldMap'));
+    document.getElementById('btn-export-tree').addEventListener('click', () => triggerDownload('Tree'));
+    document.getElementById('btn-export-pdf').addEventListener('click', () => triggerDownload('pdf'));
   }
 
   // Feature 5: Family Statistics Dashboard
   showStatistics() {
     this.ui.showNotification("Calculating entire family statistics...", "info");
+    
     setTimeout(() => {
+      const people = Array.from(this.ui.engine.people.values());
+      const total = people.length;
+      const males = people.filter(p => p.gender === 'M').length;
+      const females = people.filter(p => p.gender === 'F').length;
+      const unknown = total - males - females;
+      
+      let totalSpouses = 0;
+      let ageSum = 0;
+      let ageCount = 0;
+      let maxBirth = 0;
+      let minBirth = 9999;
+      
+      people.forEach(p => {
+        if (p.spouses && p.spouses.length) {
+          totalSpouses += p.spouses.length;
+        }
+        if (p.birthYear && p.birthYear !== 0) {
+          if (p.birthYear < minBirth) minBirth = p.birthYear;
+          if (p.birthYear > maxBirth) maxBirth = p.birthYear;
+        }
+        if (p.birthYear && p.deathYear && p.deathYear >= p.birthYear) {
+          ageSum += (p.deathYear - p.birthYear);
+          ageCount++;
+        }
+      });
+      
+      const marriages = Math.max(0, Math.floor(totalSpouses / 2));
+      const avgLifespan = ageCount > 0 ? Math.round(ageSum / ageCount) + " years" : 'N/A';
+      const yearRange = minBirth < 9999 ? `${minBirth} - ${maxBirth}` : 'N/A';
+
       const statsHtml = `
         <div id="v8-stats-dashboard" class="fluent-modal-overlay">
           <div class="fluent-modal-card" style="width: 800px; padding: 24px;">
@@ -282,17 +370,36 @@ export class V8Features {
               <button class="fluent-btn btn-secondary close-stats">Close</button>
             </div>
             <div class="modal-body" style="display: flex; gap: 20px;">
-              <div style="flex: 1; background: rgba(0,0,0,0.02); padding: 16px; border-radius: 8px;">
-                <h3>Demographics</h3>
-                <canvas id="stats-gender-chart" width="300" height="300"></canvas>
+              <div style="flex: 1; background: var(--win-card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--win-border-light);">
+                <h3 style="margin-bottom: 15px; color: var(--win-text-primary);">Demographics</h3>
+                <div style="display:flex; justify-content:center; align-items:center;">
+                  <canvas id="stats-gender-chart" width="200" height="200"></canvas>
+                </div>
+                <div style="display:flex; justify-content:space-around; margin-top:15px; font-size:12px; font-weight:bold; color:var(--win-text-secondary);">
+                  <span style="color:#0078d4">Male: ${males}</span>
+                  <span style="color:#e3008c">Female: ${females}</span>
+                  ${unknown > 0 ? `<span style="color:#888">Unknown: ${unknown}</span>` : ''}
+                </div>
               </div>
-              <div style="flex: 1; background: rgba(0,0,0,0.02); padding: 16px; border-radius: 8px;">
-                <h3>Tree Scale</h3>
-                <p style="font-size: 32px; color: var(--win-accent); font-weight: bold;">
-                  ${this.ui.engine.people.size} Members
+              <div style="flex: 1; background: var(--win-card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--win-border-light); color: var(--win-text-primary);">
+                <h3 style="margin-bottom: 15px;">Tree Scale</h3>
+                <p style="font-size: 32px; color: var(--win-accent); font-weight: bold; margin-bottom: 15px;">
+                  ${total} Members
                 </p>
-                <p>Generation Depth: Calculating...</p>
-                <p>Total Marriages: Calculating...</p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--win-border-light); padding-bottom:5px;">
+                    <span style="color:var(--win-text-secondary)">Total Marriages/Unions</span>
+                    <strong>${marriages}</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--win-border-light); padding-bottom:5px;">
+                    <span style="color:var(--win-text-secondary)">Average Lifespan</span>
+                    <strong>${avgLifespan}</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--win-border-light); padding-bottom:5px;">
+                    <span style="color:var(--win-text-secondary)">Timeline Era</span>
+                    <strong>${yearRange}</strong>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -300,23 +407,33 @@ export class V8Features {
       `;
       document.body.insertAdjacentHTML('beforeend', statsHtml);
 
-      // Draw raw canvas chart (mocked for speed)
+      // Draw real canvas pie chart
       const ctx = document.getElementById('stats-gender-chart').getContext('2d');
-      ctx.fillStyle = '#0078d4';
-      ctx.beginPath();
-      ctx.moveTo(150, 150);
-      ctx.arc(150, 150, 100, 0, Math.PI);
-      ctx.fill();
-      ctx.fillStyle = '#e3008c';
-      ctx.beginPath();
-      ctx.moveTo(150, 150);
-      ctx.arc(150, 150, 100, Math.PI, Math.PI * 2);
-      ctx.fill();
+      const centerX = 100;
+      const centerY = 100;
+      const radius = 90;
+      let startAngle = 0;
+      
+      const drawSlice = (count, color) => {
+        if (count === 0) return;
+        const sliceAngle = (count / total) * 2 * Math.PI;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fill();
+        startAngle += sliceAngle;
+      };
+
+      drawSlice(males, '#0078d4');
+      drawSlice(females, '#e3008c');
+      drawSlice(unknown, '#888888');
 
       document.querySelector('.close-stats').addEventListener('click', () => {
         document.getElementById('v8-stats-dashboard').remove();
       });
-    }, 500);
+    }, 100);
   }
 
   // Feature 1: Mini-Map Radar
