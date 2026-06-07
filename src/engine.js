@@ -350,31 +350,30 @@ export class FamilyTreeEngine {
     }
 
     if (relativesData.spouse && person.spouses && person.spouses.length > 0) {
-       const spouseName = person.spouses[0];
-       const spouseIds = this.nameToIds.get(spouseName.toLowerCase()) || [];
-       if (spouseIds.length > 0) {
-          const sNode = this.people.get(spouseIds[0]);
-          if (sNode) {
-             const rd = relativesData.spouse;
-             if (rd.birthYear) sNode.birthYear = parseInt(rd.birthYear);
-             if (rd.deathYear) sNode.deathYear = parseInt(rd.deathYear);
-             if (rd.photo) sNode.photo = rd.photo;
+       person.spouses.forEach((spouseName, index) => {
+          const spouseIds = this.nameToIds.get(spouseName.toLowerCase()) || [];
+          if (spouseIds.length > 0) {
+             const sNode = this.people.get(spouseIds[0]);
+             if (sNode && relativesData.spouse[index]) {
+                const rd = relativesData.spouse[index];
+                if (rd.birthYear) sNode.birthYear = parseInt(rd.birthYear);
+                if (rd.deathYear) sNode.deathYear = parseInt(rd.deathYear);
+                if (rd.photo) sNode.photo = rd.photo;
+             }
           }
-       }
+       });
     }
 
     if (relativesData.siblings && person.siblings && person.siblings.length > 0) {
-       const siblingName = person.siblings[0];
-       const siblingIds = this.nameToIds.get(siblingName.toLowerCase()) || [];
-       if (siblingIds.length > 0) {
-          const sNode = this.people.get(siblingIds[0]);
-          if (sNode) {
-             const rd = relativesData.siblings;
+       person.siblings.forEach((siblingId, index) => {
+          const sNode = this.people.get(siblingId);
+          if (sNode && relativesData.siblings[index]) {
+             const rd = relativesData.siblings[index];
              if (rd.birthYear) sNode.birthYear = parseInt(rd.birthYear);
              if (rd.deathYear) sNode.deathYear = parseInt(rd.deathYear);
              if (rd.photo) sNode.photo = rd.photo;
           }
-       }
+       });
     }
   }
 
@@ -770,7 +769,7 @@ export class FamilyTreeEngine {
           exactSpouse = {
             id: sId,
             name: spName,
-            gender: oppositeGender,
+            gender: (rd && rd.gender) ? rd.gender : oppositeGender,
             spouses: [person.name],
             fatherId: '',
             fatherName: '',
@@ -803,7 +802,7 @@ export class FamilyTreeEngine {
           exactSibling = {
             id: sId,
             name: sibName,
-            gender: 'M', // default placeholder gender
+            gender: (rd && rd.gender) ? rd.gender : 'M', // default placeholder gender
             spouses: [],
             fatherId: person.fatherId,
             fatherName: person.fatherName,
@@ -1855,7 +1854,7 @@ export class FamilyTreeEngine {
         const placeholderSp = {
           id: sId,
           name: spName,
-          gender: oppositeGender,
+          gender: (rd && rd.gender) ? rd.gender : oppositeGender,
           spouses: [person.name],
           fatherId: '',
           fatherName: '',
@@ -1893,7 +1892,7 @@ export class FamilyTreeEngine {
         sibObj = {
           id: sId,
           name: sibName,
-          gender: 'M',
+          gender: (rd && rd.gender) ? rd.gender : 'M',
           spouses: [],
           fatherId: person.fatherId,
           fatherName: person.fatherName,

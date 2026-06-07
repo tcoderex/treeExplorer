@@ -253,16 +253,17 @@ export class FamilyTreeUI {
 
     // Smart Inheritance for Add Person form (Multi-directional)
     const inputPersonFamilyName = document.getElementById('input-person-family-name');
-    const syncFamilyNames = [
-      document.getElementById('input-father-family-name'),
-      document.getElementById('input-grandfather-family-name'),
-      document.getElementById('input-sibling-family-name')
-    ].filter(Boolean);
 
     if (inputPersonFamilyName) {
       let lastFamilyName = inputPersonFamilyName.value;
+      const getSyncInputs = () => [
+        document.getElementById('input-father-family-name'),
+        document.getElementById('input-grandfather-family-name'),
+        ...document.querySelectorAll('.input-sibling-family-name')
+      ].filter(Boolean);
+
       const updateFamilyNames = (newVal) => {
-         syncFamilyNames.forEach(input => {
+         getSyncInputs().forEach(input => {
             if (!input.value.trim() || input.value === lastFamilyName) {
                input.value = newVal;
             }
@@ -274,23 +275,28 @@ export class FamilyTreeUI {
       };
 
       inputPersonFamilyName.addEventListener('input', (e) => updateFamilyNames(e.target.value));
-      syncFamilyNames.forEach(sourceInput => {
-        sourceInput.addEventListener('input', (e) => updateFamilyNames(e.target.value));
+      document.getElementById('modal-member-add').addEventListener('input', (e) => {
+        if (e.target.id === 'input-father-family-name' || 
+            e.target.id === 'input-grandfather-family-name' || 
+            e.target.classList.contains('input-sibling-family-name')) {
+          updateFamilyNames(e.target.value);
+        }
       });
     }
 
     // Smart Inheritance for Edit Person form (Multi-directional)
     const editPersonFamilyName = document.getElementById('edit-person-family-name');
-    const syncEditFamilyNames = [
-      document.getElementById('edit-father-family-name'),
-      document.getElementById('edit-grandfather-family-name'),
-      document.getElementById('edit-sibling-family-name')
-    ].filter(Boolean);
 
     if (editPersonFamilyName) {
       let lastEditFamilyName = editPersonFamilyName.value;
+      const getEditSyncInputs = () => [
+        document.getElementById('edit-father-family-name'),
+        document.getElementById('edit-grandfather-family-name'),
+        ...document.querySelectorAll('.edit-sibling-family-name')
+      ].filter(Boolean);
+
       const updateEditFamilyNames = (newVal) => {
-         syncEditFamilyNames.forEach(input => {
+         getEditSyncInputs().forEach(input => {
             if (!input.value.trim() || input.value === lastEditFamilyName) {
                input.value = newVal;
             }
@@ -302,8 +308,12 @@ export class FamilyTreeUI {
       };
 
       editPersonFamilyName.addEventListener('input', (e) => updateEditFamilyNames(e.target.value));
-      syncEditFamilyNames.forEach(sourceInput => {
-        sourceInput.addEventListener('input', (e) => updateEditFamilyNames(e.target.value));
+      document.getElementById('modal-member-edit').addEventListener('input', (e) => {
+        if (e.target.id === 'edit-father-family-name' || 
+            e.target.id === 'edit-grandfather-family-name' || 
+            e.target.classList.contains('edit-sibling-family-name')) {
+          updateEditFamilyNames(e.target.value);
+        }
       });
     }
 
@@ -329,6 +339,7 @@ export class FamilyTreeUI {
         const pending = pendingSource[key] || {};
         
         document.getElementById('relative-id').value = pending.id || '';
+        document.getElementById('relative-gender').value = pending.gender || '';
         document.getElementById('relative-birth').value = pending.birthYear || '';
         document.getElementById('relative-death').value = pending.deathYear || '';
         document.getElementById('relative-photo').value = pending.photo || '';
@@ -355,6 +366,7 @@ export class FamilyTreeUI {
       const mainInputId = typeClassPrefix.startsWith('input-') ? 'input-person-family-name' : 'edit-person-family-name';
       const mainInput = document.getElementById(mainInputId);
       if (mainInput && familyInput) {
+         familyInput.value = mainInput.value;
          // It will auto-sync via the global tracker if empty, but we must let the global tracker know it exists.
          // Actually, sync logic was bound to fixed arrays. For dynamic rows, we can just leave them empty,
          // or re-bind. To keep it simple, if user types the main family name, it only syncs fixed ones.
@@ -380,6 +392,7 @@ export class FamilyTreeUI {
       const source = relativeSourceInput.value;
       const data = {
         id: document.getElementById('relative-id').value.trim(),
+        gender: document.getElementById('relative-gender').value,
         birthYear: document.getElementById('relative-birth').value,
         deathYear: document.getElementById('relative-death').value,
         photo: document.getElementById('relative-photo').value.trim()
