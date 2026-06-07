@@ -2763,7 +2763,7 @@ export class FamilyTreeUI {
     if (btnDelete) {
       const count = this.selectedMemberIds.size;
       btnDelete.disabled = count === 0;
-      btnDelete.innerText = count > 0 ? `Ã°Å¸â€”â€˜Ã¯Â¸Â Delete Selected (${count})` : 'Ã°Å¸â€”â€˜Ã¯Â¸Â Delete Selected';
+      btnDelete.innerText = count > 0 ? `🗑️ Delete Selected (${count})` : '🗑️ Delete Selected';
     }
   }
 
@@ -3220,7 +3220,7 @@ export class FamilyTreeUI {
       const textsToTranslate = [];
       
       // Load Cache
-      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}'); cache['Birth Year'] = 'سنة الميلاد'; cache['Death Year'] = 'سنة الوفاة'; cache['(Optional)'] = '(اختياري)'; cache['Optional'] = 'اختياري';
 
       // 1. Collect Text Nodes
       while (node = walk.nextNode()) {

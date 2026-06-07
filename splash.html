@@ -94,6 +94,21 @@
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('theme-dark');
     }
+    window.addEventListener('DOMContentLoaded', () => {
+      const lang = localStorage.getItem('app-language');
+      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+      if (lang === 'ar') {
+        document.querySelector('.app-title').innerText = 'المنطقة العربية';
+        const subtitle = document.querySelector('.app-subtitle');
+        if (Object.keys(cache).length < 50) {
+            subtitle.innerText = 'إعداد لأول مرة: جاري تنزيل الترجمة العربية... يرجى الانتظار (قد يستغرق بعض الوقت)';
+        } else {
+            subtitle.innerText = 'جاري تحميل التطبيق... يرجى الانتظار قليلاً';
+        }
+        subtitle.style.fontSize = '15px';
+        subtitle.style.fontWeight = 'bold';
+      }
+    });
   </script>
 </head>
 <body>

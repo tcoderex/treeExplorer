@@ -151,6 +151,8 @@ function createWindow() {
     show: false,
     title: "The Arabic Area",
     backgroundColor: '#f3f3f3',
+    frame: false,
+    titleBarStyle: 'hidden',
   });
 
   const isDev = process.env.VITE_DEV_SERVER === 'true';
@@ -192,6 +194,14 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(() => {
+    ipcMain.on('window-close', () => { if(mainWindow) mainWindow.close(); });
+    ipcMain.on('window-minimize', () => { if(mainWindow) mainWindow.minimize(); });
+    ipcMain.on('window-maximize', () => { 
+      if(mainWindow) {
+        if(mainWindow.isMaximized()) mainWindow.unmaximize();
+        else mainWindow.maximize();
+      }
+    });
     ipcMain.handle('translate-batch', async (event, texts, targetLang) => {
       try {
         const { translate } = await import('google-translate-api-browser');
