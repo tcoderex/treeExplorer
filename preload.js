@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  translateBatch: (texts, targetLang) => ipcRenderer.invoke('translate-batch', texts, targetLang),
   db: {
     run: (sql, params) => ipcRenderer.invoke('db-run', sql, params),
     get: (sql, params) => ipcRenderer.invoke('db-get', sql, params),

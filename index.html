@@ -3,10 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Windows Family Tree Explorer</title>
+  <title>The Arabic Area</title>
   <!-- SEO & Optimization -->
   <meta name="description" content="A premium Windows 11 Fluent styled Family Tree application for massive lineage scaling, featuring a custom parentage mapping engine.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="./src/styles.css">
+
+  <style>
+    /* Hide the Google Translate UI banner and iframe */
+    body { top: 0 !important; }
+    .skiptranslate iframe, .goog-te-banner-frame { display: none !important; }
+    #google_translate_element { display: none !important; }
+  </style>
+
+  <!-- Google Translate Element Initialization -->
+  <div id="google_translate_element"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,ar',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+
+    function triggerGoogleTranslate(langCode) {
+      const tryTrigger = () => {
+        const selectEl = document.querySelector('.goog-te-combo');
+        if (selectEl) {
+          selectEl.value = langCode;
+          selectEl.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+        } else {
+          setTimeout(tryTrigger, 100);
+        }
+      };
+      tryTrigger();
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -21,8 +56,8 @@
         <svg class="app-icon" viewBox="0 0 24 24" width="16" height="16">
           <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
         </svg>
-        <span class="app-title-text">Windows Family Tree Explorer</span>
-        <span class="app-build-badge">Version 8.0</span>
+        <span class="app-title-text">The Arabic Area</span>
+        <span class="app-build-badge">Version 9.0</span>
       </div>
       <div class="titlebar-center">
         <div class="header-search-container">
@@ -163,8 +198,8 @@
 
         <div class="sidebar-footer">
           <div class="footer-system-info">
-            <div>Windows Family Tree Explorer</div>
-            <div class="os-version">Version 8.0 (Fluent Build)</div>
+            <div>The Arabic Area</div>
+            <div class="os-version">Version 9.0 (Fluent Build)</div>
           </div>
         </div>
       </aside>
@@ -800,7 +835,7 @@ Examples:
                 </button>
                 <div class="tutorial-content-panel hidden" id="tuto-content-3">
                   <div class="tuto-inner-body">
-                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 8.0 upgrades:</p>
+                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 9.0 upgrades:</p>
                     <ul class="tuto-bullet-list">
                       <li>Click the <strong>"🚀 Load 100,000 Mock Tree"</strong> button in the High-Scale Testing Suite. The database injects 100,000 members and rebuilds a fast token search index in under 500ms.</li>
                       <li><strong>8-Generation Local Pedigree:</strong> The visual tree explorer calculates and centers a complete 8-generation pedigree layout around the focused individual (4 generations up and 4 down) labeled from Great-Great-Grandparents to Great-Great-Grandgrandchildren.</li>
@@ -1005,11 +1040,11 @@ Examples:
               <div class="about-info-list" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--win-border-light);">
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Application Name</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">Windows Family Tree Explorer</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">The Arabic Area</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Version</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">8.0 (Fluent Build)</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">9.0 (Fluent Build)</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">High-Performance Engine</span>

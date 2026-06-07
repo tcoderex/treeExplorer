@@ -1,7 +1,7 @@
 {
-  "name": "win11-family-tree",
-  "version": "1.0.0",
-  "description": "Windows 11 styled family tree explorer for handling 1000+ members",
+  "name": "the-arabic-area",
+  "version": "9.0.0",
+  "description": "The Arabic Area: Windows 11 styled family tree explorer for handling 1000+ members",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -26,8 +26,8 @@
     "vite": "^5.3.1"
   },
   "build": {
-    "appId": "com.win11.familytree",
-    "productName": "Windows Family Tree Explorer",
+    "appId": "com.win11.thearabicarea",
+    "productName": "The Arabic Area",
     "win": {
       "target": [
         "dir",
@@ -46,6 +46,7 @@
     ]
   },
   "dependencies": {
-    "better-sqlite3": "^12.10.0"
+    "better-sqlite3": "^12.10.0",
+    "google-translate-api-browser": "^5.0.0"
   }
 }

@@ -149,7 +149,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     },
     show: false,
-    title: "Windows Family Tree Explorer",
+    title: "The Arabic Area",
     backgroundColor: '#f3f3f3',
   });
 
@@ -192,6 +192,23 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(() => {
+    ipcMain.handle('translate-batch', async (event, texts, targetLang) => {
+      try {
+        const { translate } = await import('google-translate-api-browser');
+        const results = [];
+        for (let i = 0; i < texts.length; i += 20) {
+          const chunk = texts.slice(i, i + 20);
+          const combined = chunk.join('\n~~~\n');
+          const res = await translate(combined, { to: targetLang });
+          const translatedArray = res.text.split(/~~~/).map(s => s.trim());
+          results.push(...translatedArray);
+        }
+        return results;
+      } catch (e) {
+        console.error("Translation error:", e);
+        return null;
+      }
+    });
     createWindow();
 
     app.on('activate', () => {

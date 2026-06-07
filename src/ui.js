@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    FRONTEND UI BINDER & STATE CONTROLLER
    ========================================================================== */
 
@@ -61,9 +61,9 @@ export class FamilyTreeUI {
     toast.className = `fluent-toast toast-${type}`;
     
     let icon = 'Ã¢â€žÂ¹Ã¯Â¸Â';
-    if (type === 'success') icon = 'Ã¢Å“â€œ';
+    if (type === 'success') icon = '✅';
     else if (type === 'error') icon = 'Ã¢Å¡Â Ã¯Â¸Â';
-    else if (type === 'warning') icon = 'Ã¢Å¡Â¡';
+    else if (type === 'warning') icon = '⚡';
     
     toast.innerHTML = `
       <span class="toast-icon">${icon}</span>
@@ -336,7 +336,7 @@ export class FamilyTreeUI {
         
         relativeTypeInput.value = key;
         relativeSourceInput.value = source;
-        relativeModalTitle.innerText = `Ã¢Å“Â¨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
+        relativeModalTitle.innerText = `✨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
         
         const pendingSource = source === 'add' ? this.pendingRelativeDataAdd : this.pendingRelativeDataEdit;
         const pending = pendingSource[key] || {};
@@ -542,7 +542,7 @@ export class FamilyTreeUI {
       langOptAr.addEventListener('click', () => {
         this.applyLanguage('ar');
         langModal.classList.add('hidden');
-        this.showNotification('Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ˜ÂºÃ™Å Ã™Å Ã˜Â± Ã˜Â§Ã™â€žÃ™â€žÃ˜ÂºÃ˜Â© Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ˜Â¹Ã˜Â±Ã˜Â¨Ã™Å Ã˜Â©.', 'success');
+        this.showNotification('تم تغيير اللغة إلى العربية.', 'success');
       });
     }
 
@@ -1764,7 +1764,7 @@ export class FamilyTreeUI {
       diagCard.querySelector('.diag-bullet').innerText = '!';
     } else {
       diagCard.className = 'diagnostic-item success-item';
-      diagCard.querySelector('.diag-bullet').innerText = 'Ã¢Å“â€œ';
+      diagCard.querySelector('.diag-bullet').innerText = '✅';
     }
 
     // Hide welcome banner if we have people loaded
@@ -1972,11 +1972,11 @@ export class FamilyTreeUI {
     document.querySelectorAll('.fluent-data-table th').forEach(th => {
       const f = th.getAttribute('data-sort');
       if (f) {
-        let label = th.innerText.replace(/[Ã¢â€¡â€¦Ã¢â€“Â²Ã¢â€“Â¼]/g, '').trim();
+        let label = th.innerText.replace(/[⇄▲▼]/g, '').trim();
         if (f === this.gridSortField) {
-          label += this.gridSortOrder === 'asc' ? ' Ã¢â€“Â²' : ' Ã¢â€“Â¼';
+          label += this.gridSortOrder === 'asc' ? ' ▲' : ' ▼';
         } else {
-          label += ' Ã¢â€¡â€¦';
+          label += ' ⇄';
         }
         th.innerText = label;
       }
@@ -2263,7 +2263,7 @@ export class FamilyTreeUI {
         // Fast loading visual feedback
         const btn = document.getElementById('btn-dash-import-mock');
         const prevText = btn.innerText;
-        btn.innerText = 'Ã¢Å¡Â¡ Processing Forest...';
+        btn.innerText = '⚡ Processing Forest...';
         btn.disabled = true;
 
         setTimeout(() => {
@@ -2331,7 +2331,7 @@ export class FamilyTreeUI {
     } 
     else if (type === 'PARSE_TEXT_DONE') {
       const btn = document.getElementById('btn-submit-bulk');
-      btn.innerText = 'Ã¢Å¡Â¡ Parse & Link Text';
+      btn.innerText = '⚡ Parse & Link Text';
       btn.disabled = false;
 
       if (count > 0) {
@@ -3040,7 +3040,7 @@ export class FamilyTreeUI {
         arrow.style.color = 'var(--win-text-disabled)';
         arrow.style.fontSize = '12px';
         arrow.style.margin = '2px 0';
-        arrow.innerHTML = 'Ã¢â€¡â€¦';
+        arrow.innerHTML = '⇄';
         resList.appendChild(arrow);
       }
     });
@@ -3206,15 +3206,95 @@ export class FamilyTreeUI {
     };
   }
 
-  applyLanguage(lang) {
+  async applyLanguage(lang) {
     localStorage.setItem('app-language', lang);
-    const dict = this.i18nDictionary;
-    if (lang === 'ar') {
-      this._translateNodes(document.body, dict, 'en-to-ar');
-    } else {
-      this._translateNodes(document.body, dict, 'ar-to-en');
-    }
     this.updateLangModalIndicator();
+
+    if (lang === 'ar') {
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+      let node;
+      
+      const elementsWithAttrs = Array.from(document.querySelectorAll('[placeholder], [title]'));
+      
+      const nodesToTranslate = [];
+      const textsToTranslate = [];
+      
+      // Load Cache
+      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+
+      // 1. Collect Text Nodes
+      while (node = walk.nextNode()) {
+        const text = node.nodeValue.trim();
+        if (text && /[A-Za-z]/.test(text)) {
+          if (node.parentElement && ['SCRIPT', 'STYLE', 'CODE'].includes(node.parentElement.tagName)) continue;
+          
+          if (cache[text]) {
+            node.nodeValue = node.nodeValue.replace(text, cache[text]);
+          } else {
+            nodesToTranslate.push({ type: 'text', ref: node, orig: node.nodeValue, trimmed: text });
+            textsToTranslate.push(text);
+          }
+        }
+      }
+      
+      // 2. Collect Attributes
+      for (const el of elementsWithAttrs) {
+        if (el.placeholder && /[A-Za-z]/.test(el.placeholder)) {
+          if (cache[el.placeholder]) {
+             el.placeholder = cache[el.placeholder];
+          } else {
+             nodesToTranslate.push({ type: 'placeholder', ref: el, orig: el.placeholder, trimmed: el.placeholder });
+             textsToTranslate.push(el.placeholder);
+          }
+        }
+        if (el.title && /[A-Za-z]/.test(el.title)) {
+          if (cache[el.title]) {
+             el.title = cache[el.title];
+          } else {
+             nodesToTranslate.push({ type: 'title', ref: el, orig: el.title, trimmed: el.title });
+             textsToTranslate.push(el.title);
+          }
+        }
+      }
+      
+      if (textsToTranslate.length > 0 && window.api && window.api.translateBatch) {
+        try {
+          document.body.style.opacity = '0.7';
+          document.body.style.pointerEvents = 'none';
+          
+          const trans = await window.api.translateBatch(textsToTranslate, 'ar');
+          if (trans && trans.length === textsToTranslate.length) {
+            for (let i = 0; i < textsToTranslate.length; i++) {
+              const item = nodesToTranslate[i];
+              const translated = trans[i];
+              
+              // Save to cache
+              cache[item.trimmed] = translated;
+              
+              // Apply translation
+              if (item.type === 'text') {
+                item.ref.nodeValue = item.orig.replace(item.trimmed, translated);
+              } else if (item.type === 'placeholder') {
+                item.ref.placeholder = translated;
+              } else if (item.type === 'title') {
+                item.ref.title = translated;
+              }
+            }
+            // Save cache back to local storage
+            localStorage.setItem('ar-translation-cache', JSON.stringify(cache));
+          }
+        } catch(err) {
+           console.error("Batch translation failed:", err);
+        } finally {
+          document.body.style.opacity = '1';
+          document.body.style.pointerEvents = 'all';
+        }
+      }
+    } else if (lang === 'en') {
+      if (document.body.innerText.match(/[\u0600-\u06FF]/)) {
+        window.location.reload();
+      }
+    }
     const enCard = document.getElementById('lang-opt-en');
     const arCard = document.getElementById('lang-opt-ar');
     if (enCard && arCard) {
