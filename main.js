@@ -125,6 +125,7 @@ function createWindow() {
     frame: false,
     alwaysOnTop: true,
     show: false,
+    icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true
@@ -142,6 +143,7 @@ function createWindow() {
     height: 850,
     minWidth: 1000,
     minHeight: 700,
+    icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
