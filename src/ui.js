@@ -275,7 +275,7 @@ export class FamilyTreeUI {
       };
 
       inputPersonFamilyName.addEventListener('input', (e) => updateFamilyNames(e.target.value));
-      document.getElementById('modal-member-add').addEventListener('input', (e) => {
+      document.getElementById('form-add-person').addEventListener('input', (e) => {
         if (e.target.id === 'input-father-family-name' || 
             e.target.id === 'input-grandfather-family-name' || 
             e.target.classList.contains('input-sibling-family-name')) {
