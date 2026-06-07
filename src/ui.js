@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    FRONTEND UI BINDER & STATE CONTROLLER
    ========================================================================== */
 
@@ -60,10 +60,10 @@ export class FamilyTreeUI {
     const toast = document.createElement('div');
     toast.className = `fluent-toast toast-${type}`;
     
-    let icon = 'â„¹ï¸';
-    if (type === 'success') icon = 'âœ“';
-    else if (type === 'error') icon = 'âš ï¸';
-    else if (type === 'warning') icon = 'âš¡';
+    let icon = 'Ã¢â€žÂ¹Ã¯Â¸Â';
+    if (type === 'success') icon = 'Ã¢Å“â€œ';
+    else if (type === 'error') icon = 'Ã¢Å¡Â Ã¯Â¸Â';
+    else if (type === 'warning') icon = 'Ã¢Å¡Â¡';
     
     toast.innerHTML = `
       <span class="toast-icon">${icon}</span>
@@ -336,7 +336,7 @@ export class FamilyTreeUI {
         
         relativeTypeInput.value = key;
         relativeSourceInput.value = source;
-        relativeModalTitle.innerText = `âœ¨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
+        relativeModalTitle.innerText = `Ã¢Å“Â¨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
         
         const pendingSource = source === 'add' ? this.pendingRelativeDataAdd : this.pendingRelativeDataEdit;
         const pending = pendingSource[key] || {};
@@ -542,7 +542,7 @@ export class FamilyTreeUI {
       langOptAr.addEventListener('click', () => {
         this.applyLanguage('ar');
         langModal.classList.add('hidden');
-        this.showNotification('ØªÙ… ØªØºÙŠÙŠØ± Ø§Ù„Ù„ØºØ© Ø¥Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.', 'success');
+        this.showNotification('Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ˜ÂºÃ™Å Ã™Å Ã˜Â± Ã˜Â§Ã™â€žÃ™â€žÃ˜ÂºÃ˜Â© Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ˜Â¹Ã˜Â±Ã˜Â¨Ã™Å Ã˜Â©.', 'success');
       });
     }
 
@@ -1764,7 +1764,7 @@ export class FamilyTreeUI {
       diagCard.querySelector('.diag-bullet').innerText = '!';
     } else {
       diagCard.className = 'diagnostic-item success-item';
-      diagCard.querySelector('.diag-bullet').innerText = 'âœ“';
+      diagCard.querySelector('.diag-bullet').innerText = 'Ã¢Å“â€œ';
     }
 
     // Hide welcome banner if we have people loaded
@@ -1972,11 +1972,11 @@ export class FamilyTreeUI {
     document.querySelectorAll('.fluent-data-table th').forEach(th => {
       const f = th.getAttribute('data-sort');
       if (f) {
-        let label = th.innerText.replace(/[â‡…â–²â–¼]/g, '').trim();
+        let label = th.innerText.replace(/[Ã¢â€¡â€¦Ã¢â€“Â²Ã¢â€“Â¼]/g, '').trim();
         if (f === this.gridSortField) {
-          label += this.gridSortOrder === 'asc' ? ' â–²' : ' â–¼';
+          label += this.gridSortOrder === 'asc' ? ' Ã¢â€“Â²' : ' Ã¢â€“Â¼';
         } else {
-          label += ' â‡…';
+          label += ' Ã¢â€¡â€¦';
         }
         th.innerText = label;
       }
@@ -2245,7 +2245,7 @@ export class FamilyTreeUI {
     // Show loading UI
     const btn = document.getElementById('btn-submit-bulk');
     const originalText = btn.innerText;
-    btn.innerText = 'â³ Parsing...';
+    btn.innerText = 'Ã¢ÂÂ³ Parsing...';
     btn.disabled = true;
 
     // Send to Web Worker
@@ -2263,7 +2263,7 @@ export class FamilyTreeUI {
         // Fast loading visual feedback
         const btn = document.getElementById('btn-dash-import-mock');
         const prevText = btn.innerText;
-        btn.innerText = 'âš¡ Processing Forest...';
+        btn.innerText = 'Ã¢Å¡Â¡ Processing Forest...';
         btn.disabled = true;
 
         setTimeout(() => {
@@ -2331,7 +2331,7 @@ export class FamilyTreeUI {
     } 
     else if (type === 'PARSE_TEXT_DONE') {
       const btn = document.getElementById('btn-submit-bulk');
-      btn.innerText = 'âš¡ Parse & Link Text';
+      btn.innerText = 'Ã¢Å¡Â¡ Parse & Link Text';
       btn.disabled = false;
 
       if (count > 0) {
@@ -2763,7 +2763,7 @@ export class FamilyTreeUI {
     if (btnDelete) {
       const count = this.selectedMemberIds.size;
       btnDelete.disabled = count === 0;
-      btnDelete.innerText = count > 0 ? `ðŸ—‘ï¸ Delete Selected (${count})` : 'ðŸ—‘ï¸ Delete Selected';
+      btnDelete.innerText = count > 0 ? `Ã°Å¸â€”â€˜Ã¯Â¸Â Delete Selected (${count})` : 'Ã°Å¸â€”â€˜Ã¯Â¸Â Delete Selected';
     }
   }
 
@@ -3040,7 +3040,7 @@ export class FamilyTreeUI {
         arrow.style.color = 'var(--win-text-disabled)';
         arrow.style.fontSize = '12px';
         arrow.style.margin = '2px 0';
-        arrow.innerHTML = 'â‡…';
+        arrow.innerHTML = 'Ã¢â€¡â€¦';
         resList.appendChild(arrow);
       }
     });
@@ -3053,156 +3053,156 @@ export class FamilyTreeUI {
   /** Master English to Arabic dictionary */
   get i18nDictionary() {
     return {
-      'Dashboard': 'لوحة القيادة',
-      'Explorer': 'المستكشف',
-      'Grid Registry': 'سجل الشبكة',
-      'Import': 'استيراد',
-      'Settings': 'الإعدادات',
-      'Help': 'مساعدة',
-      'Tour': 'جولة',
-      'Family Tree Overview': 'نظرة عامة على شجرة العائلة',
-      'Total Members': 'إجمالي الأعضاء',
-      'Male': 'ذكر',
-      'Female': 'أنثى',
-      'Generations': 'الأجيال',
-      'With Children': 'مع أطفال',
-      'Without Children': 'بدون أطفال',
-      'Married': 'متزوج',
-      'Single': 'أعزب',
-      'Average Age': 'متوسط العمر',
-      'Oldest Member': 'أكبر عضو',
-      'Youngest Member': 'أصغر عضو',
-      'Family Statistics': 'إحصائيات العائلة',
-      'Quick Actions': 'إجراءات سريعة',
-      'Add Member': 'إضافة عضو',
-      'Import Data': 'استيراد البيانات',
-      'Export Data': 'تصدير البيانات',
-      'Generate Report': 'إنشاء تقرير',
-      'View All': 'عرض الكل',
-      'No data available': 'لا توجد بيانات متاحة',
-      'Loading...': 'جار التحميل...',
-      'Search members...': 'البحث عن أعضاء...',
-      'Focus Person': 'شخص التركيز',
-      'Zoom In': 'تكبير',
-      'Zoom Out': 'تصغير',
-      'Reset View': 'إعادة تعيين العرض',
-      'Center View': 'توسيط العرض',
-      'Fit All': 'ملاءمة الكل',
-      'Show Labels': 'إظهار التسميات',
-      'Hide Labels': 'إخفاء التسميات',
-      'Full Name': 'الاسم الكامل',
-      'Name': 'الاسم',
-      'Father': 'الأب',
-      'Mother': 'الأم',
-      'Grandfather': 'الجد',
-      'Grandmother': 'الجدة',
-      'Spouse': 'الزوج/الزوجة',
-      'Children': 'الأطفال',
-      'Siblings': 'الإخوة والأخوات',
-      'Birth Year': 'سنة الميلاد',
-      'Death Year': 'سنة الوفاة',
-      'Birth Place': 'مكان الميلاد',
-      'Nationality': 'الجنسية',
-      'Religion': 'الديانة',
-      'Occupation': 'المهنة',
-      'Notes': 'ملاحظات',
-      'Gender': 'الجنس',
-      'Age': 'العمر',
-      'Alive': 'على قيد الحياة',
-      'Deceased': 'متوفى',
-      'Unknown': 'غير معروف',
-      'Living': 'حي',
-      'Save': 'حفظ',
-      'Cancel': 'إلغاء',
-      'Delete': 'حذف',
-      'Edit': 'تعديل',
-      'Add': 'إضافة',
-      'Close': 'إغلاق',
-      'Confirm': 'تأكيد',
-      'Yes': 'نعم',
-      'No': 'لا',
-      'OK': 'موافق',
-      'Registry': 'السجل',
-      'Search': 'بحث',
-      'Filter': 'تصفية',
-      'Sort': 'ترتيب',
-      'Export': 'تصدير',
-      'Actions': 'الإجراءات',
-      'Previous': 'السابق',
-      'Next': 'التالي',
-      'Page': 'صفحة',
-      'records': 'سجلات',
-      'Select All': 'تحديد الكل',
-      'Deselect All': 'إلغاء تحديد الكل',
-      'Delete Selected': 'حذف المحدد',
-      'Smart Suggestions': 'الاقتراحات الذكية',
-      'Suggestions': 'الاقتراحات',
-      'Analyze': 'تحليل',
-      'Apply': 'تطبيق',
-      'Skip': 'تخطي',
-      'Ignore': 'تجاهل',
-      'Potential Father': 'أب محتمل',
-      'Potential Mother': 'أم محتملة',
-      'Potential Spouse': 'زوج/زوجة محتملة',
-      'Lineage Engine': 'محرك النسب',
-      'Processing...': 'معالجة...',
-      'No suggestions found': 'لم يتم العثور على اقتراحات',
-      'Confidence': 'الثقة',
-      'High': 'عالٍ',
-      'Medium': 'متوسط',
-      'Low': 'منخفض',
-      'Ignored Peoples': 'الأشخاص المتجاهلون',
-      'Ignored Members': 'الأعضاء المتجاهلون',
-      'Remove from Ignored': 'إزالة من التجاهل',
-      'No ignored members': 'لا يوجد أعضاء متجاهلون',
-      'Personalization': 'التخصيص',
-      'App Theme': 'سمة التطبيق',
-      'Light Mode': 'الوضع الفاتح',
-      'Dark Mode': 'الوضع الداكن',
-      'Choose the display language for the app interface.': 'اختر لغة العرض لواجهة التطبيق.',
-      'Select Light or Dark mode for the app interface.': 'اختر الوضع الفاتح أو الداكن لواجهة التطبيق.',
-      'Change the background, colors, and overall appearance of the workspace.': 'تغيير الخلفية والألوان والمظهر العام لمساحة العمل.',
-      'V8 Advanced Features': 'ميزات V8 المتقدمة',
-      'Toggle radar maps, story mode, and advanced analytics.': 'تبديل خرائط الرادار ووضع القصة والتحليلات المتقدمة.',
-      'About This App': 'حول هذا التطبيق',
-      'Specifications, engine performance details, and build metrics.': 'المواصفات وتفاصيل أداء المحرك ومقاييس البناء.',
-      'Lineage Details': 'تفاصيل النسب',
-      'Personal Info': 'المعلومات الشخصية',
-      'Relations': 'العلاقات',
-      'Timeline': 'الجدول الزمني',
-      'Add Person': 'إضافة شخص',
-      'Edit Person': 'تعديل شخص',
-      'Person Details': 'تفاصيل الشخص',
-      'Family Relations': 'علاقات العائلة',
-      'Add Relation': 'إضافة علاقة',
-      'Remove Relation': 'إزالة علاقة',
-      'Make Focus': 'جعله محور التركيز',
-      'View Profile': 'عرض الملف الشخصي',
-      'Person added successfully.': 'تمت إضافة الشخص بنجاح.',
-      'Person deleted successfully.': 'تم حذف الشخص بنجاح.',
-      'Person updated successfully.': 'تم تحديث الشخص بنجاح.',
-      'No members found.': 'لم يتم العثور على أعضاء.',
-      'Are you sure?': 'هل أنت متأكد؟',
-      'This action cannot be undone.': 'لا يمكن التراجع عن هذا الإجراء.',
-      'Bulk Import': 'الاستيراد الجماعي',
-      'Paste your data here...': 'الصق بياناتك هنا...',
-      'Parse': 'تحليل',
-      'Clear': 'مسح',
-      'Generate Mock Data': 'إنشاء بيانات تجريبية',
-      'Import from File': 'استيراد من ملف',
-      'Export to File': 'تصدير إلى ملف',
-      'Export PDF': 'تصدير PDF',
-      'Export CSV': 'تصدير CSV',
-      'Export JSON': 'تصدير JSON',
-      'Radar Map': 'خريطة الرادار',
-      'Story Mode': 'وضع القصة',
-      'Analytics': 'التحليلات',
-      'Pathfinder': 'محدد المسار',
-      'Find Path': 'ابحث عن مسار',
-      'Start': 'بداية',
-      'End': 'نهاية',
-      'Step': 'خطوة',
-      'No relationship connection path found between these members.': 'لم يتم العثور على مسار ارتباط بين هؤلاء الأعضاء.',
+      'Dashboard': 'Ù„ÙˆØ­Ø© Ø§Ù„Ù‚ÙŠØ§Ø¯Ø©',
+      'Explorer': 'Ø§Ù„Ù…Ø³ØªÙƒØ´Ù',
+      'Grid Registry': 'Ø³Ø¬Ù„ Ø§Ù„Ø´Ø¨ÙƒØ©',
+      'Import': 'Ø§Ø³ØªÙŠØ±Ø§Ø¯',
+      'Settings': 'Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª',
+      'Help': 'Ù…Ø³Ø§Ø¹Ø¯Ø©',
+      'Tour': 'Ø¬ÙˆÙ„Ø©',
+      'Family Tree Overview': 'Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø´Ø¬Ø±Ø© Ø§Ù„Ø¹Ø§Ø¦Ù„Ø©',
+      'Total Members': 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡',
+      'Male': 'Ø°ÙƒØ±',
+      'Female': 'Ø£Ù†Ø«Ù‰',
+      'Generations': 'Ø§Ù„Ø£Ø¬ÙŠØ§Ù„',
+      'With Children': 'Ù…Ø¹ Ø£Ø·ÙØ§Ù„',
+      'Without Children': 'Ø¨Ø¯ÙˆÙ† Ø£Ø·ÙØ§Ù„',
+      'Married': 'Ù…ØªØ²ÙˆØ¬',
+      'Single': 'Ø£Ø¹Ø²Ø¨',
+      'Average Age': 'Ù…ØªÙˆØ³Ø· Ø§Ù„Ø¹Ù…Ø±',
+      'Oldest Member': 'Ø£ÙƒØ¨Ø± Ø¹Ø¶Ùˆ',
+      'Youngest Member': 'Ø£ØµØºØ± Ø¹Ø¶Ùˆ',
+      'Family Statistics': 'Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ø§Ù„Ø¹Ø§Ø¦Ù„Ø©',
+      'Quick Actions': 'Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø³Ø±ÙŠØ¹Ø©',
+      'Add Member': 'Ø¥Ø¶Ø§ÙØ© Ø¹Ø¶Ùˆ',
+      'Import Data': 'Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª',
+      'Export Data': 'ØªØµØ¯ÙŠØ± Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª',
+      'Generate Report': 'Ø¥Ù†Ø´Ø§Ø¡ ØªÙ‚Ø±ÙŠØ±',
+      'View All': 'Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„',
+      'No data available': 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨ÙŠØ§Ù†Ø§Øª Ù…ØªØ§Ø­Ø©',
+      'Loading...': 'Ø¬Ø§Ø± Ø§Ù„ØªØ­Ù…ÙŠÙ„...',
+      'Search members...': 'Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø£Ø¹Ø¶Ø§Ø¡...',
+      'Focus Person': 'Ø´Ø®Øµ Ø§Ù„ØªØ±ÙƒÙŠØ²',
+      'Zoom In': 'ØªÙƒØ¨ÙŠØ±',
+      'Zoom Out': 'ØªØµØºÙŠØ±',
+      'Reset View': 'Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ø¹Ø±Ø¶',
+      'Center View': 'ØªÙˆØ³ÙŠØ· Ø§Ù„Ø¹Ø±Ø¶',
+      'Fit All': 'Ù…Ù„Ø§Ø¡Ù…Ø© Ø§Ù„ÙƒÙ„',
+      'Show Labels': 'Ø¥Ø¸Ù‡Ø§Ø± Ø§Ù„ØªØ³Ù…ÙŠØ§Øª',
+      'Hide Labels': 'Ø¥Ø®ÙØ§Ø¡ Ø§Ù„ØªØ³Ù…ÙŠØ§Øª',
+      'Full Name': 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„',
+      'Name': 'Ø§Ù„Ø§Ø³Ù…',
+      'Father': 'Ø§Ù„Ø£Ø¨',
+      'Mother': 'Ø§Ù„Ø£Ù…',
+      'Grandfather': 'Ø§Ù„Ø¬Ø¯',
+      'Grandmother': 'Ø§Ù„Ø¬Ø¯Ø©',
+      'Spouse': 'Ø§Ù„Ø²ÙˆØ¬/Ø§Ù„Ø²ÙˆØ¬Ø©',
+      'Children': 'Ø§Ù„Ø£Ø·ÙØ§Ù„',
+      'Siblings': 'Ø§Ù„Ø¥Ø®ÙˆØ© ÙˆØ§Ù„Ø£Ø®ÙˆØ§Øª',
+      'Birth Year': 'Ø³Ù†Ø© Ø§Ù„Ù…ÙŠÙ„Ø§Ø¯',
+      'Death Year': 'Ø³Ù†Ø© Ø§Ù„ÙˆÙØ§Ø©',
+      'Birth Place': 'Ù…ÙƒØ§Ù† Ø§Ù„Ù…ÙŠÙ„Ø§Ø¯',
+      'Nationality': 'Ø§Ù„Ø¬Ù†Ø³ÙŠØ©',
+      'Religion': 'Ø§Ù„Ø¯ÙŠØ§Ù†Ø©',
+      'Occupation': 'Ø§Ù„Ù…Ù‡Ù†Ø©',
+      'Notes': 'Ù…Ù„Ø§Ø­Ø¸Ø§Øª',
+      'Gender': 'Ø§Ù„Ø¬Ù†Ø³',
+      'Age': 'Ø§Ù„Ø¹Ù…Ø±',
+      'Alive': 'Ø¹Ù„Ù‰ Ù‚ÙŠØ¯ Ø§Ù„Ø­ÙŠØ§Ø©',
+      'Deceased': 'Ù…ØªÙˆÙÙ‰',
+      'Unknown': 'ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ',
+      'Living': 'Ø­ÙŠ',
+      'Save': 'Ø­ÙØ¸',
+      'Cancel': 'Ø¥Ù„ØºØ§Ø¡',
+      'Delete': 'Ø­Ø°Ù',
+      'Edit': 'ØªØ¹Ø¯ÙŠÙ„',
+      'Add': 'Ø¥Ø¶Ø§ÙØ©',
+      'Close': 'Ø¥ØºÙ„Ø§Ù‚',
+      'Confirm': 'ØªØ£ÙƒÙŠØ¯',
+      'Yes': 'Ù†Ø¹Ù…',
+      'No': 'Ù„Ø§',
+      'OK': 'Ù…ÙˆØ§ÙÙ‚',
+      'Registry': 'Ø§Ù„Ø³Ø¬Ù„',
+      'Search': 'Ø¨Ø­Ø«',
+      'Filter': 'ØªØµÙÙŠØ©',
+      'Sort': 'ØªØ±ØªÙŠØ¨',
+      'Export': 'ØªØµØ¯ÙŠØ±',
+      'Actions': 'Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª',
+      'Previous': 'Ø§Ù„Ø³Ø§Ø¨Ù‚',
+      'Next': 'Ø§Ù„ØªØ§Ù„ÙŠ',
+      'Page': 'ØµÙØ­Ø©',
+      'records': 'Ø³Ø¬Ù„Ø§Øª',
+      'Select All': 'ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙƒÙ„',
+      'Deselect All': 'Ø¥Ù„ØºØ§Ø¡ ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙƒÙ„',
+      'Delete Selected': 'Ø­Ø°Ù Ø§Ù„Ù…Ø­Ø¯Ø¯',
+      'Smart Suggestions': 'Ø§Ù„Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª Ø§Ù„Ø°ÙƒÙŠØ©',
+      'Suggestions': 'Ø§Ù„Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª',
+      'Analyze': 'ØªØ­Ù„ÙŠÙ„',
+      'Apply': 'ØªØ·Ø¨ÙŠÙ‚',
+      'Skip': 'ØªØ®Ø·ÙŠ',
+      'Ignore': 'ØªØ¬Ø§Ù‡Ù„',
+      'Potential Father': 'Ø£Ø¨ Ù…Ø­ØªÙ…Ù„',
+      'Potential Mother': 'Ø£Ù… Ù…Ø­ØªÙ…Ù„Ø©',
+      'Potential Spouse': 'Ø²ÙˆØ¬/Ø²ÙˆØ¬Ø© Ù…Ø­ØªÙ…Ù„Ø©',
+      'Lineage Engine': 'Ù…Ø­Ø±Ùƒ Ø§Ù„Ù†Ø³Ø¨',
+      'Processing...': 'Ù…Ø¹Ø§Ù„Ø¬Ø©...',
+      'No suggestions found': 'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù‚ØªØ±Ø§Ø­Ø§Øª',
+      'Confidence': 'Ø§Ù„Ø«Ù‚Ø©',
+      'High': 'Ø¹Ø§Ù„Ù',
+      'Medium': 'Ù…ØªÙˆØ³Ø·',
+      'Low': 'Ù…Ù†Ø®ÙØ¶',
+      'Ignored Peoples': 'Ø§Ù„Ø£Ø´Ø®Ø§Øµ Ø§Ù„Ù…ØªØ¬Ø§Ù‡Ù„ÙˆÙ†',
+      'Ignored Members': 'Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡ Ø§Ù„Ù…ØªØ¬Ø§Ù‡Ù„ÙˆÙ†',
+      'Remove from Ignored': 'Ø¥Ø²Ø§Ù„Ø© Ù…Ù† Ø§Ù„ØªØ¬Ø§Ù‡Ù„',
+      'No ignored members': 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø£Ø¹Ø¶Ø§Ø¡ Ù…ØªØ¬Ø§Ù‡Ù„ÙˆÙ†',
+      'Personalization': 'Ø§Ù„ØªØ®ØµÙŠØµ',
+      'App Theme': 'Ø³Ù…Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚',
+      'Light Mode': 'Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„ÙØ§ØªØ­',
+      'Dark Mode': 'Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†',
+      'Choose the display language for the app interface.': 'Ø§Ø®ØªØ± Ù„ØºØ© Ø§Ù„Ø¹Ø±Ø¶ Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚.',
+      'Select Light or Dark mode for the app interface.': 'Ø§Ø®ØªØ± Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„ÙØ§ØªØ­ Ø£Ùˆ Ø§Ù„Ø¯Ø§ÙƒÙ† Ù„ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚.',
+      'Change the background, colors, and overall appearance of the workspace.': 'ØªØºÙŠÙŠØ± Ø§Ù„Ø®Ù„ÙÙŠØ© ÙˆØ§Ù„Ø£Ù„ÙˆØ§Ù† ÙˆØ§Ù„Ù…Ø¸Ù‡Ø± Ø§Ù„Ø¹Ø§Ù… Ù„Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„.',
+      'V8 Advanced Features': 'Ù…ÙŠØ²Ø§Øª V8 Ø§Ù„Ù…ØªÙ‚Ø¯Ù…Ø©',
+      'Toggle radar maps, story mode, and advanced analytics.': 'ØªØ¨Ø¯ÙŠÙ„ Ø®Ø±Ø§Ø¦Ø· Ø§Ù„Ø±Ø§Ø¯Ø§Ø± ÙˆÙˆØ¶Ø¹ Ø§Ù„Ù‚ØµØ© ÙˆØ§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª Ø§Ù„Ù…ØªÙ‚Ø¯Ù…Ø©.',
+      'About This App': 'Ø­ÙˆÙ„ Ù‡Ø°Ø§ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚',
+      'Specifications, engine performance details, and build metrics.': 'Ø§Ù„Ù…ÙˆØ§ØµÙØ§Øª ÙˆØªÙØ§ØµÙŠÙ„ Ø£Ø¯Ø§Ø¡ Ø§Ù„Ù…Ø­Ø±Ùƒ ÙˆÙ…Ù‚Ø§ÙŠÙŠØ³ Ø§Ù„Ø¨Ù†Ø§Ø¡.',
+      'Lineage Details': 'ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù†Ø³Ø¨',
+      'Personal Info': 'Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø´Ø®ØµÙŠØ©',
+      'Relations': 'Ø§Ù„Ø¹Ù„Ø§Ù‚Ø§Øª',
+      'Timeline': 'Ø§Ù„Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø²Ù…Ù†ÙŠ',
+      'Add Person': 'Ø¥Ø¶Ø§ÙØ© Ø´Ø®Øµ',
+      'Edit Person': 'ØªØ¹Ø¯ÙŠÙ„ Ø´Ø®Øµ',
+      'Person Details': 'ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø´Ø®Øµ',
+      'Family Relations': 'Ø¹Ù„Ø§Ù‚Ø§Øª Ø§Ù„Ø¹Ø§Ø¦Ù„Ø©',
+      'Add Relation': 'Ø¥Ø¶Ø§ÙØ© Ø¹Ù„Ø§Ù‚Ø©',
+      'Remove Relation': 'Ø¥Ø²Ø§Ù„Ø© Ø¹Ù„Ø§Ù‚Ø©',
+      'Make Focus': 'Ø¬Ø¹Ù„Ù‡ Ù…Ø­ÙˆØ± Ø§Ù„ØªØ±ÙƒÙŠØ²',
+      'View Profile': 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ',
+      'Person added successfully.': 'ØªÙ…Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø´Ø®Øµ Ø¨Ù†Ø¬Ø§Ø­.',
+      'Person deleted successfully.': 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ø´Ø®Øµ Ø¨Ù†Ø¬Ø§Ø­.',
+      'Person updated successfully.': 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø´Ø®Øµ Ø¨Ù†Ø¬Ø§Ø­.',
+      'No members found.': 'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£Ø¹Ø¶Ø§Ø¡.',
+      'Are you sure?': 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ',
+      'This action cannot be undone.': 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡.',
+      'Bulk Import': 'Ø§Ù„Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ',
+      'Paste your data here...': 'Ø§Ù„ØµÙ‚ Ø¨ÙŠØ§Ù†Ø§ØªÙƒ Ù‡Ù†Ø§...',
+      'Parse': 'ØªØ­Ù„ÙŠÙ„',
+      'Clear': 'Ù…Ø³Ø­',
+      'Generate Mock Data': 'Ø¥Ù†Ø´Ø§Ø¡ Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ©',
+      'Import from File': 'Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ù…Ù† Ù…Ù„Ù',
+      'Export to File': 'ØªØµØ¯ÙŠØ± Ø¥Ù„Ù‰ Ù…Ù„Ù',
+      'Export PDF': 'ØªØµØ¯ÙŠØ± PDF',
+      'Export CSV': 'ØªØµØ¯ÙŠØ± CSV',
+      'Export JSON': 'ØªØµØ¯ÙŠØ± JSON',
+      'Radar Map': 'Ø®Ø±ÙŠØ·Ø© Ø§Ù„Ø±Ø§Ø¯Ø§Ø±',
+      'Story Mode': 'ÙˆØ¶Ø¹ Ø§Ù„Ù‚ØµØ©',
+      'Analytics': 'Ø§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª',
+      'Pathfinder': 'Ù…Ø­Ø¯Ø¯ Ø§Ù„Ù…Ø³Ø§Ø±',
+      'Find Path': 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø³Ø§Ø±',
+      'Start': 'Ø¨Ø¯Ø§ÙŠØ©',
+      'End': 'Ù†Ù‡Ø§ÙŠØ©',
+      'Step': 'Ø®Ø·ÙˆØ©',
+      'No relationship connection path found between these members.': 'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù…Ø³Ø§Ø± Ø§Ø±ØªØ¨Ø§Ø· Ø¨ÙŠÙ† Ù‡Ø¤Ù„Ø§Ø¡ Ø§Ù„Ø£Ø¹Ø¶Ø§Ø¡.',
     };
   }
 
@@ -3275,13 +3275,46 @@ export class FamilyTreeUI {
         textNode.textContent = newText;
       }
     });
+
+    // Translate attributes
+    if (root.querySelectorAll) {
+      const elementsWithAttrs = root.querySelectorAll('[placeholder], [title], [aria-label]');
+      elementsWithAttrs.forEach(el => {
+        ['placeholder', 'title', 'aria-label'].forEach(attr => {
+          if (el.hasAttribute(attr)) {
+            const originalAttr = el.getAttribute(attr);
+            if (originalAttr && originalAttr.trim() !== '') {
+              let newAttr = originalAttr;
+              for (const [source, target] of Object.entries(lookupDict)) {
+                if (originalAttr.trim() === source.trim()) {
+                  newAttr = target;
+                  break;
+                }
+              }
+              if (newAttr === originalAttr) {
+                const sortedKeys = Object.keys(lookupDict).sort((a, b) => b.length - a.length);
+                for (const source of sortedKeys) {
+                  if (source.length < 3) continue;
+                  if (newAttr.includes(source)) {
+                    newAttr = newAttr.split(source).join(lookupDict[source]);
+                  }
+                }
+              }
+              if (newAttr !== originalAttr) {
+                el.setAttribute(attr, newAttr);
+              }
+            }
+          }
+        });
+      });
+    }
   }
 
   updateLangModalIndicator() {
     const indicator = document.getElementById('lang-current-indicator');
     if (!indicator) return;
     const lang = localStorage.getItem('app-language') || 'en';
-    indicator.textContent = lang === 'ar' ? 'الحالية: العربية' : 'Current: English';
+    indicator.textContent = lang === 'ar' ? 'Ø§Ù„Ø­Ø§Ù„ÙŠØ©: Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' : 'Current: English';
   }
 
   initLanguage() {
