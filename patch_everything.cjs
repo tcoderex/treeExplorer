@@ -45,28 +45,8 @@ if (!preloadContent.includes('windowClose')) {
   console.log("Patched preload.js");
 }
 
-// 3. index.html - wire custom title bar
-let indexPath = path.join(basePath, 'index.html');
-let indexContent = fs.readFileSync(indexPath, 'utf8');
-
-if (!indexContent.includes('window.api.windowClose')) {
-  const targetScript = `<script type="module" src="/src/index.js"></script>`;
-  const replacementScript = `<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const closeBtn = document.querySelector('.titlebar-btn.close');
-      const minBtn = document.querySelector('.titlebar-btn.minimize');
-      const maxBtn = document.querySelector('.titlebar-btn.maximize');
-      
-      if(closeBtn && window.api) closeBtn.addEventListener('click', () => window.api.windowClose());
-      if(minBtn && window.api) minBtn.addEventListener('click', () => window.api.windowMinimize());
-      if(maxBtn && window.api) maxBtn.addEventListener('click', () => window.api.windowMaximize());
-    });
-  </script>
-  <script type="module" src="/src/index.js"></script>`;
-  indexContent = indexContent.replace(targetScript, replacementScript);
-  fs.writeFileSync(indexPath, indexContent, 'utf8');
-  console.log("Patched index.html");
-}
+// 3. index.html - custom title bar buttons handled directly in src/ui.js
+console.log("Titlebar buttons wired directly in src/ui.js. No need to patch index.html.");
 
 // 4. splash.html - translation
 let splashPath = path.join(basePath, 'splash.html');

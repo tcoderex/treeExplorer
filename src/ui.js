@@ -186,18 +186,36 @@ export class FamilyTreeUI {
       }
     });
 
-    // Mock Window Action Buttons Click simulation (just for light mockup wow)
-    document.querySelectorAll('.titlebar-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.classList.contains('close')) {
+    // Custom window control action buttons (minimize, maximize, close)
+    const minBtn = document.querySelector('.titlebar-btn.minimize');
+    const maxBtn = document.querySelector('.titlebar-btn.maximize');
+    const closeBtn = document.querySelector('.titlebar-btn.close');
+
+    if (minBtn) {
+      minBtn.addEventListener('click', () => {
+        if (window.api && window.api.windowMinimize) {
+          window.api.windowMinimize();
+        }
+      });
+    }
+    if (maxBtn) {
+      maxBtn.addEventListener('click', () => {
+        if (window.api && window.api.windowMaximize) {
+          window.api.windowMaximize();
+        }
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (window.api && window.api.windowClose) {
+          window.api.windowClose();
+        } else {
           if (confirm("Close Windows Family Tree Explorer?")) {
             window.close();
           }
-        } else {
-          // Future data backup functionality
         }
       });
-    });
+    }
 
     // 3. Add Person manual form
     const formAdd = document.getElementById('form-add-person');
