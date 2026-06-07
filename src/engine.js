@@ -5,16 +5,18 @@
 export class FamilyTreeEngine {
   constructor() {
     this.people = new Map(); // id -> person object
+    this.relationships = []; // array of relationship edge objects
     this.nameToIds = new Map(); // lowercase name -> array of ids (for fuzzy lookup)
     this.tokenToIds = new Map(); // token -> Set of ids (for high-performance search)
   }
 
   clear(skipSave = false) {
     this.people.clear();
+    this.relationships = [];
     this.nameToIds.clear();
     this.tokenToIds.clear();
     if (!skipSave && window.api && window.api.db) {
-      window.api.db.exec('DELETE FROM people').catch(e => console.error(e));
+      window.api.db.exec('DELETE FROM people; DELETE FROM relationships').catch(e => console.error(e));
     }
   }
 
@@ -28,7 +30,10 @@ export class FamilyTreeEngine {
     if (window.api && window.api.db) {
       try {
         const rows = await window.api.db.all('SELECT * FROM people');
+        const relRows = await window.api.db.all('SELECT * FROM relationships');
+        
         this.clear(true); // clear without saving to DB
+        
         for (const row of rows) {
           let birthYear = null;
           let deathYear = null;
@@ -45,37 +50,93 @@ export class FamilyTreeEngine {
               notesText = row.notes;
             }
           }
+          
           const person = {
             id: row.id,
-            name: row.name,
+            firstName: row.firstName,
+            familyName: row.familyName || '',
             gender: row.gender,
-            spouses: row.spouses ? JSON.parse(row.spouses) : [],
-            fatherId: row.fatherId,
-            fatherName: row.fatherName,
-            motherId: row.motherId,
-            motherName: row.motherName,
-            grandfatherName: row.grandfatherName,
+            spouses: [],
+            fatherId: '',
+            fatherName: '',
+            motherId: '',
+            motherName: '',
+            grandfatherName: '',
             photo: row.photo || '',
             notes: notesText,
             birthYear: birthYear,
             deathYear: deathYear,
-            children: []
+            children: [],
+            siblings: [],
+            customRelations: {}
           };
+          
+          // Fallback property getter for backwards-compatible UI name reading
+          Object.defineProperty(person, 'name', {
+            get: function() { return (this.firstName + (this.familyName ? ' ' + this.familyName : '')).trim(); },
+            set: function(val) {
+              const parts = val.trim().split(' ');
+              if (parts.length > 1) {
+                this.familyName = parts.pop();
+                this.firstName = parts.join(' ');
+              } else {
+                this.firstName = val;
+                this.familyName = '';
+              }
+            }
+          });
+          
           this.people.set(person.id, person);
           this.indexName(person.name, person.id);
         }
         
-        // Re-link children arrays based on parent IDs
-        this.people.forEach((person, id) => {
-          if (person.fatherId) {
-            const fNode = this.people.get(person.fatherId);
-            if (fNode && !fNode.children.includes(id)) fNode.children.push(id);
+        // Apply relationships from Universal Relationship Manager
+        for (const rel of relRows) {
+          this.relationships.push(rel);
+          const p1 = this.people.get(rel.person1Id);
+          const p2 = this.people.get(rel.person2Id);
+          
+          if (rel.type === 'parent-child') {
+            if (p2 && p1) {
+              if (p1.gender === 'M') {
+                 p2.fatherId = p1.id;
+                 p2.fatherName = p1.name;
+              } else if (p1.gender === 'F') {
+                 p2.motherId = p1.id;
+                 p2.motherName = p1.name;
+              }
+              if (!p1.children.includes(p2.id)) p1.children.push(p2.id);
+            }
+          } else if (rel.type === 'spouse') {
+             if (p1 && p2) {
+               if (!p1.spouses.includes(p2.name)) p1.spouses.push(p2.name);
+               if (!p2.spouses.includes(p1.name)) p2.spouses.push(p1.name);
+             }
+          } else if (rel.type === 'sibling') {
+             if (p1 && p2) {
+               if (!p1.siblings.includes(p2.id)) p1.siblings.push(p2.id);
+               if (!p2.siblings.includes(p1.id)) p2.siblings.push(p1.id);
+             }
+          } else if (rel.type === 'custom') {
+             if (p1 && p2) {
+                let meta = {};
+                try { meta = JSON.parse(rel.metadata); } catch(e){}
+                p1.customRelations[p2.id] = meta.subtype || 'custom';
+             }
           }
-          if (person.motherId) {
-            const mNode = this.people.get(person.motherId);
-            if (mNode && !mNode.children.includes(id)) mNode.children.push(id);
+        }
+        
+        // Update grandfather names based on constructed father relations
+        this.people.forEach((person) => {
+          if (person.fatherId) {
+             const fNode = this.people.get(person.fatherId);
+             if (fNode && fNode.fatherId) {
+               const gfNode = this.people.get(fNode.fatherId);
+               if (gfNode) person.grandfatherName = gfNode.name;
+             }
           }
         });
+
       } catch (err) {
         console.error("Failed to load from SQLite:", err);
       }
@@ -95,19 +156,60 @@ export class FamilyTreeEngine {
           };
           return {
             id: p.id,
-            name: p.name,
+            firstName: p.firstName,
+            familyName: p.familyName,
             gender: p.gender,
-            spouses: p.spouses,
-            fatherId: p.fatherId,
-            fatherName: p.fatherName,
-            motherId: p.motherId,
-            motherName: p.motherName,
-            grandfatherName: p.grandfatherName,
             photo: p.photo,
             notes: JSON.stringify(notesObj)
           };
         });
-        window.api.db.batch(persons).catch(err => console.error("SQLite Batch Save Error:", err));
+
+        const relationships = [];
+        const addedRels = new Set();
+        const generateId = () => Math.random().toString(36).substring(2, 11);
+        
+        const addRel = (p1, p2, type, meta) => {
+          if(!p1 || !p2) return;
+          const key = p1 < p2 ? `${p1}-${p2}-${type}` : `${p2}-${p1}-${type}`;
+          if (type === 'parent-child') {
+            const dirKey = `${p1}-${p2}-${type}`;
+            if (!addedRels.has(dirKey)) {
+              relationships.push({ id: generateId(), person1Id: p1, person2Id: p2, type, metadata: meta || {} });
+              addedRels.add(dirKey);
+            }
+          } else {
+            if (!addedRels.has(key)) {
+              const min = p1 < p2 ? p1 : p2;
+              const max = p1 < p2 ? p2 : p1;
+              relationships.push({ id: generateId(), person1Id: min, person2Id: max, type, metadata: meta || {} });
+              addedRels.add(key);
+            }
+          }
+        };
+
+        this.people.forEach(p => {
+          if (p.fatherId) addRel(p.fatherId, p.id, 'parent-child');
+          if (p.motherId) addRel(p.motherId, p.id, 'parent-child');
+          if (p.spouses) {
+            p.spouses.forEach(spName => {
+               const oppGender = p.gender === 'M' ? 'F' : 'M';
+               let matchingIds = this.nameToIds.get(spName.toLowerCase()) || [];
+               let sNode = matchingIds.map(id => this.people.get(id)).find(node => node.gender === oppGender);
+               if (sNode) addRel(p.id, sNode.id, 'spouse');
+            });
+          }
+          if (p.siblings) {
+            p.siblings.forEach(sId => addRel(p.id, sId, 'sibling'));
+          }
+          if (p.customRelations) {
+            Object.entries(p.customRelations).forEach(([rid, subtype]) => {
+               addRel(p.id, rid, 'custom', { subtype });
+            });
+          }
+        });
+        
+        this.relationships = relationships;
+        window.api.db.batch({ persons, relationships }).catch(err => console.error("SQLite Batch Save Error:", err));
       }, 1000);
     }
   }
@@ -211,12 +313,98 @@ export class FamilyTreeEngine {
     return false;
   }
 
+  _applyRelativeData(person, relativesData) {
+    if (!relativesData) return;
+    
+    if (relativesData.father && person.fatherId) {
+       const node = this.people.get(person.fatherId);
+       if (node) {
+          const rd = relativesData.father;
+          if (rd.birthYear) node.birthYear = parseInt(rd.birthYear);
+          if (rd.deathYear) node.deathYear = parseInt(rd.deathYear);
+          if (rd.photo) node.photo = rd.photo;
+       }
+    }
+    
+    if (relativesData.grandfather && person.fatherId) {
+       const fNode = this.people.get(person.fatherId);
+       if (fNode && fNode.fatherId) {
+          const gfNode = this.people.get(fNode.fatherId);
+          if (gfNode) {
+             const rd = relativesData.grandfather;
+             if (rd.birthYear) gfNode.birthYear = parseInt(rd.birthYear);
+             if (rd.deathYear) gfNode.deathYear = parseInt(rd.deathYear);
+             if (rd.photo) gfNode.photo = rd.photo;
+          }
+       }
+    }
+
+    if (relativesData.mother && person.motherId) {
+       const node = this.people.get(person.motherId);
+       if (node) {
+          const rd = relativesData.mother;
+          if (rd.birthYear) node.birthYear = parseInt(rd.birthYear);
+          if (rd.deathYear) node.deathYear = parseInt(rd.deathYear);
+          if (rd.photo) node.photo = rd.photo;
+       }
+    }
+
+    if (relativesData.spouse && person.spouses && person.spouses.length > 0) {
+       const spouseName = person.spouses[0];
+       const spouseIds = this.nameToIds.get(spouseName.toLowerCase()) || [];
+       if (spouseIds.length > 0) {
+          const sNode = this.people.get(spouseIds[0]);
+          if (sNode) {
+             const rd = relativesData.spouse;
+             if (rd.birthYear) sNode.birthYear = parseInt(rd.birthYear);
+             if (rd.deathYear) sNode.deathYear = parseInt(rd.deathYear);
+             if (rd.photo) sNode.photo = rd.photo;
+          }
+       }
+    }
+
+    if (relativesData.siblings && person.siblings && person.siblings.length > 0) {
+       const siblingName = person.siblings[0];
+       const siblingIds = this.nameToIds.get(siblingName.toLowerCase()) || [];
+       if (siblingIds.length > 0) {
+          const sNode = this.people.get(siblingIds[0]);
+          if (sNode) {
+             const rd = relativesData.siblings;
+             if (rd.birthYear) sNode.birthYear = parseInt(rd.birthYear);
+             if (rd.deathYear) sNode.deathYear = parseInt(rd.deathYear);
+             if (rd.photo) sNode.photo = rd.photo;
+          }
+       }
+    }
+  }
+
   // Add or update person
   addPerson(data) {
-    let { id, name, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId, photo, birthYear, deathYear, notes } = data;
+    let { id, name, firstName, familyName, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId, photo, birthYear, deathYear, notes, siblings, relativesData } = data;
+    
+    if (relativesData) {
+      if (relativesData.father && relativesData.father.id) fatherId = relativesData.father.id;
+      if (relativesData.mother && relativesData.mother.id) motherId = relativesData.mother.id;
+      if (relativesData.grandfather && relativesData.grandfather.id) grandfatherId = relativesData.grandfather.id;
+    }
+    
+    if (name && !firstName) {
+      const parts = name.trim().split(' ');
+      if (parts.length > 1) {
+        familyName = parts.pop();
+        firstName = parts.join(' ');
+      } else {
+        firstName = name.trim();
+        familyName = '';
+      }
+    } else if (firstName) {
+      name = (firstName.trim() + ' ' + (familyName || '').trim()).trim();
+    }
     
     if (!name) return null;
     name = name.trim();
+    firstName = firstName ? firstName.trim() : '';
+    familyName = familyName ? familyName.trim() : '';
 
     // Parent Gender Self-Healing Layer
     let checkFather = fatherName ? fatherName.trim() : '';
@@ -266,6 +454,12 @@ export class FamilyTreeEngine {
       spouseList = spouse.split(',').map(s => s.trim()).filter(Boolean);
     }
     
+    // Support siblings parameter
+    let siblingList = [];
+    if (siblings) {
+      siblingList = siblings.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    
     // 1. Resolve ID or create new
     let isNew = false;
     let person = null;
@@ -307,7 +501,9 @@ export class FamilyTreeEngine {
       // Unindex old name if it's changing
       if (person.name !== name) {
         this.unindexName(person.name, person.id);
-        person.name = name;
+        person.firstName = firstName;
+        person.familyName = familyName;
+        person.name = name; // legacy property update if needed
         this.indexName(name, person.id);
       }
       person.gender = gender;
@@ -335,6 +531,8 @@ export class FamilyTreeEngine {
       }
       person = {
         id,
+        firstName,
+        familyName,
         name,
         gender,
         spouses: spouseList,
@@ -347,7 +545,9 @@ export class FamilyTreeEngine {
         birthYear: birthYear !== undefined && birthYear !== null && birthYear !== '' ? parseInt(birthYear) : null,
         deathYear: deathYear !== undefined && deathYear !== null && deathYear !== '' ? parseInt(deathYear) : null,
         notes: notes || '',
-        children: []
+        children: [],
+        siblings: [],
+        customRelations: {}
       };
       this.people.set(id, person);
       this.indexName(name, id);
@@ -550,11 +750,14 @@ export class FamilyTreeEngine {
 
     // Link Spouses bidirectionally
     if (person.spouses && person.spouses.length > 0) {
-      person.spouses.forEach(spName => {
+      person.spouses.forEach((spName, index) => {
         const spouseKey = spName.toLowerCase();
         
-        let exactSpouse = spouseId ? this.people.get(spouseId) : null;
-        if (!exactSpouse && !spouseId) {
+        const rd = relativesData && relativesData.spouse && relativesData.spouse[index] ? relativesData.spouse[index] : null;
+        const currentSpouseId = (rd && rd.id) ? rd.id : (index === 0 ? spouseId : null);
+        
+        let exactSpouse = currentSpouseId ? this.people.get(currentSpouseId) : null;
+        if (!exactSpouse && !currentSpouseId) {
           const matchingIds = this.nameToIds.get(spouseKey) || [];
           const oppositeGender = person.gender === 'M' ? 'F' : 'M';
           exactSpouse = matchingIds.map(sid => this.people.get(sid)).find(sp => sp.gender === oppositeGender);
@@ -562,7 +765,7 @@ export class FamilyTreeEngine {
         
         if (!exactSpouse) {
           // Create a placeholder spouse node
-          const sId = spouseId || this.generateId();
+          const sId = currentSpouseId || this.generateId();
           const oppositeGender = person.gender === 'M' ? 'F' : 'M';
           exactSpouse = {
             id: sId,
@@ -584,6 +787,64 @@ export class FamilyTreeEngine {
         }
       });
     }
+
+    // Link Siblings bidirectionally and sync parents
+    if (siblingList && siblingList.length > 0) {
+      siblingList.forEach((sibName, index) => {
+        const sibKey = sibName.toLowerCase();
+        const rd = relativesData && relativesData.siblings && relativesData.siblings[index] ? relativesData.siblings[index] : null;
+        const currentSiblingId = (rd && rd.id) ? rd.id : null;
+        
+        let exactSibling = currentSiblingId ? this.people.get(currentSiblingId) : this.findPatriarchNode(sibKey);
+        
+        if (!exactSibling) {
+          // Create placeholder sibling
+          const sId = currentSiblingId || this.generateId();
+          exactSibling = {
+            id: sId,
+            name: sibName,
+            gender: 'M', // default placeholder gender
+            spouses: [],
+            fatherId: person.fatherId,
+            fatherName: person.fatherName,
+            motherId: person.motherId,
+            motherName: person.motherName,
+            grandfatherName: person.grandfatherName,
+            children: [],
+            siblings: [person.id],
+            customRelations: {}
+          };
+          this.people.set(sId, exactSibling);
+          this.indexName(sibName, sId);
+        } else {
+          if (!exactSibling.siblings) exactSibling.siblings = [];
+          if (!exactSibling.siblings.includes(person.id)) {
+            exactSibling.siblings.push(person.id);
+          }
+          // Sync parents if missing
+          if (!exactSibling.fatherId && person.fatherId) {
+             exactSibling.fatherId = person.fatherId;
+             exactSibling.fatherName = person.fatherName;
+             exactSibling.grandfatherName = person.grandfatherName;
+             const fatherNode = this.people.get(person.fatherId);
+             if (fatherNode && !fatherNode.children.includes(exactSibling.id)) fatherNode.children.push(exactSibling.id);
+          }
+          if (!exactSibling.motherId && person.motherId) {
+             exactSibling.motherId = person.motherId;
+             exactSibling.motherName = person.motherName;
+             const motherNode = this.people.get(person.motherId);
+             if (motherNode && !motherNode.children.includes(exactSibling.id)) motherNode.children.push(exactSibling.id);
+          }
+        }
+        
+        if (!person.siblings) person.siblings = [];
+        if (!person.siblings.includes(exactSibling.id)) {
+          person.siblings.push(exactSibling.id);
+        }
+      });
+    }
+
+    this._applyRelativeData(person, data.relativesData);
     this.saveToDB();
     return person;
   }
@@ -637,6 +898,16 @@ export class FamilyTreeEngine {
             spouseObj.spouses = spouseObj.spouses.filter(name => name !== person.name);
           }
         });
+      });
+    }
+
+    // Remove sibling links
+    if (person.siblings && person.siblings.length > 0) {
+      person.siblings.forEach(sibId => {
+        const sib = this.people.get(sibId);
+        if (sib && sib.siblings) {
+          sib.siblings = sib.siblings.filter(sid => sid !== id);
+        }
       });
     }
 
@@ -946,10 +1217,36 @@ export class FamilyTreeEngine {
 
   getSiblings(id) {
     const person = this.getPerson(id);
-    if (!person || !person.fatherId) return [];
-    const father = this.getPerson(person.fatherId);
-    if (!father) return [];
-    return father.children.filter(cid => cid !== id).map(cid => this.getPerson(cid));
+    if (!person) return [];
+    
+    const siblingIds = new Set();
+    
+    // Add explicitly defined lateral siblings
+    if (person.siblings) {
+      person.siblings.forEach(sid => siblingIds.add(sid));
+    }
+    
+    // Add siblings from father
+    if (person.fatherId) {
+      const father = this.getPerson(person.fatherId);
+      if (father && father.children) {
+        father.children.forEach(cid => {
+          if (cid !== id) siblingIds.add(cid);
+        });
+      }
+    }
+    
+    // Add siblings from mother
+    if (person.motherId) {
+      const mother = this.getPerson(person.motherId);
+      if (mother && mother.children) {
+        mother.children.forEach(cid => {
+          if (cid !== id) siblingIds.add(cid);
+        });
+      }
+    }
+    
+    return Array.from(siblingIds).map(cid => this.getPerson(cid)).filter(Boolean);
   }
 
   // Get recursive ancestor line (Paternal lineage chain)
@@ -1469,17 +1766,25 @@ export class FamilyTreeEngine {
     return 'P-105'; // Focus on John Miller
   }
 
-  // Modify an existing person and cleanly resolve all parent-child, spouse, and name index changes
   modifyPerson(id, data) {
     if (!this.people.has(id)) return null;
     const person = this.people.get(id);
 
-    let { name, gender, spouses, fatherName, motherName, grandfatherName, photo, birthYear, deathYear, notes } = data;
-    name = name.trim();
+    let { name, firstName, familyName, gender, spouses, siblings, fatherName, motherName, grandfatherName, photo, birthYear, deathYear, notes, relativesData } = data;
+    
+    if (firstName) {
+      name = (firstName.trim() + ' ' + (familyName || '').trim()).trim();
+    } else {
+      firstName = person.firstName;
+      familyName = person.familyName;
+    }
+    name = name ? name.trim() : person.name;
 
     // 1. Update Name & Indexing
     if (person.name !== name) {
       this.unindexName(person.name, person.id);
+      
+      const oldName = person.name;
       
       // Update all children's parentName references
       person.children.forEach(cid => {
@@ -1494,15 +1799,19 @@ export class FamilyTreeEngine {
       });
 
       // Update spouses' spouse lists
-      const oldName = person.name;
       this.getAllPeople().forEach(p => {
         if (p.spouses && p.spouses.includes(oldName)) {
           p.spouses = p.spouses.map(sn => sn === oldName ? name : sn);
         }
       });
 
+      person.firstName = firstName;
+      person.familyName = familyName;
       person.name = name;
       this.indexName(name, person.id);
+    } else {
+      person.firstName = firstName;
+      person.familyName = familyName;
     }
 
     // 2. Update Gender & Photo
@@ -1530,7 +1839,7 @@ export class FamilyTreeEngine {
     person.spouses = spouseList;
     
     // Add new spouse bidirectionals
-    spouseList.forEach(spName => {
+    spouseList.forEach((spName, index) => {
       const spObj = this.findPatriarchNode(spName);
       if (spObj) {
         if (!spObj.spouses) spObj.spouses = [];
@@ -1539,8 +1848,10 @@ export class FamilyTreeEngine {
         }
       } else {
         // Create placeholder spouse
+        const rd = relativesData && relativesData.spouse && relativesData.spouse[index] ? relativesData.spouse[index] : null;
+        const currentSpouseId = (rd && rd.id) ? rd.id : null;
         const oppositeGender = person.gender === 'M' ? 'F' : 'M';
-        const sId = this.generateId();
+        const sId = currentSpouseId || this.generateId();
         const placeholderSp = {
           id: sId,
           name: spName,
@@ -1554,6 +1865,54 @@ export class FamilyTreeEngine {
         this.people.set(sId, placeholderSp);
         this.indexName(spName, sId);
       }
+    });
+
+    // 3.5 Update Siblings
+    const siblingList = siblings ? siblings.split(',').map(s => s.trim()).filter(Boolean) : [];
+    
+    // Remove old sibling bidirectionals
+    if (person.siblings) {
+      person.siblings.forEach(sibId => {
+        const sibObj = this.people.get(sibId);
+        if (sibObj && sibObj.siblings && !siblingList.includes(sibObj.name)) {
+          sibObj.siblings = sibObj.siblings.filter(sid => sid !== person.id);
+        }
+      });
+    }
+    
+    // Add new sibling bidirectionals
+    person.siblings = [];
+    siblingList.forEach((sibName, index) => {
+      const sibKey = sibName.toLowerCase();
+      let sibObj = this.findPatriarchNode(sibKey);
+      
+      if (!sibObj) {
+        const rd = relativesData && relativesData.siblings && relativesData.siblings[index] ? relativesData.siblings[index] : null;
+        const currentSiblingId = (rd && rd.id) ? rd.id : null;
+        const sId = currentSiblingId || this.generateId();
+        sibObj = {
+          id: sId,
+          name: sibName,
+          gender: 'M',
+          spouses: [],
+          fatherId: person.fatherId,
+          fatherName: person.fatherName,
+          motherId: person.motherId,
+          motherName: person.motherName,
+          grandfatherName: person.grandfatherName,
+          children: [],
+          siblings: [person.id],
+          customRelations: {}
+        };
+        this.people.set(sId, sibObj);
+        this.indexName(sibName, sId);
+      } else {
+        if (!sibObj.siblings) sibObj.siblings = [];
+        if (!sibObj.siblings.includes(person.id)) {
+          sibObj.siblings.push(person.id);
+        }
+      }
+      person.siblings.push(sibObj.id);
     });
 
     // 4. Update Father Link
@@ -1715,8 +2074,93 @@ export class FamilyTreeEngine {
       }
     }
 
+    this._applyRelativeData(person, data.relativesData);
     this.saveToDB();
     return person;
+  }
+
+  // Universal Linker for Universal Relationship Manager
+  linkProfiles(id1, id2, relationType) {
+    if (!this.people.has(id1) || !this.people.has(id2)) return false;
+    const p1 = this.people.get(id1);
+    const p2 = this.people.get(id2);
+    
+    if (id1 === id2) return false;
+
+    if (relationType === 'Brother of' || relationType === 'Sister of' || relationType === 'Sibling of') {
+      if (!p1.siblings) p1.siblings = [];
+      if (!p2.siblings) p2.siblings = [];
+      if (!p1.siblings.includes(id2)) p1.siblings.push(id2);
+      if (!p2.siblings.includes(id1)) p2.siblings.push(id1);
+      
+      // Sync parents
+      if (p1.fatherId && !p2.fatherId) {
+        p2.fatherId = p1.fatherId;
+        p2.fatherName = p1.fatherName;
+        p2.grandfatherName = p1.grandfatherName;
+        const f = this.people.get(p1.fatherId);
+        if (f && !f.children.includes(id2)) f.children.push(id2);
+      } else if (p2.fatherId && !p1.fatherId) {
+        p1.fatherId = p2.fatherId;
+        p1.fatherName = p2.fatherName;
+        p1.grandfatherName = p2.grandfatherName;
+        const f = this.people.get(p2.fatherId);
+        if (f && !f.children.includes(id1)) f.children.push(id1);
+      }
+      
+      if (p1.motherId && !p2.motherId) {
+        p2.motherId = p1.motherId;
+        p2.motherName = p1.motherName;
+        const m = this.people.get(p1.motherId);
+        if (m && !m.children.includes(id2)) m.children.push(id2);
+      } else if (p2.motherId && !p1.motherId) {
+        p1.motherId = p2.motherId;
+        p1.motherName = p2.motherName;
+        const m = this.people.get(p2.motherId);
+        if (m && !m.children.includes(id1)) m.children.push(id1);
+      }
+      
+    } else if (relationType === 'Father of' || relationType === 'Mother of') {
+       if (this.wouldCreateCycle(id2, id1)) return false; 
+       
+       if (relationType === 'Father of') {
+         p2.fatherId = id1;
+         p2.fatherName = p1.name;
+         p2.grandfatherName = p1.fatherName;
+         if (!p1.children.includes(id2)) p1.children.push(id2);
+       } else {
+         p2.motherId = id1;
+         p2.motherName = p1.name;
+         if (!p1.children.includes(id2)) p1.children.push(id2);
+       }
+    } else if (relationType === 'Son of' || relationType === 'Daughter of' || relationType === 'Child of') {
+       if (this.wouldCreateCycle(id1, id2)) return false; 
+       
+       if (p2.gender === 'M') {
+         p1.fatherId = id2;
+         p1.fatherName = p2.name;
+         p1.grandfatherName = p2.fatherName;
+         if (!p2.children.includes(id1)) p2.children.push(id1);
+       } else {
+         p1.motherId = id2;
+         p1.motherName = p2.name;
+         if (!p2.children.includes(id1)) p2.children.push(id1);
+       }
+    } else if (relationType === 'Spouse of') {
+       if (!p1.spouses) p1.spouses = [];
+       if (!p2.spouses) p2.spouses = [];
+       if (!p1.spouses.includes(p2.name)) p1.spouses.push(p2.name);
+       if (!p2.spouses.includes(p1.name)) p2.spouses.push(p1.name);
+    } else {
+       // Custom Relationship
+       if (!p1.customRelations) p1.customRelations = {};
+       p1.customRelations[id2] = relationType;
+       if (!p2.customRelations) p2.customRelations = {};
+       p2.customRelations[id1] = `Linked to ${p1.name} (${relationType})`;
+    }
+    
+    this.saveToDB();
+    return true;
   }
 
   // Import local stored data
@@ -1735,7 +2179,9 @@ export class FamilyTreeEngine {
         motherId: p.motherId || '',
         motherName: p.motherName || '',
         grandfatherName: p.grandfatherName || '',
-        children: Array.isArray(p.children) ? p.children : []
+        children: Array.isArray(p.children) ? p.children : [],
+        siblings: Array.isArray(p.siblings) ? p.siblings : [],
+        customRelations: p.customRelations || {}
       });
       this.indexName(p.name, p.id);
     });
@@ -1793,6 +2239,19 @@ export class FamilyTreeEngine {
           if (!existing.spouses) existing.spouses = [];
           if (!existing.spouses.includes(s)) existing.spouses.push(s);
         });
+
+        // Merge siblings
+        const sibs = Array.isArray(p.siblings) ? p.siblings : [];
+        sibs.forEach(s => {
+          if (!existing.siblings) existing.siblings = [];
+          if (!existing.siblings.includes(s)) existing.siblings.push(s);
+        });
+        
+        // Merge customRelations
+        if (p.customRelations) {
+          if (!existing.customRelations) existing.customRelations = {};
+          Object.assign(existing.customRelations, p.customRelations);
+        }
         
         // Merge children
         const children = Array.isArray(p.children) ? p.children : [];

@@ -24,6 +24,10 @@ export class FamilyTreeUI {
     this.activeSpouseFilter = 'all';
     this.selectedMemberIds = new Set();
 
+    // Inline Details Pending State
+    this.pendingRelativeDataAdd = {};
+    this.pendingRelativeDataEdit = {};
+
     // Suggestions state
     this.searchFocusedIndex = -1;
 
@@ -197,23 +201,47 @@ export class FamilyTreeUI {
     formAdd.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const id = document.getElementById('input-person-id').value.trim();
-      const name = document.getElementById('input-person-name').value;
-      const gender = document.getElementById('input-person-gender').value;
-      const spouses = document.getElementById('input-person-spouse').value;
-      const fatherName = document.getElementById('input-father-name').value;
-      const motherName = document.getElementById('input-mother-name').value;
-      const grandfatherName = document.getElementById('input-grandfather-name').value;
+      const id = (document.getElementById('input-person-id')?.value || '').trim();
+      const firstName = (document.getElementById('input-person-name')?.value || '').trim();
+      const familyName = (document.getElementById('input-person-family-name')?.value || '').trim();
+      const gender = document.getElementById('input-person-gender')?.value || 'M';
+      
+      const spouseFirst = (document.getElementById('input-spouse-first-name')?.value || '').trim();
+      const spouseFamily = (document.getElementById('input-spouse-family-name')?.value || '').trim();
+      const spouses = spouseFirst ? (spouseFirst + (spouseFamily ? ' ' + spouseFamily : '')).trim() : '';
+      
+      const fatherFirstName = (document.getElementById('input-father-name')?.value || '').trim();
+      const fatherFamilyName = (document.getElementById('input-father-family-name')?.value || '').trim();
+      const fatherName = fatherFirstName ? (fatherFirstName + (fatherFamilyName ? ' ' + fatherFamilyName : '')).trim() : '';
+      
+      const motherFirstName = (document.getElementById('input-mother-name')?.value || '').trim();
+      const motherFamilyName = (document.getElementById('input-mother-family-name')?.value || '').trim();
+      const motherName = motherFirstName ? (motherFirstName + (motherFamilyName ? ' ' + motherFamilyName : '')).trim() : '';
+      
+      const gfFirst = (document.getElementById('input-grandfather-name')?.value || '').trim();
+      const gfFamily = (document.getElementById('input-grandfather-family-name')?.value || '').trim();
+      const grandfatherName = gfFirst ? (gfFirst + (gfFamily ? ' ' + gfFamily : '')).trim() : '';
+      
+      const siblingFirsts = (document.getElementById('input-sibling-first-names')?.value || '').trim();
+      const siblingFamily = (document.getElementById('input-sibling-family-name')?.value || '').trim();
+      let siblings = '';
+      if (siblingFirsts) {
+         siblings = siblingFirsts.split(',').map(s => {
+            s = s.trim();
+            if (siblingFamily && !s.includes(siblingFamily)) return s + ' ' + siblingFamily;
+            return s;
+         }).join(', ');
+      }
 
       if (id && this.engine.people.has(id)) {
         const existingPerson = this.engine.people.get(id);
         document.getElementById('conflict-id-display').innerText = id;
-        document.getElementById('conflict-name-display').innerText = existingPerson.name;
+        document.getElementById('conflict-name-display').innerText = (existingPerson.firstName + ' ' + (existingPerson.familyName || '')).trim();
         
         this.pendingConflictAction = {
           type: 'add',
           newId: id,
-          data: { name, gender, spouses, fatherName, motherName, grandfatherName }
+          data: { firstName, familyName, gender, spouses, siblings, fatherName, motherName, grandfatherName }
         };
         
         document.getElementById('modal-id-conflict-choice').classList.remove('hidden');
@@ -221,6 +249,149 @@ export class FamilyTreeUI {
       }
 
       this.handleManualAdd();
+    });
+
+    // Smart Inheritance for Add Person form (Multi-directional)
+    const inputPersonFamilyName = document.getElementById('input-person-family-name');
+    const syncFamilyNames = [
+      document.getElementById('input-father-family-name'),
+      document.getElementById('input-grandfather-family-name'),
+      document.getElementById('input-sibling-family-name')
+    ].filter(Boolean);
+
+    if (inputPersonFamilyName) {
+      let lastFamilyName = inputPersonFamilyName.value;
+      const updateFamilyNames = (newVal) => {
+         syncFamilyNames.forEach(input => {
+            if (!input.value.trim() || input.value === lastFamilyName) {
+               input.value = newVal;
+            }
+         });
+         if (!inputPersonFamilyName.value.trim() || inputPersonFamilyName.value === lastFamilyName) {
+             inputPersonFamilyName.value = newVal;
+         }
+         lastFamilyName = newVal;
+      };
+
+      inputPersonFamilyName.addEventListener('input', (e) => updateFamilyNames(e.target.value));
+      syncFamilyNames.forEach(sourceInput => {
+        sourceInput.addEventListener('input', (e) => updateFamilyNames(e.target.value));
+      });
+    }
+
+    // Smart Inheritance for Edit Person form (Multi-directional)
+    const editPersonFamilyName = document.getElementById('edit-person-family-name');
+    const syncEditFamilyNames = [
+      document.getElementById('edit-father-family-name'),
+      document.getElementById('edit-grandfather-family-name'),
+      document.getElementById('edit-sibling-family-name')
+    ].filter(Boolean);
+
+    if (editPersonFamilyName) {
+      let lastEditFamilyName = editPersonFamilyName.value;
+      const updateEditFamilyNames = (newVal) => {
+         syncEditFamilyNames.forEach(input => {
+            if (!input.value.trim() || input.value === lastEditFamilyName) {
+               input.value = newVal;
+            }
+         });
+         if (!editPersonFamilyName.value.trim() || editPersonFamilyName.value === lastEditFamilyName) {
+             editPersonFamilyName.value = newVal;
+         }
+         lastEditFamilyName = newVal;
+      };
+
+      editPersonFamilyName.addEventListener('input', (e) => updateEditFamilyNames(e.target.value));
+      syncEditFamilyNames.forEach(sourceInput => {
+        sourceInput.addEventListener('input', (e) => updateEditFamilyNames(e.target.value));
+      });
+    }
+
+    // Relative Details Modal Bindings
+    const relativeModal = document.getElementById('modal-relative-details');
+    const relativeModalTitle = document.getElementById('relative-modal-title');
+    const relativeTypeInput = document.getElementById('relative-modal-type');
+    const relativeSourceInput = document.getElementById('relative-modal-source');
+    
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-relative-details');
+      if (btn) {
+        const relType = btn.getAttribute('data-rel-type');
+        const relIndex = btn.getAttribute('data-rel-index');
+        const source = btn.closest('#modal-member-edit') ? 'edit' : 'add';
+        const key = relIndex !== null ? `${relType}_${relIndex}` : relType;
+        
+        relativeTypeInput.value = key;
+        relativeSourceInput.value = source;
+        relativeModalTitle.innerText = `✨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
+        
+        const pendingSource = source === 'add' ? this.pendingRelativeDataAdd : this.pendingRelativeDataEdit;
+        const pending = pendingSource[key] || {};
+        
+        document.getElementById('relative-id').value = pending.id || '';
+        document.getElementById('relative-birth').value = pending.birthYear || '';
+        document.getElementById('relative-death').value = pending.deathYear || '';
+        document.getElementById('relative-photo').value = pending.photo || '';
+        
+        relativeModal.classList.remove('hidden');
+      }
+    });
+
+    const createDynamicRow = (containerId, typeClassPrefix, relType) => {
+      const container = document.getElementById(containerId);
+      const index = container.querySelectorAll('.dynamic-row').length;
+      const row = document.createElement('div');
+      row.className = 'dynamic-row';
+      row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+      row.innerHTML = `
+        <input type="text" class="${typeClassPrefix}-first-name" placeholder="First Name" style="flex: 1;">
+        <input type="text" class="${typeClassPrefix}-family-name" placeholder="Family Name" style="flex: 1;">
+        <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="${relType}" data-rel-index="${index}" title="Add Details">[+]</button>
+      `;
+      container.appendChild(row);
+      
+      // Attach family name sync listener to newly created input
+      const familyInput = row.querySelector(`.${typeClassPrefix}-family-name`);
+      const mainInputId = typeClassPrefix.startsWith('input-') ? 'input-person-family-name' : 'edit-person-family-name';
+      const mainInput = document.getElementById(mainInputId);
+      if (mainInput && familyInput) {
+         // It will auto-sync via the global tracker if empty, but we must let the global tracker know it exists.
+         // Actually, sync logic was bound to fixed arrays. For dynamic rows, we can just leave them empty,
+         // or re-bind. To keep it simple, if user types the main family name, it only syncs fixed ones.
+         // But wait, the fixed ones were explicitly queried. For dynamic ones, it's okay if they just type them.
+      }
+    };
+
+    document.getElementById('btn-add-another-spouse').addEventListener('click', (e) => { e.preventDefault(); createDynamicRow('add-spouse-rows', 'input-spouse', 'spouse'); });
+    document.getElementById('btn-add-another-sibling').addEventListener('click', (e) => { e.preventDefault(); createDynamicRow('add-sibling-rows', 'input-sibling', 'siblings'); });
+    document.getElementById('btn-edit-another-spouse').addEventListener('click', (e) => { e.preventDefault(); createDynamicRow('edit-spouse-rows', 'edit-spouse', 'spouse'); });
+    document.getElementById('btn-edit-another-sibling').addEventListener('click', (e) => { e.preventDefault(); createDynamicRow('edit-sibling-rows', 'edit-sibling', 'siblings'); });
+
+    document.getElementById('btn-close-relative-modal').addEventListener('click', () => {
+      relativeModal.classList.add('hidden');
+    });
+    document.getElementById('btn-relative-cancel').addEventListener('click', () => {
+      relativeModal.classList.add('hidden');
+    });
+
+    document.getElementById('form-relative-details').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const type = relativeTypeInput.value;
+      const source = relativeSourceInput.value;
+      const data = {
+        id: document.getElementById('relative-id').value.trim(),
+        birthYear: document.getElementById('relative-birth').value,
+        deathYear: document.getElementById('relative-death').value,
+        photo: document.getElementById('relative-photo').value.trim()
+      };
+      
+      if (source === 'add') {
+        this.pendingRelativeDataAdd[type] = data;
+      } else {
+        this.pendingRelativeDataEdit[type] = data;
+      }
+      relativeModal.classList.add('hidden');
+      this.showNotification(`Saved inline details for ${type}.`, 'success');
     });
 
     // 3.5 Photo Upload Bindings
@@ -268,6 +439,7 @@ export class FamilyTreeUI {
     };
     handlePhotoBrowse('btn-browse-photo', 'file-person-photo', 'input-person-photo');
     handlePhotoBrowse('btn-edit-browse-photo', 'file-edit-person-photo', 'edit-person-photo');
+    handlePhotoBrowse('btn-relative-browse-photo', 'file-relative-photo', 'relative-photo');
 
     // 4. Bulk Parser Submission
     document.getElementById('btn-submit-bulk').addEventListener('click', () => this.handleBulkImport());
@@ -557,15 +729,58 @@ export class FamilyTreeUI {
           // Prefill modify form fields
           document.getElementById('edit-person-id').value = p.id;
           document.getElementById('edit-person-new-id').value = p.id;
-          document.getElementById('edit-person-name').value = p.name;
+          document.getElementById('edit-person-name').value = p.firstName || p.name;
+          document.getElementById('edit-person-family-name').value = p.familyName || '';
           document.getElementById('edit-person-gender').value = p.gender;
-          document.getElementById('edit-person-spouse').value = p.spouses ? p.spouses.join(', ') : '';
+          
+          if (p.spouses && p.spouses.length > 0) {
+            const firstSpouse = p.spouses[0];
+            const parts = firstSpouse.split(' ');
+            document.getElementById('edit-spouse-first-name').value = parts[0] || '';
+            document.getElementById('edit-spouse-family-name').value = parts.slice(1).join(' ') || '';
+          } else {
+            document.getElementById('edit-spouse-first-name').value = '';
+            document.getElementById('edit-spouse-family-name').value = '';
+          }
           document.getElementById('edit-person-photo').value = p.photo || '';
           document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0 ? p.birthYear : '';
           document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null && p.deathYear !== 0 ? p.deathYear : '';
-          document.getElementById('edit-father-name').value = p.fatherName || '';
-          document.getElementById('edit-mother-name').value = p.motherName || '';
-          document.getElementById('edit-grandfather-name').value = p.grandfatherName || '';
+          
+          if (p.fatherName) {
+            const parts = p.fatherName.split(' ');
+            document.getElementById('edit-father-name').value = parts[0];
+            document.getElementById('edit-father-family-name').value = parts.slice(1).join(' ');
+          } else {
+            document.getElementById('edit-father-name').value = '';
+            document.getElementById('edit-father-family-name').value = '';
+          }
+          
+          if (p.motherName) {
+            const parts = p.motherName.split(' ');
+            document.getElementById('edit-mother-name').value = parts[0];
+            document.getElementById('edit-mother-family-name').value = parts.slice(1).join(' ');
+          } else {
+            document.getElementById('edit-mother-name').value = '';
+            document.getElementById('edit-mother-family-name').value = '';
+          }
+          
+          if (p.grandfatherName) {
+            const parts = p.grandfatherName.split(' ');
+            document.getElementById('edit-grandfather-name').value = parts[0];
+            document.getElementById('edit-grandfather-family-name').value = parts.slice(1).join(' ');
+          } else {
+            document.getElementById('edit-grandfather-name').value = '';
+            document.getElementById('edit-grandfather-family-name').value = '';
+          }
+          
+          if (p.siblings && p.siblings.length > 0) {
+            const sibNames = p.siblings.map(sid => this.engine.getPerson(sid)?.name).filter(Boolean);
+            document.getElementById('edit-sibling-first-names').value = sibNames.join(', ');
+            document.getElementById('edit-sibling-family-name').value = '';
+          } else {
+            document.getElementById('edit-sibling-first-names').value = '';
+            document.getElementById('edit-sibling-family-name').value = '';
+          }
 
           // Open edit modal and close detail modal
           document.getElementById('modal-member-detail').classList.add('hidden');
@@ -584,17 +799,76 @@ export class FamilyTreeUI {
 
     document.getElementById('form-edit-person').addEventListener('submit', (e) => {
       e.preventDefault();
-      const id = document.getElementById('edit-person-id').value;
-      const newId = document.getElementById('edit-person-new-id').value.trim();
-      const name = document.getElementById('edit-person-name').value;
-      const gender = document.getElementById('edit-person-gender').value;
-      const spouses = document.getElementById('edit-person-spouse').value;
-      const photo = document.getElementById('edit-person-photo').value;
-      const birthYear = document.getElementById('edit-person-birth').value;
-      const deathYear = document.getElementById('edit-person-death').value;
-      const fatherName = document.getElementById('edit-father-name').value;
-      const motherName = document.getElementById('edit-mother-name').value;
-      const grandfatherName = document.getElementById('edit-grandfather-name').value;
+      const id = document.getElementById('edit-person-id')?.value || '';
+      const newId = (document.getElementById('edit-person-new-id')?.value || '').trim();
+      
+      const firstName = (document.getElementById('edit-person-name')?.value || '').trim();
+      const familyName = (document.getElementById('edit-person-family-name')?.value || '').trim();
+      const name = (firstName + (familyName ? ' ' + familyName : '')).trim();
+      
+      const gender = document.getElementById('edit-person-gender')?.value || 'M';
+      const spouseList = [];
+      const spouseData = [];
+      document.querySelectorAll('#edit-spouse-rows .dynamic-row').forEach((row, idx) => {
+        const first = (row.querySelector('.edit-spouse-first-name')?.value || '').trim();
+        const family = (row.querySelector('.edit-spouse-family-name')?.value || '').trim();
+        if (first) {
+          const fullName = (first + (family ? ' ' + family : '')).trim();
+          spouseList.push(fullName);
+          const key = `spouse_${idx}`;
+          if (this.pendingRelativeDataEdit[key]) {
+            spouseData.push({ name: fullName, ...this.pendingRelativeDataEdit[key] });
+          } else {
+            spouseData.push({});
+          }
+        }
+      });
+      const spouses = spouseList.join(', ');
+      
+      const siblingList = [];
+      const siblingData = [];
+      document.querySelectorAll('#edit-sibling-rows .dynamic-row').forEach((row, idx) => {
+        const first = (row.querySelector('.edit-sibling-first-name')?.value || '').trim();
+        const family = (row.querySelector('.edit-sibling-family-name')?.value || '').trim();
+        if (first) {
+          const firsts = first.split(',').map(s => s.trim()).filter(s => s);
+          firsts.forEach((fName, subIdx) => {
+            const fullName = (fName + (family ? ' ' + family : '')).trim();
+            siblingList.push(fullName);
+            const key = `siblings_${idx}`;
+            if (subIdx === 0 && this.pendingRelativeDataEdit[key]) {
+               siblingData.push({ name: fullName, ...this.pendingRelativeDataEdit[key] });
+            } else {
+               siblingData.push({});
+            }
+          });
+        }
+      });
+      const siblings = siblingList.join(', ');
+      
+      const relativesData = {
+        father: this.pendingRelativeDataEdit['father'],
+        mother: this.pendingRelativeDataEdit['mother'],
+        grandfather: this.pendingRelativeDataEdit['grandfather'],
+        spouse: spouseData.length > 0 ? spouseData : undefined,
+        siblings: siblingData.length > 0 ? siblingData : undefined
+      };
+      
+      const photo = document.getElementById('edit-person-photo')?.value || '';
+      const birthYear = document.getElementById('edit-person-birth')?.value || '';
+      const deathYear = document.getElementById('edit-person-death')?.value || '';
+      
+      const fatherFirstName = (document.getElementById('edit-father-name')?.value || '').trim();
+      const fatherFamilyName = (document.getElementById('edit-father-family-name')?.value || '').trim();
+      const fatherName = fatherFirstName ? (fatherFirstName + (fatherFamilyName ? ' ' + fatherFamilyName : '')).trim() : '';
+      
+      const motherFirstName = (document.getElementById('edit-mother-name')?.value || '').trim();
+      const motherFamilyName = (document.getElementById('edit-mother-family-name')?.value || '').trim();
+      const motherName = motherFirstName ? (motherFirstName + (motherFamilyName ? ' ' + motherFamilyName : '')).trim() : '';
+      
+      const gfFirst = (document.getElementById('edit-grandfather-name')?.value || '').trim();
+      const gfFamily = (document.getElementById('edit-grandfather-family-name')?.value || '').trim();
+      const grandfatherName = gfFirst ? (gfFirst + (gfFamily ? ' ' + gfFamily : '')).trim() : '';
 
       if (!newId) {
         this.showNotification("Member ID cannot be empty.", "error");
@@ -604,14 +878,15 @@ export class FamilyTreeUI {
       if (newId !== id && this.engine.people.has(newId)) {
         const existingPerson = this.engine.people.get(newId);
         document.getElementById('conflict-id-display').innerText = newId;
-        document.getElementById('conflict-name-display').innerText = existingPerson.name;
+        document.getElementById('conflict-name-display').innerText = existingPerson.firstName + ' ' + (existingPerson.familyName || '');
         
         this.pendingConflictAction = {
           type: 'edit',
           oldId: id,
           newId: newId,
-          data: { name, gender, spouses, photo, fatherName, motherName, grandfatherName, birthYear, deathYear }
+          data: { firstName, familyName, name, gender, spouses, siblings, photo, fatherName, motherName, grandfatherName, birthYear, deathYear, relativesData: { ...this.pendingRelativeDataEdit } }
         };
+        this.pendingRelativeDataEdit = {};
         
         document.getElementById('modal-id-conflict-choice').classList.remove('hidden');
         return;
@@ -622,7 +897,8 @@ export class FamilyTreeUI {
         this.engine.renamePersonId(id, newId);
       }
 
-      const p = this.engine.modifyPerson(newId, { name, gender, spouses, photo, fatherName, motherName, grandfatherName, birthYear, deathYear });
+      const p = this.engine.modifyPerson(newId, { firstName, familyName, name, gender, spouses, siblings, photo, fatherName, motherName, grandfatherName, birthYear, deathYear, relativesData: { ...this.pendingRelativeDataEdit } });
+      this.pendingRelativeDataEdit = {};
       if (p) {
         document.getElementById('modal-member-edit').classList.add('hidden');
         
@@ -634,7 +910,7 @@ export class FamilyTreeUI {
         }
         
         this.refreshAllUI();
-        this.showNotification(`Successfully updated ${p.name}'s lineage!`, "success");
+        this.showNotification(`Successfully updated ${(p.firstName + ' ' + (p.familyName || '')).trim()}'s lineage!`, "success");
       }
     });
 
@@ -811,6 +1087,94 @@ export class FamilyTreeUI {
       });
     }
 
+    // Universal Relationship Manager Event Bindings
+    const btnUnivLinker = document.getElementById('btn-dash-univ-linker');
+    const modalUnivLinker = document.getElementById('modal-univ-linker');
+    const btnCloseUnivLinker = document.getElementById('btn-close-univ-linker');
+    const btnUnivLinkSubmit = document.getElementById('btn-univ-link-submit');
+
+    if (btnUnivLinker && modalUnivLinker) {
+      btnUnivLinker.addEventListener('click', () => {
+        document.getElementById('input-univ-p1').value = '';
+        document.getElementById('hidden-univ-p1').value = '';
+        document.getElementById('input-univ-p2').value = '';
+        document.getElementById('hidden-univ-p2').value = '';
+        document.getElementById('select-univ-relation').value = 'Father of';
+        document.getElementById('input-univ-custom').value = '';
+        document.getElementById('group-univ-custom').classList.add('hidden');
+        document.getElementById('univ-linker-error').style.display = 'none';
+        modalUnivLinker.classList.remove('hidden');
+      });
+
+      btnCloseUnivLinker.addEventListener('click', () => {
+        modalUnivLinker.classList.add('hidden');
+      });
+
+      modalUnivLinker.addEventListener('click', (e) => {
+        if (e.target.id === 'modal-univ-linker') {
+          modalUnivLinker.classList.add('hidden');
+        }
+      });
+
+      document.getElementById('select-univ-relation').addEventListener('change', (e) => {
+        if (e.target.value === 'Custom') {
+          document.getElementById('group-univ-custom').classList.remove('hidden');
+        } else {
+          document.getElementById('group-univ-custom').classList.add('hidden');
+        }
+      });
+
+      // Autocomplete setup for P1 and P2
+      const setupUnivInput = (inputId, listId, hiddenId) => {
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+        input.addEventListener('input', () => {
+          this.handleCanvasSearchInput(inputId, listId, (id) => {
+            const p = this.engine.getPerson(id);
+            if (p) {
+              input.value = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+              document.getElementById(hiddenId).value = p.id;
+            }
+          }, true);
+        });
+        input.addEventListener('focus', () => {
+          if (input.value.trim().length > 0) list.classList.remove('hidden');
+        });
+      };
+
+      setupUnivInput('input-univ-p1', 'dropdown-univ-p1', 'hidden-univ-p1');
+      setupUnivInput('input-univ-p2', 'dropdown-univ-p2', 'hidden-univ-p2');
+
+      // Submit Link
+      btnUnivLinkSubmit.addEventListener('click', () => {
+        const p1Id = document.getElementById('hidden-univ-p1').value;
+        const p2Id = document.getElementById('hidden-univ-p2').value;
+        let relation = document.getElementById('select-univ-relation').value;
+        const errorDiv = document.getElementById('univ-linker-error');
+        
+        if (relation === 'Custom') {
+          relation = document.getElementById('input-univ-custom').value.trim();
+        }
+
+        if (!p1Id || !p2Id || !relation) {
+          errorDiv.innerText = 'Please complete all fields and select members from suggestions.';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        const success = this.engine.linkProfiles(p1Id, p2Id, relation);
+        if (success) {
+          errorDiv.style.display = 'none';
+          modalUnivLinker.classList.add('hidden');
+          this.refreshAllUI();
+          this.showNotification(`Successfully linked as ${relation}`, "success");
+        } else {
+          errorDiv.innerText = 'Failed to link profiles. Check for duplicate links or impossible cycles.';
+          errorDiv.style.display = 'block';
+        }
+      });
+    }
+
     // V8 Pathfinder Event Bindings
     const startInput = document.getElementById('path-start-input');
     const startSuggestions = document.getElementById('path-start-suggestions');
@@ -819,7 +1183,7 @@ export class FamilyTreeUI {
         this.handleCanvasSearchInput('path-start-input', 'path-start-suggestions', (id) => {
           const p = this.engine.getPerson(id);
           if (p) {
-            startInput.value = p.name;
+            startInput.value = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
             document.getElementById('path-start-id').value = p.id;
           }
         }, true);
@@ -838,7 +1202,7 @@ export class FamilyTreeUI {
         this.handleCanvasSearchInput('path-end-input', 'path-end-suggestions', (id) => {
           const p = this.engine.getPerson(id);
           if (p) {
-            endInput.value = p.name;
+            endInput.value = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
             document.getElementById('path-end-id').value = p.id;
           }
         }, true);
@@ -1241,7 +1605,7 @@ export class FamilyTreeUI {
 
       sItem.innerHTML = `
         <div>
-          <div class="suggestion-name">${p.name}</div>
+          <div class="suggestion-name">${(p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim()}</div>
           <div class="suggestion-lineage">${lineageText}</div>
         </div>
         <span class="suggestion-gender row-gender-badge badge-${p.gender}">${p.gender}</span>
@@ -1434,7 +1798,8 @@ export class FamilyTreeUI {
           <input type="checkbox" class="chk-grid-member" data-id="${p.id}" ${isSelected ? 'checked' : ''} style="height: 16px; width: 16px; margin: 0; cursor: pointer;">
         </td>
         <td style="font-weight:600; color:var(--win-accent);">${p.id}</td>
-        <td style="font-weight:600;">${p.name}</td>
+        <td style="font-weight:600;">${p.firstName || p.name.split(' ')[0] || ''}</td>
+        <td style="font-weight:600;">${p.familyName || p.name.split(' ').slice(1).join(' ') || ''}</td>
         <td>${p.fatherName || '<span style="color:var(--win-text-disabled)">None</span>'}</td>
         <td>${p.grandfatherName || '<span style="color:var(--win-text-disabled)">None</span>'}</td>
         <td><span class="row-gender-badge badge-${p.gender}">${p.gender === 'M' ? 'Male' : 'Female'}</span></td>
@@ -1473,32 +1838,95 @@ export class FamilyTreeUI {
      ========================================================================== */
 
   handleManualAdd() {
-    const name = document.getElementById('input-person-name').value;
-    const id = document.getElementById('input-person-id').value;
-    const gender = document.getElementById('input-person-gender').value;
-    const spouse = document.getElementById('input-person-spouse').value;
-    const photo = document.getElementById('input-person-photo').value;
-    const birthYear = document.getElementById('input-person-birth').value;
-    const deathYear = document.getElementById('input-person-death').value;
-    const father = document.getElementById('input-father-name').value;
-    const mother = document.getElementById('input-mother-name').value;
-    const grandfather = document.getElementById('input-grandfather-name').value;
+    const firstName = (document.getElementById('input-person-name')?.value || '').trim();
+    const familyName = (document.getElementById('input-person-family-name')?.value || '').trim();
+    const id = (document.getElementById('input-person-id')?.value || '').trim();
+    const gender = document.getElementById('input-person-gender')?.value || 'M';
+    const spouseList = [];
+    const spouseData = [];
+    document.querySelectorAll('#add-spouse-rows .dynamic-row').forEach((row, idx) => {
+      const first = (row.querySelector('.input-spouse-first-name')?.value || '').trim();
+      const family = (row.querySelector('.input-spouse-family-name')?.value || '').trim();
+      if (first) {
+        const fullName = (first + (family ? ' ' + family : '')).trim();
+        spouseList.push(fullName);
+        const key = `spouse_${idx}`;
+        if (this.pendingRelativeDataAdd[key]) {
+          spouseData.push({ name: fullName, ...this.pendingRelativeDataAdd[key] });
+        } else {
+          spouseData.push({});
+        }
+      }
+    });
+    const spouse = spouseList.join(', ');
+    
+    const photo = document.getElementById('input-person-photo')?.value || '';
+    const birthYear = document.getElementById('input-person-birth')?.value || '';
+    const deathYear = document.getElementById('input-person-death')?.value || '';
+    
+    const fatherFirstName = (document.getElementById('input-father-name')?.value || '').trim();
+    const fatherFamilyName = (document.getElementById('input-father-family-name')?.value || '').trim();
+    const father = fatherFirstName ? (fatherFirstName + (fatherFamilyName ? ' ' + fatherFamilyName : '')).trim() : '';
+    
+    const motherFirstName = (document.getElementById('input-mother-name')?.value || '').trim();
+    const motherFamilyName = (document.getElementById('input-mother-family-name')?.value || '').trim();
+    const mother = motherFirstName ? (motherFirstName + (motherFamilyName ? ' ' + motherFamilyName : '')).trim() : '';
+    
+    const gfFirst = (document.getElementById('input-grandfather-name')?.value || '').trim();
+    const gfFamily = (document.getElementById('input-grandfather-family-name')?.value || '').trim();
+    const grandfather = gfFirst ? (gfFirst + (gfFamily ? ' ' + gfFamily : '')).trim() : '';
+    
+    const siblingList = [];
+    const siblingData = [];
+    document.querySelectorAll('#add-sibling-rows .dynamic-row').forEach((row, idx) => {
+      const first = (row.querySelector('.input-sibling-first-name')?.value || '').trim();
+      const family = (row.querySelector('.input-sibling-family-name')?.value || '').trim();
+      if (first) {
+        // Handle comma-separated input in a single row just in case user types it
+        const firsts = first.split(',').map(s => s.trim()).filter(s => s);
+        firsts.forEach((fName, subIdx) => {
+          const fullName = (fName + (family ? ' ' + family : '')).trim();
+          siblingList.push(fullName);
+          const key = `siblings_${idx}`;
+          if (subIdx === 0 && this.pendingRelativeDataAdd[key]) {
+             siblingData.push({ name: fullName, ...this.pendingRelativeDataAdd[key] });
+          } else {
+             siblingData.push({});
+          }
+        });
+      }
+    });
+    const siblings = siblingList.join(', ');
+    
+    const relativesData = {
+      father: this.pendingRelativeDataAdd['father'],
+      mother: this.pendingRelativeDataAdd['mother'],
+      grandfather: this.pendingRelativeDataAdd['grandfather'],
+      spouse: spouseData.length > 0 ? spouseData : undefined,
+      siblings: siblingData.length > 0 ? siblingData : undefined
+    };
 
     const p = this.engine.addPerson({
       id: id || undefined,
-      name,
+      firstName,
+      familyName,
+      name: (firstName + (familyName ? ' ' + familyName : '')).trim(),
       fatherName: father,
       motherName: mother,
       grandfatherName: grandfather,
       gender,
       spouse,
+      siblings,
       photo,
       birthYear,
-      deathYear
+      deathYear,
+      relativesData
     });
+    
+    this.pendingRelativeDataAdd = {}; // Reset inline relatives modal state
 
     if (p) {
-      this.showNotification(`Successfully added ${p.name} to the family tree!`, "success");
+      this.showNotification(`Successfully added ${(p.firstName + ' ' + (p.familyName || '')).trim()} to the family tree!`, "success");
       document.getElementById('form-add-person').reset();
       this.setFocusPerson(p.id);
       this.refreshAllUI();
@@ -1860,7 +2288,7 @@ export class FamilyTreeUI {
     genderBadge.className = `gender-badge ${p.gender === 'M' ? 'male' : 'female'}`;
     
     document.getElementById('detail-gen-badge').innerText = `Gen ${gen}`;
-    document.getElementById('detail-full-name').innerText = p.name;
+    document.getElementById('detail-full-name').innerText = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
     const lifespanStr = (p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0) ? `${p.birthYear} - ${p.deathYear || 'Present'}` : 'Unknown';
     const lifespanEl = document.getElementById('detail-lifespan-val');
     if (lifespanEl) lifespanEl.innerText = lifespanStr;
@@ -1992,7 +2420,11 @@ export class FamilyTreeUI {
     // Root Patriarch
     const ancestors = this.engine.getAncestors(p.id);
     const patriarch = ancestors.length > 0 ? ancestors[ancestors.length - 1] : p;
-    document.getElementById('detail-patriarch-val').innerText = patriarch.name;
+    document.getElementById('detail-patriarch-val').innerHTML = `<a href="#" style="color:var(--win-accent); font-weight:600; text-decoration:none;">${patriarch.name}</a>`;
+    document.getElementById('detail-patriarch-val').querySelector('a').onclick = (e) => {
+      e.preventDefault();
+      this.showPersonDetail(patriarch.id);
+    };
 
     // Descendants count
     const descendants = this.engine.getDescendants(p.id);

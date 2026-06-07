@@ -92,7 +92,7 @@
     // Apply theme from localStorage before render to prevent flash
     const savedTheme = localStorage.getItem('family-tree-theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.body.classList.add('theme-dark');
+      document.documentElement.classList.add('theme-dark');
     }
   </script>
 </head>

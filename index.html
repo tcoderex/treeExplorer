@@ -173,6 +173,9 @@
               <p class="fluent-subtitle">Lineage statistics, depth metrics, and quick diagnostics.</p>
             </div>
             <div class="header-actions">
+              <button id="btn-dash-univ-linker" class="fluent-btn btn-solid" style="margin-right: 8px; background-color: var(--win-accent);">
+                🔗 Universal Linker
+              </button>
               <button id="btn-dash-start-tour" class="fluent-btn btn-solid" style="margin-right: 8px;">
                 🚀 Start Interactive Tour
               </button>
@@ -496,7 +499,8 @@
                   <tr>
                     <th class="checkbox-header" style="width: 40px; text-align: center;"><input type="checkbox" id="chk-grid-select-all-header" style="height: 16px; width: 16px; margin: 0;"></th>
                     <th data-sort="id">ID ⇅</th>
-                    <th data-sort="name">Given Name ⇅</th>
+                    <th data-sort="name">First Name ⇅</th>
+                    <th data-sort="familyName">Family Name ⇅</th>
                     <th data-sort="father">Father ⇅</th>
                     <th data-sort="grandfather">Grandfather ⇅</th>
                     <th data-sort="gender">Gender ⇅</th>
@@ -545,8 +549,12 @@
               <form id="form-add-person" class="fluent-form">
                 <div class="form-group-row">
                   <div class="form-control flex-1">
-                    <label for="input-person-name">Given Name <span class="required">*</span></label>
+                    <label for="input-person-name">First Name <span class="required">*</span></label>
                     <input type="text" id="input-person-name" required placeholder="e.g. Robert">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-person-family-name">Family Name <span class="optional">(Optional)</span></label>
+                    <input type="text" id="input-person-family-name" placeholder="e.g. Miller">
                   </div>
                   <div class="form-control flex-1">
                     <label for="input-person-id">ID <span class="optional">(Optional)</span></label>
@@ -563,9 +571,28 @@
                     </select>
                   </div>
                   <div class="form-control flex-1">
-                    <label for="input-person-spouse">Spouse Name <span class="optional">(Optional)</span></label>
-                    <input type="text" id="input-person-spouse" placeholder="e.g. Mary, Jane (comma-separated)">
+                    <label>Spouse Details <span class="optional">(Optional)</span></label>
+                    <div id="add-spouse-rows">
+                      <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" class="input-spouse-first-name" placeholder="First Name" style="flex: 1;">
+                        <input type="text" class="input-spouse-family-name" placeholder="Family Name" style="flex: 1;">
+                        <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="0" title="Add Details">[+]</button>
+                      </div>
+                    </div>
+                    <a href="#" id="btn-add-another-spouse" style="font-size: 12px; color: var(--win-accent);">+ Add another Spouse</a>
                   </div>
+                </div>
+
+                <div class="form-control" style="margin-bottom: 12px;">
+                  <label>Sibling Details <span class="optional">(Optional)</span></label>
+                  <div id="add-sibling-rows">
+                    <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                      <input type="text" class="input-sibling-first-name" placeholder="First Name" style="flex: 1;">
+                      <input type="text" class="input-sibling-family-name" placeholder="Family Name" style="flex: 1;">
+                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="0" title="Add Details">[+]</button>
+                    </div>
+                  </div>
+                  <a href="#" id="btn-add-another-sibling" style="font-size: 12px; color: var(--win-accent);">+ Add another Sibling</a>
                 </div>
 
                 <div class="form-group-row">
@@ -591,23 +618,50 @@
 
                 <hr class="form-divider">
 
-                <div class="form-control">
-                  <label for="input-father-name">Father's Name <span class="optional">(Optional)</span></label>
-                  <input type="text" id="input-father-name" placeholder="e.g. William">
-                  <span class="input-helper">If the father exists, we will link them; if not, the engine creates them.</span>
+                <div class="form-group-row">
+                  <div class="form-control flex-1">
+                    <label for="input-father-name">Father's First Name <span class="optional">(Optional)</span></label>
+                    <input type="text" id="input-father-name" placeholder="e.g. William">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-father-family-name">Father's Family Name <span class="optional">(Optional)</span></label>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="text" id="input-father-family-name" placeholder="e.g. Miller" style="flex: 1;">
+                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="father" title="Add Details">[+]</button>
+                    </div>
+                  </div>
                 </div>
+                <span class="input-helper">If the father exists, we will link them; if not, the engine creates them.</span>
 
-                <div class="form-control">
-                  <label for="input-mother-name">Mother's Name <span class="optional">(Optional)</span></label>
-                  <input type="text" id="input-mother-name" placeholder="e.g. Mary">
-                  <span class="input-helper">If the mother exists, we will link them; if not, the engine creates them.</span>
+                <div class="form-group-row" style="margin-top: 10px;">
+                  <div class="form-control flex-1">
+                    <label for="input-mother-name">Mother's First Name <span class="optional">(Optional)</span></label>
+                    <input type="text" id="input-mother-name" placeholder="e.g. Mary">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-mother-family-name">Mother's Maiden Name <span class="optional">(Optional)</span></label>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="text" id="input-mother-family-name" placeholder="e.g. Smith" style="flex: 1;">
+                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="mother" title="Add Details">[+]</button>
+                    </div>
+                  </div>
                 </div>
+                <span class="input-helper">If the mother exists, we will link them; if not, the engine creates them.</span>
 
-                <div class="form-control">
-                  <label for="input-grandfather-name">Grandfather's Name <span class="optional">(Optional)</span></label>
-                  <input type="text" id="input-grandfather-name" placeholder="e.g. Arthur">
-                  <span class="input-helper">Links father to grandfather automatically to maintain structure.</span>
+                <div class="form-group-row" style="margin-top: 10px;">
+                  <div class="form-control flex-1">
+                    <label for="input-grandfather-name">Grandfather's First Name <span class="optional">(Optional)</span></label>
+                    <input type="text" id="input-grandfather-name" placeholder="e.g. Arthur">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-grandfather-family-name">Grandfather's Family Name <span class="optional">(Optional)</span></label>
+                    <div style="display: flex; gap: 8px;">
+                      <input type="text" id="input-grandfather-family-name" placeholder="e.g. Miller" style="flex: 1;">
+                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="grandfather" title="Add Details">[+]</button>
+                    </div>
+                  </div>
                 </div>
+                <span class="input-helper">Links father to grandfather automatically to maintain structure.</span>
 
                 <div class="form-actions-right">
                   <button type="reset" class="fluent-btn btn-secondary">Clear Fields</button>
@@ -1081,14 +1135,39 @@ Examples:
             </div>
           </div>
 
-          <div class="form-control">
-            <label for="edit-person-name">Given Name <span class="required">*</span></label>
-            <input type="text" id="edit-person-name" required placeholder="e.g. Robert">
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="edit-person-name">First Name <span class="required">*</span></label>
+              <input type="text" id="edit-person-name" required placeholder="e.g. Robert">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-person-family-name">Family Name <span class="optional">(Optional)</span></label>
+              <input type="text" id="edit-person-family-name" placeholder="e.g. Miller">
+            </div>
           </div>
 
           <div class="form-control">
-            <label for="edit-person-spouse">Spouse Name(s) <span class="optional">(Optional, comma-separated)</span></label>
-            <input type="text" id="edit-person-spouse" placeholder="e.g. Mary, Jane">
+            <label>Spouse Details <span class="optional">(Optional)</span></label>
+            <div id="edit-spouse-rows">
+              <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;">
+                <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="0" title="Add Details">[+]</button>
+              </div>
+            </div>
+            <a href="#" id="btn-edit-another-spouse" style="font-size: 12px; color: var(--win-accent);">+ Add another Spouse</a>
+          </div>
+
+          <div class="form-control" style="margin-bottom: 12px;">
+            <label>Sibling Details <span class="optional">(Optional)</span></label>
+            <div id="edit-sibling-rows">
+              <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;">
+                <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="0" title="Add Details">[+]</button>
+              </div>
+            </div>
+            <a href="#" id="btn-edit-another-sibling" style="font-size: 12px; color: var(--win-accent);">+ Add another Sibling</a>
           </div>
 
           <div class="form-group-row">
@@ -1114,23 +1193,50 @@ Examples:
 
           <hr class="form-divider">
 
-          <div class="form-control">
-            <label for="edit-father-name">Father's Name <span class="optional">(Optional)</span></label>
-            <input type="text" id="edit-father-name" placeholder="e.g. William">
-            <span class="input-helper">Establishing paternal connections recursively.</span>
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="edit-father-name">Father's First Name <span class="optional">(Optional)</span></label>
+              <input type="text" id="edit-father-name" placeholder="e.g. William">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-father-family-name">Father's Family Name <span class="optional">(Optional)</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="edit-father-family-name" placeholder="e.g. Miller" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-edit-relative-details" data-rel-type="father" title="Add Details">[+]</button>
+              </div>
+            </div>
           </div>
+          <span class="input-helper">Establishing paternal connections recursively.</span>
 
-          <div class="form-control">
-            <label for="edit-mother-name">Mother's Name <span class="optional">(Optional)</span></label>
-            <input type="text" id="edit-mother-name" placeholder="e.g. Mary">
-            <span class="input-helper">Establishing maternal connections recursively.</span>
+          <div class="form-group-row" style="margin-top: 10px;">
+            <div class="form-control flex-1">
+              <label for="edit-mother-name">Mother's First Name <span class="optional">(Optional)</span></label>
+              <input type="text" id="edit-mother-name" placeholder="e.g. Mary">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-mother-family-name">Mother's Maiden Name <span class="optional">(Optional)</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="edit-mother-family-name" placeholder="e.g. Smith" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-edit-relative-details" data-rel-type="mother" title="Add Details">[+]</button>
+              </div>
+            </div>
           </div>
+          <span class="input-helper">Establishing maternal connections recursively.</span>
 
-          <div class="form-control">
-            <label for="edit-grandfather-name">Grandfather's Name <span class="optional">(Optional)</span></label>
-            <input type="text" id="edit-grandfather-name" placeholder="e.g. Arthur">
-            <span class="input-helper">Recursive grandfather mapping.</span>
+          <div class="form-group-row" style="margin-top: 10px;">
+            <div class="form-control flex-1">
+              <label for="edit-grandfather-name">Grandfather's First Name <span class="optional">(Optional)</span></label>
+              <input type="text" id="edit-grandfather-name" placeholder="e.g. Arthur">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-grandfather-family-name">Grandfather's Family Name <span class="optional">(Optional)</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="edit-grandfather-family-name" placeholder="e.g. Miller" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-edit-relative-details" data-rel-type="grandfather" title="Add Details">[+]</button>
+              </div>
+            </div>
           </div>
+          <span class="input-helper">Recursive grandfather mapping.</span>
 
           <div class="form-actions-right mt-15" style="gap: 8px;">
             <button type="button" id="btn-edit-cancel" class="fluent-btn btn-secondary">Cancel</button>
@@ -1213,6 +1319,58 @@ Examples:
     </div>
   </div>
 
+  <!-- ==================== UNIVERSAL RELATIONSHIP MANAGER (FLUENT MODAL) ==================== -->
+  <div id="modal-univ-linker" class="fluent-modal-overlay hidden" style="z-index: 10000;">
+    <div class="fluent-modal-card" style="width: 500px; padding: 24px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔗 Universal Relationship Manager</h3>
+        <button id="btn-close-univ-linker" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+        <p class="modal-subtitle" style="font-size: 12px; margin-bottom: 5px;">Connect any two registered profiles with a specific relationship.</p>
+        
+        <div class="form-control" style="position: relative;">
+          <label>Profile 1 <span class="required">*</span></label>
+          <input type="text" id="input-univ-p1" placeholder="Search by name or ID..." autocomplete="off">
+          <input type="hidden" id="hidden-univ-p1">
+          <div id="dropdown-univ-p1" class="suggestions-dropdown hidden" style="top: 100%; position: absolute; z-index: 10001; width: 100%;"></div>
+        </div>
+
+        <div class="form-control">
+          <label>Relationship <span class="required">*</span></label>
+          <select id="select-univ-relation" class="fluent-select">
+            <option value="Father of">Father of</option>
+            <option value="Mother of">Mother of</option>
+            <option value="Son of">Son of</option>
+            <option value="Daughter of">Daughter of</option>
+            <option value="Brother of">Brother of</option>
+            <option value="Sister of">Sister of</option>
+            <option value="Spouse of">Spouse of</option>
+            <option value="Custom">Custom Relationship...</option>
+          </select>
+        </div>
+
+        <div class="form-control hidden" id="group-univ-custom">
+          <label>Custom Relationship Name <span class="required">*</span></label>
+          <input type="text" id="input-univ-custom" placeholder="e.g. Guardian, Mentor">
+        </div>
+
+        <div class="form-control" style="position: relative;">
+          <label>Profile 2 <span class="required">*</span></label>
+          <input type="text" id="input-univ-p2" placeholder="Search by name or ID..." autocomplete="off">
+          <input type="hidden" id="hidden-univ-p2">
+          <div id="dropdown-univ-p2" class="suggestions-dropdown hidden" style="top: 100%; position: absolute; z-index: 10001; width: 100%;"></div>
+        </div>
+
+        <div id="univ-linker-error" class="text-danger" style="font-size: 12px; display: none;"></div>
+
+        <div class="form-actions-right mt-15">
+          <button id="btn-univ-link-submit" class="fluent-btn btn-solid">Create Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== RELATIONSHIP PATH FINDER DIALOG (FLUENT MODAL) ==================== -->
   <div id="modal-v8-pathfinder" class="fluent-modal-overlay hidden" style="z-index: 10000;">
     <div class="fluent-modal-card" style="width: 500px; padding: 24px;">
@@ -1247,6 +1405,54 @@ Examples:
           <h4 style="font-size: 12.5px; font-weight: 600; margin-bottom: 8px; color: var(--win-accent);">Shortest Connection Path:</h4>
           <div id="path-results-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline Relative Details Modal -->
+  <div id="modal-relative-details" class="fluent-modal-overlay hidden" style="z-index: 10005;">
+    <div class="fluent-modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="relative-modal-title">✨ Add Relative Details</h3>
+        <button id="btn-close-relative-modal" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px;">
+        <form id="form-relative-details" class="fluent-form">
+          <input type="hidden" id="relative-modal-type">
+          <input type="hidden" id="relative-modal-source">
+          <input type="hidden" id="relative-modal-index">
+
+          <div class="form-control">
+            <label for="relative-id">Relative ID <span class="optional">(Optional)</span></label>
+            <input type="text" id="relative-id" placeholder="Leave blank to auto-generate">
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="relative-birth">Birth Year</label>
+              <input type="number" id="relative-birth" placeholder="e.g. 1950">
+            </div>
+            <div class="form-control flex-1">
+              <label for="relative-death">Death Year</label>
+              <input type="number" id="relative-death" placeholder="e.g. 2010">
+            </div>
+          </div>
+
+          <div class="form-control">
+            <label for="relative-photo">Photo <span class="optional">(Optional)</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="relative-photo" placeholder="e.g. https://example.com/photo.jpg" style="flex: 1;">
+              <button type="button" id="btn-relative-browse-photo" class="fluent-btn btn-secondary">Browse...</button>
+              <input type="file" id="file-relative-photo" accept="image/*" style="display: none;">
+            </div>
+            <span class="input-helper">Provide a URL or upload a local image to update the relative's avatar on the lineage graph.</span>
+          </div>
+
+          <div class="form-actions-right mt-15">
+            <button type="button" id="btn-relative-cancel" class="fluent-btn btn-secondary">Cancel</button>
+            <button type="submit" class="fluent-btn btn-solid">Save Details</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

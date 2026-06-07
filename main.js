@@ -18,24 +18,21 @@ const db = new Database(dbPath);
 db.exec(`
   CREATE TABLE IF NOT EXISTS people (
     id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
+    firstName TEXT NOT NULL,
+    familyName TEXT,
     gender TEXT,
-    spouses TEXT,
-    fatherId TEXT,
-    fatherName TEXT,
-    motherId TEXT,
-    motherName TEXT,
-    grandfatherName TEXT,
     photo TEXT,
     notes TEXT
-  )
-`);
+  );
 
-try {
-  db.exec(`ALTER TABLE people ADD COLUMN photo TEXT DEFAULT ''`);
-} catch (e) {
-  // Column likely already exists
-}
+  CREATE TABLE IF NOT EXISTS relationships (
+    id TEXT PRIMARY KEY,
+    person1Id TEXT NOT NULL,
+    person2Id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    metadata TEXT
+  );
+`);
 
 // Setup IPC handlers for the database
 ipcMain.handle('db-run', (event, sql, params = []) => {
@@ -53,14 +50,19 @@ ipcMain.handle('db-all', (event, sql, params = []) => {
   return stmt.all(params);
 });
 
-ipcMain.handle('db-batch', (event, persons) => {
-  const stmt = db.prepare(`INSERT OR REPLACE INTO people (id, name, gender, spouses, fatherId, fatherName, motherId, motherName, grandfatherName, photo, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-  const insertMany = db.transaction((personsList) => {
-    for (const p of personsList) {
-      stmt.run(p.id, p.name, p.gender, JSON.stringify(p.spouses || []), p.fatherId || '', p.fatherName || '', p.motherId || '', p.motherName || '', p.grandfatherName || '', p.photo || '', p.notes || '');
+ipcMain.handle('db-batch', (event, { persons, relationships }) => {
+  const stmtPerson = db.prepare(`INSERT OR REPLACE INTO people (id, firstName, familyName, gender, photo, notes) VALUES (?, ?, ?, ?, ?, ?)`);
+  const stmtRel = db.prepare(`INSERT OR REPLACE INTO relationships (id, person1Id, person2Id, type, metadata) VALUES (?, ?, ?, ?, ?)`);
+  
+  const insertMany = db.transaction((data) => {
+    for (const p of data.persons) {
+      stmtPerson.run(p.id, p.firstName || '', p.familyName || '', p.gender || '', p.photo || '', p.notes || '');
+    }
+    for (const r of data.relationships) {
+      stmtRel.run(r.id, r.person1Id, r.person2Id, r.type, JSON.stringify(r.metadata || {}));
     }
   });
-  insertMany(persons);
+  insertMany({ persons, relationships });
 });
 
 ipcMain.handle('db-exec', (event, sql) => {
