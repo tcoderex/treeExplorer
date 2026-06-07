@@ -66,6 +66,10 @@ ipcMain.handle('db-batch', (event, { persons, relationships }) => {
     for (const p of data.persons) {
       stmtPerson.run(p.id, p.firstName || '', p.familyName || '', p.gender || '', p.photo || '', p.notes || '');
     }
+    
+    // Clear old relationships so we don't accumulate endless duplicates
+    db.prepare('DELETE FROM relationships').run();
+    
     for (const r of data.relationships) {
       stmtRel.run(r.id, r.person1Id, r.person2Id, r.type, JSON.stringify(r.metadata || {}));
     }

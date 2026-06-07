@@ -206,7 +206,10 @@ export class FamilyTreeUI {
       });
     }
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
+      closeBtn.addEventListener('click', async () => {
+        if (this.engine.saveTimeout) {
+          await this.engine.forceSaveToDB();
+        }
         if (window.api && window.api.windowClose) {
           window.api.windowClose();
         } else {

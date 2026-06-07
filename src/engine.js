@@ -155,74 +155,87 @@ export class FamilyTreeEngine {
     }
   }
 
-  // Save all current data to SQLite Database (Background)
   saveToDB() {
     if (typeof window !== 'undefined' && window.api && window.api.db) {
       if (this.saveTimeout) clearTimeout(this.saveTimeout);
       this.saveTimeout = setTimeout(() => {
-        const persons = Array.from(this.people.values()).map(p => {
-          const notesObj = {
-            birthYear: p.birthYear !== undefined ? p.birthYear : null,
-            deathYear: p.deathYear !== undefined ? p.deathYear : null,
-            notesText: p.notes || ''
-          };
-          return {
-            id: p.id,
-            firstName: p.firstName,
-            familyName: p.familyName,
-            gender: p.gender,
-            photo: p.photo,
-            notes: JSON.stringify(notesObj)
-          };
-        });
-
-        const relationships = [];
-        const addedRels = new Set();
-        const generateId = () => Math.random().toString(36).substring(2, 11);
-        
-        const addRel = (p1, p2, type, meta) => {
-          if(!p1 || !p2) return;
-          const key = p1 < p2 ? `${p1}-${p2}-${type}` : `${p2}-${p1}-${type}`;
-          if (type === 'parent-child') {
-            const dirKey = `${p1}-${p2}-${type}`;
-            if (!addedRels.has(dirKey)) {
-              relationships.push({ id: generateId(), person1Id: p1, person2Id: p2, type, metadata: meta || {} });
-              addedRels.add(dirKey);
-            }
-          } else {
-            if (!addedRels.has(key)) {
-              const min = p1 < p2 ? p1 : p2;
-              const max = p1 < p2 ? p2 : p1;
-              relationships.push({ id: generateId(), person1Id: min, person2Id: max, type, metadata: meta || {} });
-              addedRels.add(key);
-            }
-          }
-        };
-
-        this.people.forEach(p => {
-          if (p.fatherId) addRel(p.fatherId, p.id, 'parent-child');
-          if (p.motherId) addRel(p.motherId, p.id, 'parent-child');
-          if (p.spouses) {
-            p.spouses.forEach(spName => {
-               const oppGender = p.gender === 'M' ? 'F' : 'M';
-               let matchingIds = this.nameToIds.get(spName.toLowerCase()) || [];
-               let sNode = matchingIds.map(id => this.people.get(id)).find(node => node.gender === oppGender);
-               if (sNode) addRel(p.id, sNode.id, 'spouse');
-            });
-          }
-          if (p.siblings) {
-            p.siblings.forEach(sId => addRel(p.id, sId, 'sibling'));
-          }
-          if (p.customRelations) {
-            Object.entries(p.customRelations).forEach(([rid, subtype]) => {
-               addRel(p.id, rid, 'custom', { subtype });
-            });
-          }
-        });
-        
-        this.relationships = relationships;
-        window.api.db.batch({ persons, relationships }).catch(err => console.error("SQLite Batch Save Error:", err));
+        this.forceSaveToDB();
       }, 1000);
+    }
+  }
+
+  async forceSaveToDB() {
+    if (typeof window !== 'undefined' && window.api && window.api.db) {
+      if (this.saveTimeout) {
+         clearTimeout(this.saveTimeout);
+         this.saveTimeout = null;
+      }
+      const persons = Array.from(this.people.values()).map(p => {
+        const notesObj = {
+          birthYear: p.birthYear !== undefined ? p.birthYear : null,
+          deathYear: p.deathYear !== undefined ? p.deathYear : null,
+          notesText: p.notes || ''
+        };
+        return {
+          id: p.id,
+          firstName: p.firstName,
+          familyName: p.familyName,
+          gender: p.gender,
+          photo: p.photo,
+          notes: JSON.stringify(notesObj)
+        };
+      });
+
+      const relationships = [];
+      const addedRels = new Set();
+      const generateId = () => Math.random().toString(36).substring(2, 11);
+      
+      const addRel = (p1, p2, type, meta) => {
+        if(!p1 || !p2) return;
+        const key = p1 < p2 ? `${p1}-${p2}-${type}` : `${p2}-${p1}-${type}`;
+        if (type === 'parent-child') {
+          const dirKey = `${p1}-${p2}-${type}`;
+          if (!addedRels.has(dirKey)) {
+            relationships.push({ id: generateId(), person1Id: p1, person2Id: p2, type, metadata: meta || {} });
+            addedRels.add(dirKey);
+          }
+        } else {
+          if (!addedRels.has(key)) {
+            const min = p1 < p2 ? p1 : p2;
+            const max = p1 < p2 ? p2 : p1;
+            relationships.push({ id: generateId(), person1Id: min, person2Id: max, type, metadata: meta || {} });
+            addedRels.add(key);
+          }
+        }
+      };
+
+      this.people.forEach(p => {
+        if (p.fatherId) addRel(p.fatherId, p.id, 'parent-child');
+        if (p.motherId) addRel(p.motherId, p.id, 'parent-child');
+        if (p.spouses) {
+          p.spouses.forEach(spName => {
+             const oppGender = p.gender === 'M' ? 'F' : 'M';
+             let matchingIds = this.nameToIds.get(spName.toLowerCase()) || [];
+             let sNode = matchingIds.map(id => this.people.get(id)).find(node => node.gender === oppGender);
+             if (sNode) addRel(p.id, sNode.id, 'spouse');
+          });
+        }
+        if (p.siblings) {
+          p.siblings.forEach(sId => addRel(p.id, sId, 'sibling'));
+        }
+        if (p.customRelations) {
+          Object.entries(p.customRelations).forEach(([rid, subtype]) => {
+             addRel(p.id, rid, 'custom', { subtype });
+          });
+        }
+      });
+      
+      this.relationships = relationships;
+      try {
+        await window.api.db.batch({ persons, relationships });
+      } catch(err) {
+        console.error("SQLite Batch Save Error:", err);
+      }
     }
   }
 
