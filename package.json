@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron:start": "electron .",
-    "build:exe": "vite build && electron-builder --dir"
+    "build:exe": "vite build && electron-builder --win"
   },
   "keywords": [
     "family-tree",
@@ -23,13 +23,14 @@
     "electron": "^31.7.7",
     "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2",
+    "jimp": "^1.6.1",
     "vite": "^5.3.1"
   },
   "build": {
     "appId": "com.win11.thearabicarea",
     "productName": "The Arabic Area",
     "win": {
-      "icon": "build/icon.ico",
+      "icon": "build/icon.png",
       "target": [
         "dir",
         "zip",
@@ -39,8 +40,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
+      "installerSidebar": "build/installerSidebar.png",
+      "installerHeader": "build/installerHeader.png",
       "uninstallDisplayName": "The Arabic Area",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true

@@ -5,3 +5,5 @@ scratch/
 *.log
 .DS_Store
 .env
+
+*.exe
