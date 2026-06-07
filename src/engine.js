@@ -74,7 +74,7 @@ export class FamilyTreeEngine {
           
           const person = {
             id: row.id,
-            firstName: row.firstName,
+            firstName: row.firstName || '',
             familyName: row.familyName || '',
             gender: row.gender,
             spouses: [],
@@ -92,20 +92,7 @@ export class FamilyTreeEngine {
             customRelations: {}
           };
           
-          // Fallback property getter for backwards-compatible UI name reading
-          Object.defineProperty(person, 'name', {
-            get: function() { return (this.firstName + (this.familyName ? ' ' + this.familyName : '')).trim(); },
-            set: function(val) {
-              const parts = val.trim().split(' ');
-              if (parts.length > 1) {
-                this.familyName = parts.pop();
-                this.firstName = parts.join(' ');
-              } else {
-                this.firstName = val;
-                this.familyName = '';
-              }
-            }
-          });
+          person.name = (person.firstName + (person.familyName ? ' ' + person.familyName : '')).trim();
           
           this.people.set(person.id, person);
           this.indexName(person.name, person.id);
@@ -398,6 +385,38 @@ export class FamilyTreeEngine {
     }
   }
 
+  createPlaceholder(id, name, gender, overrides = {}) {
+    let firstName = name.trim();
+    let familyName = '';
+    const parts = firstName.split(' ');
+    if (parts.length > 1) {
+      familyName = parts.pop();
+      firstName = parts.join(' ');
+    }
+    
+    return {
+      id,
+      firstName,
+      familyName,
+      name: name.trim(),
+      gender,
+      spouses: [],
+      fatherId: '',
+      fatherName: '',
+      motherId: '',
+      motherName: '',
+      grandfatherName: '',
+      photo: '',
+      birthYear: null,
+      deathYear: null,
+      notes: '',
+      children: [],
+      siblings: [],
+      customRelations: {},
+      ...overrides
+    };
+  }
+
   // Add or update person
   addPerson(data) {
     let { id, name, firstName, familyName, fatherName, grandfatherName, gender, spouse, motherName, fatherId, grandfatherId, motherId, spouseId, photo, birthYear, deathYear, notes, siblings, relativesData } = data;
@@ -594,16 +613,7 @@ export class FamilyTreeEngine {
       if (!fatherNode) {
         // Create a new father placeholder
         const fId = fatherId || this.generateId();
-        fatherNode = {
-          id: fId,
-          name: fName,
-          gender: 'M',
-          spouses: [],
-          fatherId: '',
-          fatherName: gfName,
-          grandfatherName: '',
-          children: []
-        };
+        fatherNode = this.createPlaceholder(fId, fName, 'M', { fatherName: gfName });
         this.people.set(fId, fatherNode);
         this.indexName(fName, fId);
 
@@ -615,16 +625,7 @@ export class FamilyTreeEngine {
           }
           if (!gfNode) {
             const gfId = grandfatherId || this.generateId();
-            gfNode = {
-              id: gfId,
-              name: gfName,
-              gender: 'M',
-              spouses: [],
-              fatherId: '',
-              fatherName: '',
-              grandfatherName: '',
-              children: []
-            };
+            gfNode = this.createPlaceholder(gfId, gfName, 'M');
             this.people.set(gfId, gfNode);
             this.indexName(gfName, gfId);
           }
@@ -642,16 +643,7 @@ export class FamilyTreeEngine {
           }
           if (!gfNode) {
             const gfId = grandfatherId || this.generateId();
-            gfNode = {
-              id: gfId,
-              name: gfName,
-              gender: 'M',
-              spouses: [],
-              fatherId: '',
-              fatherName: '',
-              grandfatherName: '',
-              children: []
-            };
+            gfNode = this.createPlaceholder(gfId, gfName, 'M');
             this.people.set(gfId, gfNode);
             this.indexName(gfName, gfId);
           }
@@ -710,16 +702,7 @@ export class FamilyTreeEngine {
 
       if (!motherNode) {
         const mId = motherId || this.generateId();
-        motherNode = {
-          id: mId,
-          name: mName,
-          gender: 'F',
-          spouses: fatherName ? [fatherName.trim()] : [],
-          fatherId: '',
-          fatherName: '',
-          grandfatherName: '',
-          children: []
-        };
+        motherNode = this.createPlaceholder(mId, mName, 'F', { spouses: fatherName ? [fatherName.trim()] : [] });
         this.people.set(mId, motherNode);
         this.indexName(mName, mId);
       } else {
@@ -1872,16 +1855,7 @@ export class FamilyTreeEngine {
         const currentSpouseId = (rd && rd.id) ? rd.id : null;
         const oppositeGender = person.gender === 'M' ? 'F' : 'M';
         const sId = currentSpouseId || this.generateId();
-        const placeholderSp = {
-          id: sId,
-          name: spName,
-          gender: (rd && rd.gender) ? rd.gender : oppositeGender,
-          spouses: [person.name],
-          fatherId: '',
-          fatherName: '',
-          grandfatherName: '',
-          children: []
-        };
+        const placeholderSp = this.createPlaceholder(sId, spName, (rd && rd.gender) ? rd.gender : oppositeGender, { spouses: [person.name] });
         this.people.set(sId, placeholderSp);
         this.indexName(spName, sId);
       }
@@ -1910,20 +1884,7 @@ export class FamilyTreeEngine {
         const rd = relativesData && relativesData.siblings && relativesData.siblings[index] ? relativesData.siblings[index] : null;
         const currentSiblingId = (rd && rd.id) ? rd.id : null;
         const sId = currentSiblingId || this.generateId();
-        sibObj = {
-          id: sId,
-          name: sibName,
-          gender: (rd && rd.gender) ? rd.gender : 'M',
-          spouses: [],
-          fatherId: person.fatherId,
-          fatherName: person.fatherName,
-          motherId: person.motherId,
-          motherName: person.motherName,
-          grandfatherName: person.grandfatherName,
-          children: [],
-          siblings: [person.id],
-          customRelations: {}
-        };
+        sibObj = this.createPlaceholder(sId, sibName, (rd && rd.gender) ? rd.gender : 'M', { fatherId: person.fatherId, fatherName: person.fatherName, motherId: person.motherId, motherName: person.motherName, grandfatherName: person.grandfatherName, siblings: [person.id] });
         this.people.set(sId, sibObj);
         this.indexName(sibName, sId);
       } else {
@@ -1945,16 +1906,7 @@ export class FamilyTreeEngine {
 
       if (!fatherNode) {
         const fId = this.generateId();
-        fatherNode = {
-          id: fId,
-          name: fatherName,
-          gender: 'M',
-          spouses: [],
-          fatherId: '',
-          fatherName: grandfatherName,
-          grandfatherName: '',
-          children: []
-        };
+        fatherNode = this.createPlaceholder(fId, fatherName, 'M', { fatherName: grandfatherName });
         this.people.set(fId, fatherNode);
         this.indexName(fatherName, fId);
         
@@ -1963,16 +1915,7 @@ export class FamilyTreeEngine {
           let gfNode = this.findPatriarchNode(grandfatherName);
           if (!gfNode) {
             const gfId = this.generateId();
-            gfNode = {
-              id: gfId,
-              name: grandfatherName,
-              gender: 'M',
-              spouses: [],
-              fatherId: '',
-              fatherName: '',
-              grandfatherName: '',
-              children: []
-            };
+            gfNode = this.createPlaceholder(gfId, grandfatherName, 'M');
             this.people.set(gfId, gfNode);
             this.indexName(grandfatherName, gfId);
           }
@@ -2001,16 +1944,7 @@ export class FamilyTreeEngine {
         let gfNode = this.findPatriarchNode(grandfatherName);
         if (!gfNode) {
           const gfId = this.generateId();
-          gfNode = {
-            id: gfId,
-            name: grandfatherName,
-            gender: 'M',
-            spouses: [],
-            fatherId: '',
-            fatherName: '',
-            grandfatherName: '',
-            children: []
-          };
+          gfNode = this.createPlaceholder(gfId, grandfatherName, 'M');
           this.people.set(gfId, gfNode);
           this.indexName(grandfatherName, gfId);
         }
@@ -2046,16 +1980,7 @@ export class FamilyTreeEngine {
 
       if (!motherNode) {
         const mId = this.generateId();
-        motherNode = {
-          id: mId,
-          name: motherName,
-          gender: 'F',
-          spouses: fatherName ? [fatherName] : [],
-          fatherId: '',
-          fatherName: '',
-          grandfatherName: '',
-          children: []
-        };
+        motherNode = this.createPlaceholder(mId, motherName, 'F', { spouses: fatherName ? [fatherName] : [] });
         this.people.set(mId, motherNode);
         this.indexName(motherName, mId);
       }

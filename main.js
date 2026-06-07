@@ -34,6 +34,14 @@ db.exec(`
   );
 `);
 
+try {
+  db.exec('ALTER TABLE people ADD COLUMN photo TEXT;');
+} catch (e) {}
+
+try {
+  db.exec('ALTER TABLE people ADD COLUMN notes TEXT;');
+} catch (e) {}
+
 // Setup IPC handlers for the database
 ipcMain.handle('db-run', (event, sql, params = []) => {
   const stmt = db.prepare(sql);
