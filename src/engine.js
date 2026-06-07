@@ -8,6 +8,27 @@ export class FamilyTreeEngine {
     this.relationships = []; // array of relationship edge objects
     this.nameToIds = new Map(); // lowercase name -> array of ids (for fuzzy lookup)
     this.tokenToIds = new Map(); // token -> Set of ids (for high-performance search)
+    try {
+      this.ignoredSuggestions = new Set(JSON.parse(localStorage.getItem('ignoredSuggestions') || '[]'));
+    } catch (e) {
+      this.ignoredSuggestions = new Set();
+    }
+  }
+
+  ignoreSuggestion(signature) {
+    this.ignoredSuggestions.add(signature);
+    localStorage.setItem('ignoredSuggestions', JSON.stringify(Array.from(this.ignoredSuggestions)));
+  }
+
+  restoreSuggestion(signature) {
+    this.ignoredSuggestions.delete(signature);
+    if (signature.startsWith('Spouse_') || signature.startsWith('Sibling_')) {
+      const parts = signature.split('_');
+      if (parts.length === 3) {
+        this.ignoredSuggestions.delete(`${parts[0]}_${parts[2]}_${parts[1]}`);
+      }
+    }
+    localStorage.setItem('ignoredSuggestions', JSON.stringify(Array.from(this.ignoredSuggestions)));
   }
 
   clear(skipSave = false) {
@@ -2076,6 +2097,200 @@ export class FamilyTreeEngine {
     this._applyRelativeData(person, data.relativesData);
     this.saveToDB();
     return person;
+  }
+
+  analyzeSmartSuggestions() {
+    const suggestions = [];
+    const ignoredList = [];
+    const peopleArray = Array.from(this.people.values());
+    
+    // Hash map for quick lookup
+    const childrenMap = new Map(); // personId -> Set of child IDs
+    peopleArray.forEach(p => {
+      childrenMap.set(p.id, new Set(p.children || []));
+    });
+
+    peopleArray.forEach(p1 => {
+      // 1. Missing Spouses: if p1 and p2 share a child but are not spouses
+      if (p1.children && p1.children.length > 0) {
+        peopleArray.forEach(p2 => {
+          if (p1.id !== p2.id && p1.gender !== p2.gender) { // assume different gender for auto-spouse infer
+            const p1c = childrenMap.get(p1.id);
+            const p2c = childrenMap.get(p2.id);
+            const sharedChildren = [...p1c].filter(x => p2c.has(x));
+            if (sharedChildren.length > 0) {
+              const areSpouses = (p1.spouses && p1.spouses.includes(p2.name));
+              if (!areSpouses) {
+                // Ensure we haven't already added this pair
+                const exists = suggestions.find(s => s.type === 'Missing Spouse' && ((s.p1Id === p1.id && s.p2Id === p2.id) || (s.p1Id === p2.id && s.p2Id === p1.id)));
+                if (!exists) {
+                  const childNames = sharedChildren.map(cid => this.people.get(cid)?.firstName || 'a child').join(', ');
+                  const signature = `Spouse_${p1.id}_${p2.id}`;
+                  const signatureReverse = `Spouse_${p2.id}_${p1.id}`;
+                  const suggObj = {
+                    signature: signature,
+                    type: 'Missing Spouse',
+                    p1Id: p1.id,
+                    p1Name: p1.name || 'Unknown Member',
+                    p2Id: p2.id,
+                    p2Name: p2.name || 'Unknown Member',
+                    relation: 'Spouse of',
+                    reason: `Because they share children (${childNames}).`
+                  };
+                  if (!this.ignoredSuggestions.has(signature) && !this.ignoredSuggestions.has(signatureReverse)) {
+                    suggestions.push(suggObj);
+                  } else {
+                    const existsIgnored = ignoredList.find(s => s.type === 'Missing Spouse' && ((s.p1Id === p1.id && s.p2Id === p2.id) || (s.p1Id === p2.id && s.p2Id === p1.id)));
+                    if (!existsIgnored) ignoredList.push(suggObj);
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Missing Parents: if p1 is spouse of p2, and p2 has child C, but p1 doesn't have child C
+      if (p1.spouses && p1.spouses.length > 0) {
+        p1.spouses.forEach(spouseName => {
+          const spouseIds = this.nameToIds.get(spouseName.toLowerCase()) || [];
+          spouseIds.forEach(spouseId => {
+            const p2 = this.people.get(spouseId);
+            if (p2 && p2.children && p2.children.length > 0) {
+              p2.children.forEach(cid => {
+                const child = this.people.get(cid);
+                if (child) {
+                  if (!p1.children || !p1.children.includes(cid)) {
+                    // Check if child already has a parent of p1's gender
+                    let canBeParent = true;
+                    if (p1.gender === 'M' && child.fatherId && child.fatherId !== p1.id) canBeParent = false;
+                    if (p1.gender === 'F' && child.motherId && child.motherId !== p1.id) canBeParent = false;
+                    
+                    if (canBeParent) {
+                      const relation = p1.gender === 'M' ? 'Father of' : 'Mother of';
+                      // Prevent duplicates
+                      const exists = suggestions.find(s => s.type === 'Missing Parent' && s.p1Id === p1.id && s.p2Id === child.id);
+                      if (!exists) {
+                        const signature = `Parent_${p1.id}_${child.id}`;
+                        const suggObj = {
+                          signature: signature,
+                          type: 'Missing Parent',
+                          p1Id: p1.id,
+                          p1Name: p1.name || 'Unknown Member',
+                          p2Id: child.id,
+                          p2Name: child.name || 'Unknown Member',
+                          relation: relation,
+                          reason: `Because ${p1.name || 'Unknown Member'} is the spouse of ${p2.name || 'Unknown Member'}, who is a parent of ${child.firstName || 'Unknown Member'}.`
+                        };
+                        if (!this.ignoredSuggestions.has(signature)) {
+                          suggestions.push(suggObj);
+                        } else {
+                          ignoredList.push(suggObj);
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+          });
+        });
+      }
+
+      // 3. Missing Siblings: if p1 and p2 have matching parents but aren't siblings
+      peopleArray.forEach(p2 => {
+        if (p1.id !== p2.id) {
+          const areSiblings = (p1.siblings && p1.siblings.includes(p2.id));
+          if (!areSiblings) {
+            let isSibling = false;
+            let reason = '';
+            
+            // Advanced checking logic
+            if (p1.fatherId && p2.fatherId && p1.fatherId === p2.fatherId) {
+               isSibling = true;
+               reason = `Because they share the same father (${this.people.get(p1.fatherId)?.name}).`;
+               if (p1.motherId && p2.motherId && p1.motherId === p2.motherId) {
+                 reason = `Because they share the same parents (${this.people.get(p1.fatherId)?.name} and ${this.people.get(p1.motherId)?.name}).`;
+               }
+            } else if (p1.motherId && p2.motherId && p1.motherId === p2.motherId) {
+               isSibling = true;
+               reason = `Because they share the same mother (${this.people.get(p1.motherId)?.name}).`;
+            } else if (p1.fatherName && p2.fatherName && p1.fatherName.toLowerCase() === p2.fatherName.toLowerCase()) {
+               isSibling = true;
+               reason = `Because they share the same father name (${p1.fatherName}).`;
+            } else if (p1.motherName && p2.motherName && p1.motherName.toLowerCase() === p2.motherName.toLowerCase()) {
+               isSibling = true;
+               reason = `Because they share the same mother name (${p1.motherName}).`;
+            }
+
+            if (isSibling) {
+              const exists = suggestions.find(s => s.type === 'Missing Sibling' && ((s.p1Id === p1.id && s.p2Id === p2.id) || (s.p1Id === p2.id && s.p2Id === p1.id)));
+              if (!exists) {
+                const signature = `Sibling_${p1.id}_${p2.id}`;
+                const signatureReverse = `Sibling_${p2.id}_${p1.id}`;
+                const relation = p1.gender === 'M' ? 'Brother of' : 'Sister of';
+                const suggObj = {
+                  signature: signature,
+                  type: 'Missing Sibling',
+                  p1Id: p1.id,
+                  p1Name: p1.name || 'Unknown Member',
+                  p2Id: p2.id,
+                  p2Name: p2.name || 'Unknown Member',
+                  relation: relation,
+                  reason: reason
+                };
+                if (!this.ignoredSuggestions.has(signature) && !this.ignoredSuggestions.has(signatureReverse)) {
+                  suggestions.push(suggObj);
+                } else {
+                  ignoredList.push(suggObj);
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      // 4. Missing Grandparents
+      if (p1.children && p1.children.length > 0) {
+        p1.children.forEach(cid => {
+           const child = this.people.get(cid);
+           if (child && child.children && child.children.length > 0) {
+             child.children.forEach(gcid => {
+               const grandchild = this.people.get(gcid);
+               if (grandchild) {
+                 const relation = p1.gender === 'M' ? 'Grandfather of' : 'Grandmother of';
+                 const exists = suggestions.find(s => s.type === 'Missing Grandparent' && s.p1Id === p1.id && s.p2Id === grandchild.id);
+                 if (!exists) {
+                   const signature = `Grandparent_${p1.id}_${grandchild.id}`;
+                   if (!this.ignoredSuggestions.has(signature)) {
+                     const alreadyHas = p1.customRelations && p1.customRelations[grandchild.id];
+                     if (!alreadyHas) {
+                       const suggObj = {
+                         signature: signature,
+                         type: 'Missing Grandparent',
+                         p1Id: p1.id,
+                         p1Name: p1.name || 'Unknown Member',
+                         p2Id: grandchild.id,
+                         p2Name: grandchild.name || 'Unknown Member',
+                         relation: relation,
+                         reason: `Because ${p1.name || 'Unknown Member'} is the parent of ${child.firstName || 'Unknown Member'}, who is the parent of ${grandchild.firstName || 'Unknown Member'}.`
+                       };
+                       if (!this.ignoredSuggestions.has(signature)) {
+                         suggestions.push(suggObj);
+                       } else {
+                         ignoredList.push(suggObj);
+                       }
+                     }
+                   }
+                 }
+               }
+             });
+           }
+        });
+      }
+    });
+
+    return { active: suggestions, ignored: ignoredList };
   }
 
   // Universal Linker for Universal Relationship Manager

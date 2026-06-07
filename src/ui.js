@@ -37,6 +37,9 @@ export class FamilyTreeUI {
     // Initialize Theme
     this.initTheme();
 
+    // Initialize Language (restore saved preference)
+    this.initLanguage();
+
     // Initialize Spotlight Tour Driver
     this.tour = new FamilyTreeTour(this);
 
@@ -57,10 +60,10 @@ export class FamilyTreeUI {
     const toast = document.createElement('div');
     toast.className = `fluent-toast toast-${type}`;
     
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✓';
-    else if (type === 'error') icon = '⚠️';
-    else if (type === 'warning') icon = '⚡';
+    let icon = 'â„¹ï¸';
+    if (type === 'success') icon = 'âœ“';
+    else if (type === 'error') icon = 'âš ï¸';
+    else if (type === 'warning') icon = 'âš¡';
     
     toast.innerHTML = `
       <span class="toast-icon">${icon}</span>
@@ -333,7 +336,7 @@ export class FamilyTreeUI {
         
         relativeTypeInput.value = key;
         relativeSourceInput.value = source;
-        relativeModalTitle.innerText = `✨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
+        relativeModalTitle.innerText = `âœ¨ Modify ${relType.charAt(0).toUpperCase() + relType.slice(1)} Details`;
         
         const pendingSource = source === 'add' ? this.pendingRelativeDataAdd : this.pendingRelativeDataEdit;
         const pending = pendingSource[key] || {};
@@ -502,6 +505,44 @@ export class FamilyTreeUI {
       darkCard.addEventListener('click', () => {
         this.setTheme('dark');
         this.showNotification("Workspace theme changed to Dark Mode.", "success");
+      });
+    }
+
+    // 5.2. Language Selection Modal
+    const btnOpenLang = document.getElementById('btn-open-language-modal');
+    const btnCloseLang = document.getElementById('btn-close-language-modal');
+    const langModal = document.getElementById('modal-language-select');
+    const langOptEn = document.getElementById('lang-opt-en');
+    const langOptAr = document.getElementById('lang-opt-ar');
+
+    if (btnOpenLang && langModal) {
+      btnOpenLang.addEventListener('click', () => {
+        this.updateLangModalIndicator();
+        langModal.classList.remove('hidden');
+      });
+    }
+    if (btnCloseLang && langModal) {
+      btnCloseLang.addEventListener('click', () => {
+        langModal.classList.add('hidden');
+      });
+    }
+    if (langModal) {
+      langModal.addEventListener('click', (e) => {
+        if (e.target === langModal) langModal.classList.add('hidden');
+      });
+    }
+    if (langOptEn) {
+      langOptEn.addEventListener('click', () => {
+        this.applyLanguage('en');
+        langModal.classList.add('hidden');
+        this.showNotification('Language set to English.', 'success');
+      });
+    }
+    if (langOptAr) {
+      langOptAr.addEventListener('click', () => {
+        this.applyLanguage('ar');
+        langModal.classList.add('hidden');
+        this.showNotification('ØªÙ… ØªØºÙŠÙŠØ± Ø§Ù„Ù„ØºØ© Ø¥Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©.', 'success');
       });
     }
 
@@ -739,6 +780,8 @@ export class FamilyTreeUI {
       if (id) {
         const p = this.engine.getPerson(id);
         if (p) {
+          this.pendingRelativeDataEdit = {}; // Reset
+
           // Prefill modify form fields
           document.getElementById('edit-person-id').value = p.id;
           document.getElementById('edit-person-new-id').value = p.id;
@@ -746,19 +789,52 @@ export class FamilyTreeUI {
           document.getElementById('edit-person-family-name').value = p.familyName || '';
           document.getElementById('edit-person-gender').value = p.gender;
           
-          if (p.spouses && p.spouses.length > 0) {
-            const firstSpouse = p.spouses[0];
-            const parts = firstSpouse.split(' ');
-            document.getElementById('edit-spouse-first-name').value = parts[0] || '';
-            document.getElementById('edit-spouse-family-name').value = parts.slice(1).join(' ') || '';
-          } else {
-            document.getElementById('edit-spouse-first-name').value = '';
-            document.getElementById('edit-spouse-family-name').value = '';
+          const spouseContainer = document.getElementById('edit-spouse-rows');
+          if (spouseContainer) {
+            spouseContainer.innerHTML = '';
+            if (p.spouses && p.spouses.length > 0) {
+              p.spouses.forEach((spouseName, idx) => {
+                const spIds = this.engine.nameToIds.get(spouseName.toLowerCase()) || [];
+                if (spIds.length > 0) {
+                  const sp = this.engine.getPerson(spIds[0]);
+                  if (sp) {
+                    this.pendingRelativeDataEdit[`spouse_${idx}`] = { id: sp.id, gender: sp.gender, birthYear: sp.birthYear, deathYear: sp.deathYear, photo: sp.photo };
+                  }
+                }
+                const row = document.createElement('div');
+                row.className = 'dynamic-row';
+                row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+                const parts = spouseName.split(' ');
+                const fName = parts[0] || '';
+                const lName = parts.slice(1).join(' ') || '';
+                row.innerHTML = `
+                  <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;" value="${fName}">
+                  <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;" value="${lName}">
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="${idx}" title="Add Details">[+]</button>
+                `;
+                spouseContainer.appendChild(row);
+              });
+            } else {
+              const index = spouseContainer.querySelectorAll('.dynamic-row').length;
+              const row = document.createElement('div');
+              row.className = 'dynamic-row';
+              row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+              row.innerHTML = `
+                <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;">
+                <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="${index}" title="Add Details">[+]</button>
+              `;
+              spouseContainer.appendChild(row);
+            }
           }
           document.getElementById('edit-person-photo').value = p.photo || '';
           document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0 ? p.birthYear : '';
           document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null && p.deathYear !== 0 ? p.deathYear : '';
           
+          if (p.fatherId) {
+            const f = this.engine.getPerson(p.fatherId);
+            if (f) this.pendingRelativeDataEdit['father'] = { id: f.id, gender: f.gender, birthYear: f.birthYear, deathYear: f.deathYear, photo: f.photo };
+          }
           if (p.fatherName) {
             const parts = p.fatherName.split(' ');
             document.getElementById('edit-father-name').value = parts[0];
@@ -768,6 +844,10 @@ export class FamilyTreeUI {
             document.getElementById('edit-father-family-name').value = '';
           }
           
+          if (p.motherId) {
+            const m = this.engine.getPerson(p.motherId);
+            if (m) this.pendingRelativeDataEdit['mother'] = { id: m.id, gender: m.gender, birthYear: m.birthYear, deathYear: m.deathYear, photo: m.photo };
+          }
           if (p.motherName) {
             const parts = p.motherName.split(' ');
             document.getElementById('edit-mother-name').value = parts[0];
@@ -777,6 +857,13 @@ export class FamilyTreeUI {
             document.getElementById('edit-mother-family-name').value = '';
           }
           
+          if (p.fatherId) {
+            const f = this.engine.getPerson(p.fatherId);
+            if (f && f.fatherId) {
+              const gf = this.engine.getPerson(f.fatherId);
+              if (gf) this.pendingRelativeDataEdit['grandfather'] = { id: gf.id, gender: gf.gender, birthYear: gf.birthYear, deathYear: gf.deathYear, photo: gf.photo };
+            }
+          }
           if (p.grandfatherName) {
             const parts = p.grandfatherName.split(' ');
             document.getElementById('edit-grandfather-name').value = parts[0];
@@ -786,13 +873,40 @@ export class FamilyTreeUI {
             document.getElementById('edit-grandfather-family-name').value = '';
           }
           
-          if (p.siblings && p.siblings.length > 0) {
-            const sibNames = p.siblings.map(sid => this.engine.getPerson(sid)?.name).filter(Boolean);
-            document.getElementById('edit-sibling-first-names').value = sibNames.join(', ');
-            document.getElementById('edit-sibling-family-name').value = '';
-          } else {
-            document.getElementById('edit-sibling-first-names').value = '';
-            document.getElementById('edit-sibling-family-name').value = '';
+          const siblingContainer = document.getElementById('edit-sibling-rows');
+          if (siblingContainer) {
+            siblingContainer.innerHTML = '';
+            if (p.siblings && p.siblings.length > 0) {
+              p.siblings.forEach((sibId, idx) => {
+                const sib = this.engine.people.get(sibId);
+                if (sib) {
+                  this.pendingRelativeDataEdit[`siblings_${idx}`] = { id: sib.id, gender: sib.gender, birthYear: sib.birthYear, deathYear: sib.deathYear, photo: sib.photo };
+                  const row = document.createElement('div');
+                  row.className = 'dynamic-row';
+                  row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+                  const fName = sib.firstName || sib.name.split(' ')[0] || '';
+                  const lName = sib.familyName || sib.name.split(' ').slice(1).join(' ') || '';
+                  row.innerHTML = `
+                    <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;" value="${fName}">
+                    <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;" value="${lName}">
+                    <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="${idx}" title="Add Details">[+]</button>
+                  `;
+                  siblingContainer.appendChild(row);
+                }
+              });
+            }
+            if (siblingContainer.innerHTML === '') {
+              const index = siblingContainer.querySelectorAll('.dynamic-row').length;
+              const row = document.createElement('div');
+              row.className = 'dynamic-row';
+              row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+              row.innerHTML = `
+                <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;">
+                <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="${index}" title="Add Details">[+]</button>
+              `;
+              siblingContainer.appendChild(row);
+            }
           }
 
           // Open edit modal and close detail modal
@@ -897,7 +1011,7 @@ export class FamilyTreeUI {
           type: 'edit',
           oldId: id,
           newId: newId,
-          data: { firstName, familyName, name, gender, spouses, siblings, photo, fatherName, motherName, grandfatherName, birthYear, deathYear, relativesData: { ...this.pendingRelativeDataEdit } }
+          data: { firstName, familyName, name, gender, spouses, siblings, photo, fatherName, motherName, grandfatherName, birthYear, deathYear, relativesData: relativesData }
         };
         this.pendingRelativeDataEdit = {};
         
@@ -910,7 +1024,7 @@ export class FamilyTreeUI {
         this.engine.renamePersonId(id, newId);
       }
 
-      const p = this.engine.modifyPerson(newId, { firstName, familyName, name, gender, spouses, siblings, photo, fatherName, motherName, grandfatherName, birthYear, deathYear, relativesData: { ...this.pendingRelativeDataEdit } });
+      const p = this.engine.modifyPerson(newId, { firstName, familyName, name, gender, spouses, siblings, photo, fatherName, motherName, grandfatherName, birthYear, deathYear, relativesData: relativesData });
       this.pendingRelativeDataEdit = {};
       if (p) {
         document.getElementById('modal-member-edit').classList.add('hidden');
@@ -1185,6 +1299,179 @@ export class FamilyTreeUI {
           errorDiv.innerText = 'Failed to link profiles. Check for duplicate links or impossible cycles.';
           errorDiv.style.display = 'block';
         }
+      });
+    }
+
+    // Smart Suggestions Logic
+    const btnSmartSuggest = document.getElementById('btn-smart-suggest');
+    const modalSmartSuggest = document.getElementById('modal-smart-suggestions');
+    const btnCloseSmartSuggest = document.getElementById('btn-close-smart-suggestions');
+    const listSmartSuggest = document.getElementById('smart-suggestions-list');
+    const btnApplyAllSuggest = document.getElementById('btn-apply-all-suggestions');
+    
+    let currentSuggestions = [];
+
+    const renderSuggestions = () => {
+      listSmartSuggest.innerHTML = '';
+      if (currentSuggestions.length === 0) {
+        listSmartSuggest.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--win-text-secondary);">Your tree is perfectly optimized! No missing relationships found.</div>';
+        btnApplyAllSuggest.style.display = 'none';
+        return;
+      }
+      btnApplyAllSuggest.style.display = 'block';
+      
+      currentSuggestions.forEach((sugg, index) => {
+        const div = document.createElement('div');
+        div.style = 'border: 1px solid var(--win-border); border-radius: 4px; padding: 12px; background: var(--win-bg-secondary); display: flex; justify-content: space-between; align-items: center;';
+        const p1 = this.engine.getPerson(sugg.p1Id);
+        const p2 = this.engine.getPerson(sugg.p2Id);
+        let img1 = p1 && p1.photo ? p1.photo : (p1 && p1.gender === 'F' ? 'assets/female_placeholder.png' : 'assets/male_placeholder.png');
+        let img2 = p2 && p2.photo ? p2.photo : (p2 && p2.gender === 'F' ? 'assets/female_placeholder.png' : 'assets/male_placeholder.png');
+        
+        // Sanitize to prevent HTML injection or broken attributes from literal quotes in DB
+        img1 = img1.replace(/['"]/g, '');
+        img2 = img2.replace(/['"]/g, '');
+
+        div.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+            <img src="${img1}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--win-border);">
+            <div style="flex: 1;">
+              <strong style="font-size: 14px; display: block; margin-bottom: 2px;">${sugg.p1Name} <span style="color: var(--win-accent); font-weight: normal;">is the ${sugg.relation}</span> ${sugg.p2Name}</strong>
+              <div style="font-size: 12px; color: var(--win-text-secondary);">${sugg.reason}</div>
+            </div>
+            <img src="${img2}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--win-border);">
+          </div>
+          <div style="display: flex; gap: 8px; margin-left: 15px;">
+            <button class="fluent-btn btn-secondary btn-ignore-single-suggest" data-index="${index}" style="white-space: nowrap;">Ignore</button>
+            <button class="fluent-btn btn-secondary btn-apply-single-suggest" data-index="${index}" style="white-space: nowrap;">Apply</button>
+          </div>
+        `;
+        listSmartSuggest.appendChild(div);
+      });
+
+      document.querySelectorAll('.btn-apply-single-suggest').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.getAttribute('data-index'));
+          const s = currentSuggestions[idx];
+          if (this.engine.linkProfiles(s.p1Id, s.p2Id, s.relation)) {
+            currentSuggestions.splice(idx, 1);
+            renderSuggestions();
+            this.refreshAllUI();
+            this.showNotification(`Successfully linked ${s.p1Name} and ${s.p2Name}`, 'success');
+          } else {
+            this.showNotification('Failed to apply suggestion. It may create a cycle.', 'error');
+          }
+        });
+      });
+
+      document.querySelectorAll('.btn-ignore-single-suggest').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.getAttribute('data-index'));
+          const s = currentSuggestions[idx];
+          this.engine.ignoreSuggestion(s.signature);
+          currentSuggestions.splice(idx, 1);
+          renderSuggestions();
+          this.showNotification(`Ignored suggestion for ${s.p1Name} and ${s.p2Name}`, 'success');
+        });
+      });
+    };
+
+    if (btnSmartSuggest && modalSmartSuggest) {
+      btnSmartSuggest.addEventListener('click', () => {
+        document.getElementById('modal-univ-linker')?.classList.add('hidden'); // hide parent modal
+        currentSuggestions = this.engine.analyzeSmartSuggestions().active;
+        renderSuggestions();
+        modalSmartSuggest.classList.remove('hidden');
+      });
+
+      btnCloseSmartSuggest.addEventListener('click', () => {
+        modalSmartSuggest.classList.add('hidden');
+      });
+
+      btnApplyAllSuggest.addEventListener('click', () => {
+        let appliedCount = 0;
+        const failed = [];
+        [...currentSuggestions].forEach(s => {
+          if (this.engine.linkProfiles(s.p1Id, s.p2Id, s.relation)) {
+            appliedCount++;
+          } else {
+            failed.push(s);
+          }
+        });
+        currentSuggestions = failed;
+        renderSuggestions();
+        this.refreshAllUI();
+        this.showNotification(`Applied ${appliedCount} suggestions successfully.`, 'success');
+      });
+    }
+
+    // Ignored Peoples Modal Logic
+    const btnFlyoutIgnored = document.getElementById('btn-flyout-ignored');
+    const modalIgnoredPeoples = document.getElementById('modal-ignored-peoples');
+    const btnCloseIgnoredPeoples = document.getElementById('btn-close-ignored-peoples');
+    const listIgnoredPeoples = document.getElementById('ignored-peoples-list');
+    
+    let currentIgnored = [];
+
+    const renderIgnored = () => {
+      if (!listIgnoredPeoples) return;
+      listIgnoredPeoples.innerHTML = '';
+      if (currentIgnored.length === 0) {
+        listIgnoredPeoples.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--win-text-secondary);">No ignored suggestions.</div>';
+        return;
+      }
+      
+      currentIgnored.forEach((sugg, index) => {
+        const div = document.createElement('div');
+        div.style = 'border: 1px solid var(--win-border); border-radius: 4px; padding: 12px; background: var(--win-bg-secondary); display: flex; justify-content: space-between; align-items: center;';
+        const p1 = this.engine.getPerson(sugg.p1Id);
+        const p2 = this.engine.getPerson(sugg.p2Id);
+        let img1 = p1 && p1.photo ? p1.photo : (p1 && p1.gender === 'F' ? 'assets/female_placeholder.png' : 'assets/male_placeholder.png');
+        let img2 = p2 && p2.photo ? p2.photo : (p2 && p2.gender === 'F' ? 'assets/female_placeholder.png' : 'assets/male_placeholder.png');
+        
+        // Sanitize to prevent HTML injection or broken attributes from literal quotes in DB
+        img1 = img1.replace(/['"]/g, '');
+        img2 = img2.replace(/['"]/g, '');
+
+        div.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+            <img src="${img1}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--win-border);">
+            <div style="flex: 1;">
+              <strong style="font-size: 14px; display: block; margin-bottom: 2px;">${sugg.p1Name} <span style="color: var(--win-accent); font-weight: normal;">is the ${sugg.relation}</span> ${sugg.p2Name}</strong>
+              <div style="font-size: 12px; color: var(--win-text-secondary);">${sugg.reason}</div>
+            </div>
+            <img src="${img2}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--win-border);">
+          </div>
+          <button class="fluent-btn btn-secondary btn-restore-single-suggest" data-index="${index}" style="margin-left: 15px; white-space: nowrap;">Restore</button>
+        `;
+        listIgnoredPeoples.appendChild(div);
+      });
+
+      document.querySelectorAll('.btn-restore-single-suggest').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.getAttribute('data-index'));
+          const s = currentIgnored[idx];
+          this.engine.restoreSuggestion(s.signature);
+          currentIgnored.splice(idx, 1);
+          renderIgnored();
+          // Update current active suggestions if Smart Suggestions is also open behind it or for next time
+          currentSuggestions = this.engine.analyzeSmartSuggestions().active;
+          renderSuggestions();
+          this.showNotification(`Restored suggestion for ${s.p1Name} and ${s.p2Name}`, 'success');
+        });
+      });
+    };
+
+    if (btnFlyoutIgnored && modalIgnoredPeoples) {
+      btnFlyoutIgnored.addEventListener('click', () => {
+        document.getElementById('flyout-data-layer')?.classList.add('hidden'); // hide parent flyout
+        currentIgnored = this.engine.analyzeSmartSuggestions().ignored;
+        renderIgnored();
+        modalIgnoredPeoples.classList.remove('hidden');
+      });
+
+      btnCloseIgnoredPeoples.addEventListener('click', () => {
+        modalIgnoredPeoples.classList.add('hidden');
       });
     }
 
@@ -1477,7 +1764,7 @@ export class FamilyTreeUI {
       diagCard.querySelector('.diag-bullet').innerText = '!';
     } else {
       diagCard.className = 'diagnostic-item success-item';
-      diagCard.querySelector('.diag-bullet').innerText = '✓';
+      diagCard.querySelector('.diag-bullet').innerText = 'âœ“';
     }
 
     // Hide welcome banner if we have people loaded
@@ -1685,11 +1972,11 @@ export class FamilyTreeUI {
     document.querySelectorAll('.fluent-data-table th').forEach(th => {
       const f = th.getAttribute('data-sort');
       if (f) {
-        let label = th.innerText.replace(/[⇅▲▼]/g, '').trim();
+        let label = th.innerText.replace(/[â‡…â–²â–¼]/g, '').trim();
         if (f === this.gridSortField) {
-          label += this.gridSortOrder === 'asc' ? ' ▲' : ' ▼';
+          label += this.gridSortOrder === 'asc' ? ' â–²' : ' â–¼';
         } else {
-          label += ' ⇅';
+          label += ' â‡…';
         }
         th.innerText = label;
       }
@@ -1958,7 +2245,7 @@ export class FamilyTreeUI {
     // Show loading UI
     const btn = document.getElementById('btn-submit-bulk');
     const originalText = btn.innerText;
-    btn.innerText = '⏳ Parsing...';
+    btn.innerText = 'â³ Parsing...';
     btn.disabled = true;
 
     // Send to Web Worker
@@ -1976,7 +2263,7 @@ export class FamilyTreeUI {
         // Fast loading visual feedback
         const btn = document.getElementById('btn-dash-import-mock');
         const prevText = btn.innerText;
-        btn.innerText = '⚡ Processing Forest...';
+        btn.innerText = 'âš¡ Processing Forest...';
         btn.disabled = true;
 
         setTimeout(() => {
@@ -2044,7 +2331,7 @@ export class FamilyTreeUI {
     } 
     else if (type === 'PARSE_TEXT_DONE') {
       const btn = document.getElementById('btn-submit-bulk');
-      btn.innerText = '⚡ Parse & Link Text';
+      btn.innerText = 'âš¡ Parse & Link Text';
       btn.disabled = false;
 
       if (count > 0) {
@@ -2476,7 +2763,7 @@ export class FamilyTreeUI {
     if (btnDelete) {
       const count = this.selectedMemberIds.size;
       btnDelete.disabled = count === 0;
-      btnDelete.innerText = count > 0 ? `🗑️ Delete Selected (${count})` : '🗑️ Delete Selected';
+      btnDelete.innerText = count > 0 ? `ðŸ—‘ï¸ Delete Selected (${count})` : 'ðŸ—‘ï¸ Delete Selected';
     }
   }
 
@@ -2753,9 +3040,254 @@ export class FamilyTreeUI {
         arrow.style.color = 'var(--win-text-disabled)';
         arrow.style.fontSize = '12px';
         arrow.style.margin = '2px 0';
-        arrow.innerHTML = '⇅';
+        arrow.innerHTML = 'â‡…';
         resList.appendChild(arrow);
       }
     });
+  }
+
+  // ========================================================================
+  // INTERNATIONALIZATION (i18n) ENGINE
+  // ========================================================================
+
+  /** Master English to Arabic dictionary */
+  get i18nDictionary() {
+    return {
+      'Dashboard': 'لوحة القيادة',
+      'Explorer': 'المستكشف',
+      'Grid Registry': 'سجل الشبكة',
+      'Import': 'استيراد',
+      'Settings': 'الإعدادات',
+      'Help': 'مساعدة',
+      'Tour': 'جولة',
+      'Family Tree Overview': 'نظرة عامة على شجرة العائلة',
+      'Total Members': 'إجمالي الأعضاء',
+      'Male': 'ذكر',
+      'Female': 'أنثى',
+      'Generations': 'الأجيال',
+      'With Children': 'مع أطفال',
+      'Without Children': 'بدون أطفال',
+      'Married': 'متزوج',
+      'Single': 'أعزب',
+      'Average Age': 'متوسط العمر',
+      'Oldest Member': 'أكبر عضو',
+      'Youngest Member': 'أصغر عضو',
+      'Family Statistics': 'إحصائيات العائلة',
+      'Quick Actions': 'إجراءات سريعة',
+      'Add Member': 'إضافة عضو',
+      'Import Data': 'استيراد البيانات',
+      'Export Data': 'تصدير البيانات',
+      'Generate Report': 'إنشاء تقرير',
+      'View All': 'عرض الكل',
+      'No data available': 'لا توجد بيانات متاحة',
+      'Loading...': 'جار التحميل...',
+      'Search members...': 'البحث عن أعضاء...',
+      'Focus Person': 'شخص التركيز',
+      'Zoom In': 'تكبير',
+      'Zoom Out': 'تصغير',
+      'Reset View': 'إعادة تعيين العرض',
+      'Center View': 'توسيط العرض',
+      'Fit All': 'ملاءمة الكل',
+      'Show Labels': 'إظهار التسميات',
+      'Hide Labels': 'إخفاء التسميات',
+      'Full Name': 'الاسم الكامل',
+      'Name': 'الاسم',
+      'Father': 'الأب',
+      'Mother': 'الأم',
+      'Grandfather': 'الجد',
+      'Grandmother': 'الجدة',
+      'Spouse': 'الزوج/الزوجة',
+      'Children': 'الأطفال',
+      'Siblings': 'الإخوة والأخوات',
+      'Birth Year': 'سنة الميلاد',
+      'Death Year': 'سنة الوفاة',
+      'Birth Place': 'مكان الميلاد',
+      'Nationality': 'الجنسية',
+      'Religion': 'الديانة',
+      'Occupation': 'المهنة',
+      'Notes': 'ملاحظات',
+      'Gender': 'الجنس',
+      'Age': 'العمر',
+      'Alive': 'على قيد الحياة',
+      'Deceased': 'متوفى',
+      'Unknown': 'غير معروف',
+      'Living': 'حي',
+      'Save': 'حفظ',
+      'Cancel': 'إلغاء',
+      'Delete': 'حذف',
+      'Edit': 'تعديل',
+      'Add': 'إضافة',
+      'Close': 'إغلاق',
+      'Confirm': 'تأكيد',
+      'Yes': 'نعم',
+      'No': 'لا',
+      'OK': 'موافق',
+      'Registry': 'السجل',
+      'Search': 'بحث',
+      'Filter': 'تصفية',
+      'Sort': 'ترتيب',
+      'Export': 'تصدير',
+      'Actions': 'الإجراءات',
+      'Previous': 'السابق',
+      'Next': 'التالي',
+      'Page': 'صفحة',
+      'records': 'سجلات',
+      'Select All': 'تحديد الكل',
+      'Deselect All': 'إلغاء تحديد الكل',
+      'Delete Selected': 'حذف المحدد',
+      'Smart Suggestions': 'الاقتراحات الذكية',
+      'Suggestions': 'الاقتراحات',
+      'Analyze': 'تحليل',
+      'Apply': 'تطبيق',
+      'Skip': 'تخطي',
+      'Ignore': 'تجاهل',
+      'Potential Father': 'أب محتمل',
+      'Potential Mother': 'أم محتملة',
+      'Potential Spouse': 'زوج/زوجة محتملة',
+      'Lineage Engine': 'محرك النسب',
+      'Processing...': 'معالجة...',
+      'No suggestions found': 'لم يتم العثور على اقتراحات',
+      'Confidence': 'الثقة',
+      'High': 'عالٍ',
+      'Medium': 'متوسط',
+      'Low': 'منخفض',
+      'Ignored Peoples': 'الأشخاص المتجاهلون',
+      'Ignored Members': 'الأعضاء المتجاهلون',
+      'Remove from Ignored': 'إزالة من التجاهل',
+      'No ignored members': 'لا يوجد أعضاء متجاهلون',
+      'Personalization': 'التخصيص',
+      'App Theme': 'سمة التطبيق',
+      'Light Mode': 'الوضع الفاتح',
+      'Dark Mode': 'الوضع الداكن',
+      'Choose the display language for the app interface.': 'اختر لغة العرض لواجهة التطبيق.',
+      'Select Light or Dark mode for the app interface.': 'اختر الوضع الفاتح أو الداكن لواجهة التطبيق.',
+      'Change the background, colors, and overall appearance of the workspace.': 'تغيير الخلفية والألوان والمظهر العام لمساحة العمل.',
+      'V8 Advanced Features': 'ميزات V8 المتقدمة',
+      'Toggle radar maps, story mode, and advanced analytics.': 'تبديل خرائط الرادار ووضع القصة والتحليلات المتقدمة.',
+      'About This App': 'حول هذا التطبيق',
+      'Specifications, engine performance details, and build metrics.': 'المواصفات وتفاصيل أداء المحرك ومقاييس البناء.',
+      'Lineage Details': 'تفاصيل النسب',
+      'Personal Info': 'المعلومات الشخصية',
+      'Relations': 'العلاقات',
+      'Timeline': 'الجدول الزمني',
+      'Add Person': 'إضافة شخص',
+      'Edit Person': 'تعديل شخص',
+      'Person Details': 'تفاصيل الشخص',
+      'Family Relations': 'علاقات العائلة',
+      'Add Relation': 'إضافة علاقة',
+      'Remove Relation': 'إزالة علاقة',
+      'Make Focus': 'جعله محور التركيز',
+      'View Profile': 'عرض الملف الشخصي',
+      'Person added successfully.': 'تمت إضافة الشخص بنجاح.',
+      'Person deleted successfully.': 'تم حذف الشخص بنجاح.',
+      'Person updated successfully.': 'تم تحديث الشخص بنجاح.',
+      'No members found.': 'لم يتم العثور على أعضاء.',
+      'Are you sure?': 'هل أنت متأكد؟',
+      'This action cannot be undone.': 'لا يمكن التراجع عن هذا الإجراء.',
+      'Bulk Import': 'الاستيراد الجماعي',
+      'Paste your data here...': 'الصق بياناتك هنا...',
+      'Parse': 'تحليل',
+      'Clear': 'مسح',
+      'Generate Mock Data': 'إنشاء بيانات تجريبية',
+      'Import from File': 'استيراد من ملف',
+      'Export to File': 'تصدير إلى ملف',
+      'Export PDF': 'تصدير PDF',
+      'Export CSV': 'تصدير CSV',
+      'Export JSON': 'تصدير JSON',
+      'Radar Map': 'خريطة الرادار',
+      'Story Mode': 'وضع القصة',
+      'Analytics': 'التحليلات',
+      'Pathfinder': 'محدد المسار',
+      'Find Path': 'ابحث عن مسار',
+      'Start': 'بداية',
+      'End': 'نهاية',
+      'Step': 'خطوة',
+      'No relationship connection path found between these members.': 'لم يتم العثور على مسار ارتباط بين هؤلاء الأعضاء.',
+    };
+  }
+
+  applyLanguage(lang) {
+    localStorage.setItem('app-language', lang);
+    const dict = this.i18nDictionary;
+    if (lang === 'ar') {
+      this._translateNodes(document.body, dict, 'en-to-ar');
+    } else {
+      this._translateNodes(document.body, dict, 'ar-to-en');
+    }
+    this.updateLangModalIndicator();
+    const enCard = document.getElementById('lang-opt-en');
+    const arCard = document.getElementById('lang-opt-ar');
+    if (enCard && arCard) {
+      enCard.style.border = lang === 'en' ? '2px solid var(--win-accent)' : '2px solid var(--win-border-light)';
+      arCard.style.border = lang === 'ar' ? '2px solid var(--win-accent)' : '2px solid var(--win-border-light)';
+      enCard.style.background = lang === 'en' ? 'var(--win-accent-light)' : 'var(--win-card-bg)';
+      arCard.style.background = lang === 'ar' ? 'var(--win-accent-light)' : 'var(--win-card-bg)';
+    }
+  }
+
+  _translateNodes(root, dict, direction) {
+    let lookupDict = dict;
+    if (direction === 'ar-to-en') {
+      lookupDict = {};
+      for (const [en, ar] of Object.entries(dict)) {
+        lookupDict[ar] = en;
+      }
+    }
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          const p = node.parentElement;
+          if (!p) return NodeFilter.FILTER_REJECT;
+          const tag = p.tagName.toUpperCase();
+          if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'CODE' || tag === 'PRE') return NodeFilter.FILTER_REJECT;
+          if (node.textContent.trim().length === 0) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    const nodesToProcess = [];
+    let currentNode = walker.nextNode();
+    while (currentNode) {
+      nodesToProcess.push(currentNode);
+      currentNode = walker.nextNode();
+    }
+    nodesToProcess.forEach(textNode => {
+      const originalText = textNode.textContent;
+      let newText = originalText;
+      for (const [source, target] of Object.entries(lookupDict)) {
+        if (originalText.trim() === source.trim()) {
+          newText = target;
+          break;
+        }
+      }
+      if (newText === originalText) {
+        const sortedKeys = Object.keys(lookupDict).sort((a, b) => b.length - a.length);
+        for (const source of sortedKeys) {
+          if (source.length < 3) continue;
+          if (newText.includes(source)) {
+            newText = newText.split(source).join(lookupDict[source]);
+          }
+        }
+      }
+      if (newText !== originalText) {
+        textNode.textContent = newText;
+      }
+    });
+  }
+
+  updateLangModalIndicator() {
+    const indicator = document.getElementById('lang-current-indicator');
+    if (!indicator) return;
+    const lang = localStorage.getItem('app-language') || 'en';
+    indicator.textContent = lang === 'ar' ? 'الحالية: العربية' : 'Current: English';
+  }
+
+  initLanguage() {
+    const lang = localStorage.getItem('app-language');
+    if (lang && lang !== 'en') {
+      this.applyLanguage(lang);
+    }
   }
 }

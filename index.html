@@ -61,6 +61,13 @@
               </div>
               <input type="file" id="input-file-import" accept=".json" style="display: none;">
             </button>
+            <button class="flyout-item-btn" id="btn-flyout-ignored">
+              <span class="flyout-icon">🚫</span>
+              <div class="flyout-text-group">
+                <span class="flyout-label">Ignored Suggestions</span>
+                <span class="flyout-desc">View and restore smart relationship suggestions you previously ignored.</span>
+              </div>
+            </button>
             <div class="flyout-divider"></div>
             <button class="flyout-item-btn flyout-danger" id="btn-flyout-reset">
               <span class="flyout-icon">🗑️</span>
@@ -618,48 +625,42 @@
 
                 <hr class="form-divider">
 
-                <div class="form-group-row">
+                <div class="form-group-row" style="align-items: flex-end;">
                   <div class="form-control flex-1">
-                    <label for="input-father-name">Father's First Name <span class="optional">(Optional)</span></label>
+                    <label for="input-father-name">Father's First <span class="optional">(Opt)</span></label>
                     <input type="text" id="input-father-name" placeholder="e.g. William">
                   </div>
                   <div class="form-control flex-1">
-                    <label for="input-father-family-name">Father's Family Name <span class="optional">(Optional)</span></label>
-                    <div style="display: flex; gap: 8px;">
-                      <input type="text" id="input-father-family-name" placeholder="e.g. Miller" style="flex: 1;">
-                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="father" title="Add Details">[+]</button>
-                    </div>
+                    <label for="input-father-family-name">Father's Last <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-father-family-name" placeholder="e.g. Miller">
                   </div>
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="father" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
                 </div>
                 <span class="input-helper">If the father exists, we will link them; if not, the engine creates them.</span>
 
-                <div class="form-group-row" style="margin-top: 10px;">
+                <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
                   <div class="form-control flex-1">
-                    <label for="input-mother-name">Mother's First Name <span class="optional">(Optional)</span></label>
+                    <label for="input-mother-name">Mother's First <span class="optional">(Opt)</span></label>
                     <input type="text" id="input-mother-name" placeholder="e.g. Mary">
                   </div>
                   <div class="form-control flex-1">
-                    <label for="input-mother-family-name">Mother's Maiden Name <span class="optional">(Optional)</span></label>
-                    <div style="display: flex; gap: 8px;">
-                      <input type="text" id="input-mother-family-name" placeholder="e.g. Smith" style="flex: 1;">
-                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="mother" title="Add Details">[+]</button>
-                    </div>
+                    <label for="input-mother-family-name">Mother's Maiden <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-mother-family-name" placeholder="e.g. Smith">
                   </div>
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="mother" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
                 </div>
                 <span class="input-helper">If the mother exists, we will link them; if not, the engine creates them.</span>
 
-                <div class="form-group-row" style="margin-top: 10px;">
+                <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
                   <div class="form-control flex-1">
-                    <label for="input-grandfather-name">Grandfather's First Name <span class="optional">(Optional)</span></label>
+                    <label for="input-grandfather-name">Grandfather's First <span class="optional">(Opt)</span></label>
                     <input type="text" id="input-grandfather-name" placeholder="e.g. Arthur">
                   </div>
                   <div class="form-control flex-1">
-                    <label for="input-grandfather-family-name">Grandfather's Family Name <span class="optional">(Optional)</span></label>
-                    <div style="display: flex; gap: 8px;">
-                      <input type="text" id="input-grandfather-family-name" placeholder="e.g. Miller" style="flex: 1;">
-                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="grandfather" title="Add Details">[+]</button>
-                    </div>
+                    <label for="input-grandfather-family-name">Grandfather's Last <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-grandfather-family-name" placeholder="e.g. Miller">
                   </div>
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="grandfather" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
                 </div>
                 <span class="input-helper">Links father to grandfather automatically to maintain structure.</span>
 
@@ -874,6 +875,17 @@ Examples:
                   </div>
                   
                 </div>
+              </div>
+
+              <!-- Language Setting Row -->
+              <div class="settings-row" style="margin-top: 16px; border-top: 1px solid var(--win-border-light); padding-top: 16px;">
+                <div class="settings-item-label" style="display: flex; flex-direction: column; gap: 2px; max-width: 300px;">
+                  <span class="settings-item-title" style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">🌐 Languages</span>
+                  <span class="settings-item-desc" style="font-size: 11px; color: var(--win-text-secondary);">Choose the display language for the app interface.</span>
+                </div>
+                <button id="btn-open-language-modal" class="fluent-btn" style="padding: 8px 20px; font-size: 13px;">
+                  🌐 Select Language
+                </button>
               </div>
             </div>
 
@@ -1193,48 +1205,42 @@ Examples:
 
           <hr class="form-divider">
 
-          <div class="form-group-row">
+          <div class="form-group-row" style="align-items: flex-end;">
             <div class="form-control flex-1">
-              <label for="edit-father-name">Father's First Name <span class="optional">(Optional)</span></label>
+              <label for="edit-father-name">Father's First <span class="optional">(Opt)</span></label>
               <input type="text" id="edit-father-name" placeholder="e.g. William">
             </div>
             <div class="form-control flex-1">
-              <label for="edit-father-family-name">Father's Family Name <span class="optional">(Optional)</span></label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="edit-father-family-name" placeholder="e.g. Miller" style="flex: 1;">
-                <button type="button" class="fluent-btn btn-secondary btn-edit-relative-details" data-rel-type="father" title="Add Details">[+]</button>
-              </div>
+              <label for="edit-father-family-name">Father's Last <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-father-family-name" placeholder="e.g. Miller">
             </div>
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="father" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
           </div>
           <span class="input-helper">Establishing paternal connections recursively.</span>
 
-          <div class="form-group-row" style="margin-top: 10px;">
+          <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
             <div class="form-control flex-1">
-              <label for="edit-mother-name">Mother's First Name <span class="optional">(Optional)</span></label>
+              <label for="edit-mother-name">Mother's First <span class="optional">(Opt)</span></label>
               <input type="text" id="edit-mother-name" placeholder="e.g. Mary">
             </div>
             <div class="form-control flex-1">
-              <label for="edit-mother-family-name">Mother's Maiden Name <span class="optional">(Optional)</span></label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="edit-mother-family-name" placeholder="e.g. Smith" style="flex: 1;">
-                <button type="button" class="fluent-btn btn-secondary btn-edit-relative-details" data-rel-type="mother" title="Add Details">[+]</button>
-              </div>
+              <label for="edit-mother-family-name">Mother's Maiden <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-mother-family-name" placeholder="e.g. Smith">
             </div>
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="mother" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
           </div>
           <span class="input-helper">Establishing maternal connections recursively.</span>
 
-          <div class="form-group-row" style="margin-top: 10px;">
+          <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
             <div class="form-control flex-1">
-              <label for="edit-grandfather-name">Grandfather's First Name <span class="optional">(Optional)</span></label>
+              <label for="edit-grandfather-name">Grandfather's First <span class="optional">(Opt)</span></label>
               <input type="text" id="edit-grandfather-name" placeholder="e.g. Arthur">
             </div>
             <div class="form-control flex-1">
-              <label for="edit-grandfather-family-name">Grandfather's Family Name <span class="optional">(Optional)</span></label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="edit-grandfather-family-name" placeholder="e.g. Miller" style="flex: 1;">
-                <button type="button" class="fluent-btn btn-secondary btn-edit-relative-details" data-rel-type="grandfather" title="Add Details">[+]</button>
-              </div>
+              <label for="edit-grandfather-family-name">Grandfather's Last <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-grandfather-family-name" placeholder="e.g. Miller">
             </div>
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="grandfather" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
           </div>
           <span class="input-helper">Recursive grandfather mapping.</span>
 
@@ -1365,7 +1371,43 @@ Examples:
         <div id="univ-linker-error" class="text-danger" style="font-size: 12px; display: none;"></div>
 
         <div class="form-actions-right mt-15">
-          <button id="btn-univ-link-submit" class="fluent-btn btn-solid">Create Link</button>
+          <button id="btn-univ-link-submit" class="fluent-btn btn-solid" style="width: 100%;">Create Link</button>
+          <button id="btn-smart-suggest" class="fluent-btn btn-secondary" style="width: 100%; margin-top: 5px;">?? Smart Suggestions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SMART SUGGESTIONS MODAL ==================== -->
+  <div id="modal-smart-suggestions" class="fluent-modal-overlay hidden" style="z-index: 10005;">
+    <div class="fluent-modal-card" style="width: 550px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3 class="modal-title">?? Smart Suggestions</h3>
+        <button id="btn-close-smart-suggestions" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+        <p class="modal-subtitle" style="font-size: 13px; margin-bottom: 15px;">Based on your family tree, we've inferred the following missing relationships.</p>
+        <div id="smart-suggestions-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Suggestions dynamically injected here -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+        <button id="btn-apply-all-suggestions" class="fluent-btn btn-solid">Apply All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== IGNORED PEOPLES MODAL ==================== -->
+  <div id="modal-ignored-peoples" class="fluent-modal-overlay hidden" style="z-index: 10006;">
+    <div class="fluent-modal-card" style="width: 550px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3 class="modal-title">?? Ignored Suggestions</h3>
+        <button id="btn-close-ignored-peoples" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+        <p class="modal-subtitle" style="font-size: 13px; margin-bottom: 15px;">These are smart suggestions you have chosen to ignore. Restore them to see them again.</p>
+        <div id="ignored-peoples-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Ignored items dynamically injected here -->
         </div>
       </div>
     </div>
@@ -1473,6 +1515,62 @@ Examples:
       <div class="fluent-spinner" style="width: 40px; height: 40px; border: 4px solid var(--win-accent-light); border-top: 4px solid var(--win-accent); border-radius: 50; margin: 0 auto 15px auto;"></div>
       <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 5px;" id="loading-title">Populating Database...</h3>
       <p style="font-size: 13px; color: var(--win-text-secondary); margin: 0;" id="loading-message">Generating 100,000 interconnected family members.</p>
+    </div>
+  </div>
+
+  <!-- Language Selection Modal -->
+  <div id="modal-language-select" class="fluent-modal-overlay hidden" style="z-index: 10010;">
+    <div class="fluent-modal-card" style="max-width: 440px; width: 90%; padding: 0; border-radius: 12px; overflow: hidden;">
+      <div class="modal-body" style="padding: 0;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px 14px; border-bottom: 1px solid var(--win-border-light);">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin: 0;">🌐 Select Language / اختر اللغة</h3>
+          <button id="btn-close-language-modal" class="fluent-btn btn-secondary" style="width: 28px; height: 28px; padding: 0; font-size: 14px; border-radius: 6px; display: flex; align-items: center; justify-content: center;" aria-label="Close">✕</button>
+        </div>
+        <!-- Body -->
+        <div style="padding: 24px;">
+          <p style="font-size: 13px; color: var(--win-text-secondary); margin-bottom: 20px; line-height: 1.6;">
+            Choose your preferred display language. All UI text will switch instantly.
+            <br>
+            اختر لغة العرض المفضلة. سيتغير النص فوراً.
+          </p>
+          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <!-- English Option -->
+            <div id="lang-opt-en" class="lang-option-card" data-lang="en" style="
+              flex: 1; min-width: 160px; max-width: 180px;
+              border: 2px solid var(--win-border-light);
+              border-radius: 12px;
+              padding: 20px 16px;
+              text-align: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: var(--win-card-bg);
+            ">
+              <div style="font-size: 36px; margin-bottom: 10px;">🇺🇸</div>
+              <div style="font-size: 15px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 4px;">English</div>
+              <div style="font-size: 11px; color: var(--win-text-secondary);">Default language</div>
+            </div>
+            <!-- Arabic Option -->
+            <div id="lang-opt-ar" class="lang-option-card" data-lang="ar" style="
+              flex: 1; min-width: 160px; max-width: 180px;
+              border: 2px solid var(--win-border-light);
+              border-radius: 12px;
+              padding: 20px 16px;
+              text-align: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: var(--win-card-bg);
+            ">
+              <div style="font-size: 36px; margin-bottom: 10px;">🇸🇦</div>
+              <div style="font-size: 15px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 4px;">العربية</div>
+              <div style="font-size: 11px; color: var(--win-text-secondary);">Arabic</div>
+            </div>
+          </div>
+          <p id="lang-current-indicator" style="font-size: 11px; color: var(--win-text-secondary); text-align: center; margin-top: 16px;">
+            Current: English
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 

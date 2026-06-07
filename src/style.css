@@ -2857,4 +2857,20 @@ body.theme-dark .modal-tabs {
   max-width: calc(100vw - 32px);
 }
 
+/* Language Option Cards */
+.lang-option-card:hover {
+  border-color: var(--win-accent) !important;
+  background: var(--win-accent-light) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 120, 212, 0.15);
+}
 
+.lang-option-card.active-lang {
+  border-color: var(--win-accent) !important;
+  background: var(--win-accent-light) !important;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+}
+
+body.theme-dark .lang-option-card:hover {
+  box-shadow: 0 6px 20px rgba(96, 205, 255, 0.2) !important;
+}
