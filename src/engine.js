@@ -92,6 +92,10 @@ export class FamilyTreeEngine {
             customRelations: {}
           };
           
+          if (!person.firstName && !person.familyName) {
+            person.firstName = 'Unknown';
+          }
+          
           person.name = (person.firstName + (person.familyName ? ' ' + person.familyName : '')).trim();
           
           this.people.set(person.id, person);
@@ -2290,6 +2294,25 @@ export class FamilyTreeEngine {
        if (!p2.spouses) p2.spouses = [];
        if (!p1.spouses.includes(p2.name)) p1.spouses.push(p2.name);
        if (!p2.spouses.includes(p1.name)) p2.spouses.push(p1.name);
+    } else if (relationType === 'Uncle of') {
+       // P1 is Paternal Uncle of P2 -> P1 is brother of P2's Father
+       let fId = p2.fatherId;
+       if (!fId) {
+         fId = this.generateId();
+         const fNode = this.createPlaceholder(fId, 'Unknown Father', 'M');
+         this.people.set(fId, fNode);
+         this.indexName('Unknown Father', fId);
+         p2.fatherId = fId;
+         p2.fatherName = 'Unknown Father';
+         fNode.children.push(id2);
+       }
+       const father = this.people.get(fId);
+       if (father) {
+         if (!father.siblings) father.siblings = [];
+         if (!p1.siblings) p1.siblings = [];
+         if (!father.siblings.includes(id1)) father.siblings.push(id1);
+         if (!p1.siblings.includes(fId)) p1.siblings.push(fId);
+       }
     } else {
        // Custom Relationship
        if (!p1.customRelations) p1.customRelations = {};
