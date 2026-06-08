@@ -2784,7 +2784,7 @@ export class FamilyTreeUI {
     if (btnDelete) {
       const count = this.selectedMemberIds.size;
       btnDelete.disabled = count === 0;
-      btnDelete.innerText = count > 0 ? `🗑️ Delete Selected (${count})` : '🗑️ Delete Selected';
+      btnDelete.innerText = count > 0 ? `🗑️ حذف المحدد (${count})` : '🗑️ حذف المحدد';
     }
   }
 

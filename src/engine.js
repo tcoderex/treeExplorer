@@ -2347,7 +2347,13 @@ export class FamilyTreeEngine {
       this.people.set(p.id, {
         id: p.id,
         name: p.name,
+        firstName: p.firstName || (p.name ? p.name.split(' ')[0] : 'Unknown'),
+        familyName: p.familyName || (p.name ? p.name.split(' ').slice(1).join(' ') : ''),
         gender: p.gender || 'M',
+        photo: p.photo || '',
+        notes: p.notes || '',
+        birthYear: p.birthYear !== undefined ? p.birthYear : null,
+        deathYear: p.deathYear !== undefined ? p.deathYear : null,
         spouses: spouses,
         fatherId: p.fatherId || '',
         fatherName: p.fatherName || '',
@@ -2408,7 +2414,13 @@ export class FamilyTreeEngine {
       if (this.people.has(p.id)) {
         const existing = this.people.get(p.id);
         existing.name = p.name || existing.name;
+        existing.firstName = p.firstName || existing.firstName;
+        existing.familyName = p.familyName || existing.familyName;
         existing.gender = p.gender || existing.gender;
+        existing.photo = p.photo || existing.photo;
+        if (p.notes) existing.notes = p.notes;
+        if (p.birthYear !== undefined) existing.birthYear = p.birthYear;
+        if (p.deathYear !== undefined) existing.deathYear = p.deathYear;
         
         // Merge spouses
         spouses.forEach(s => {
@@ -2447,7 +2459,13 @@ export class FamilyTreeEngine {
         this.people.set(p.id, {
           id: p.id,
           name: p.name,
+          firstName: p.firstName || (p.name ? p.name.split(' ')[0] : 'Unknown'),
+          familyName: p.familyName || (p.name ? p.name.split(' ').slice(1).join(' ') : ''),
           gender: p.gender || 'M',
+          photo: p.photo || '',
+          notes: p.notes || '',
+          birthYear: p.birthYear !== undefined ? p.birthYear : null,
+          deathYear: p.deathYear !== undefined ? p.deathYear : null,
           spouses: spouses,
           fatherId: p.fatherId || '',
           fatherName: p.fatherName || '',
