@@ -171,6 +171,20 @@ export class FamilyTreeEngine {
          this.saveTimeout = null;
       }
       const persons = Array.from(this.people.values()).map(p => {
+        let fName = p.firstName;
+        let famName = p.familyName;
+        if (!fName && !famName && p.name) {
+          const parts = p.name.trim().split(' ');
+          if (parts.length > 1) {
+            famName = parts.pop();
+            fName = parts.join(' ');
+          } else {
+            fName = p.name.trim();
+            famName = '';
+          }
+        }
+        if (!fName) fName = 'Unknown';
+
         const notesObj = {
           birthYear: p.birthYear !== undefined ? p.birthYear : null,
           deathYear: p.deathYear !== undefined ? p.deathYear : null,
@@ -178,8 +192,8 @@ export class FamilyTreeEngine {
         };
         return {
           id: p.id,
-          firstName: p.firstName,
-          familyName: p.familyName,
+          firstName: fName,
+          familyName: famName || '',
           gender: p.gender,
           photo: p.photo,
           notes: JSON.stringify(notesObj)
@@ -321,19 +335,24 @@ export class FamilyTreeEngine {
   }
 
   // Check if assigning parentId as father of childId would create a cycle
-  wouldCreateCycle(childId, parentId) {
-    if (!childId || !parentId) return false;
-    if (childId === parentId) return true;
+  wouldCreateCycle(parentId, childId) {
+    if (parentId === childId) return true;
     
-    let currentId = parentId;
+    // Traverse all ancestors recursively to check if child is already an ancestor
     const visited = new Set();
-    while (currentId) {
-      if (currentId === childId) return true;
-      if (visited.has(currentId)) return true; // cycle already exists
-      visited.add(currentId);
+    const queue = [parentId];
+    
+    while (queue.length > 0) {
+      const currId = queue.shift();
+      if (currId === childId) return true;
+      if (visited.has(currId)) continue;
+      visited.add(currId);
       
-      const node = this.people.get(currentId);
-      currentId = node ? node.fatherId : '';
+      const p = this.getPerson(currId);
+      if (p) {
+        if (p.fatherId) queue.push(p.fatherId);
+        if (p.motherId) queue.push(p.motherId);
+      }
     }
     return false;
   }
@@ -787,16 +806,7 @@ export class FamilyTreeEngine {
           // Create a placeholder spouse node
           const sId = currentSpouseId || this.generateId();
           const oppositeGender = person.gender === 'M' ? 'F' : 'M';
-          exactSpouse = {
-            id: sId,
-            name: spName,
-            gender: (rd && rd.gender) ? rd.gender : oppositeGender,
-            spouses: [person.name],
-            fatherId: '',
-            fatherName: '',
-            grandfatherName: '',
-            children: []
-          };
+          exactSpouse = this.createPlaceholder(sId, spName, (rd && rd.gender) ? rd.gender : oppositeGender, { spouses: [person.name] });
           this.people.set(sId, exactSpouse);
           this.indexName(spName, sId);
         } else {
@@ -820,20 +830,14 @@ export class FamilyTreeEngine {
         if (!exactSibling) {
           // Create placeholder sibling
           const sId = currentSiblingId || this.generateId();
-          exactSibling = {
-            id: sId,
-            name: sibName,
-            gender: (rd && rd.gender) ? rd.gender : 'M', // default placeholder gender
-            spouses: [],
+          exactSibling = this.createPlaceholder(sId, sibName, (rd && rd.gender) ? rd.gender : 'M', {
             fatherId: person.fatherId,
             fatherName: person.fatherName,
             motherId: person.motherId,
             motherName: person.motherName,
             grandfatherName: person.grandfatherName,
-            children: [],
-            siblings: [person.id],
-            customRelations: {}
-          };
+            siblings: [person.id]
+          });
           this.people.set(sId, exactSibling);
           this.indexName(sibName, sId);
         } else {
@@ -1355,11 +1359,18 @@ export class FamilyTreeEngine {
     if (roots.length === 0) return 0;
 
     const memo = new Map();
+    const visiting = new Set();
 
     const depth = (nodeId) => {
       if (memo.has(nodeId)) return memo.get(nodeId);
+      if (visiting.has(nodeId)) return 1; // cycle detected
+      visiting.add(nodeId);
+      
       const node = this.getPerson(nodeId);
-      if (!node || node.children.length === 0) return 1;
+      if (!node || node.children.length === 0) {
+        visiting.delete(nodeId);
+        return 1;
+      }
       
       let maxChildDepth = 0;
       for (const cid of node.children) {
@@ -1367,6 +1378,7 @@ export class FamilyTreeEngine {
       }
       const val = 1 + maxChildDepth;
       memo.set(nodeId, val);
+      visiting.delete(nodeId);
       return val;
     };
 
@@ -1383,6 +1395,7 @@ export class FamilyTreeEngine {
     const levels = new Map(); // id -> level
 
     const assignLevel = (nodeId, lvl) => {
+      if (lvl > this.people.size + 2) return; // Prevent infinite loop on cycles
       const currentLvl = levels.get(nodeId) || 0;
       if (lvl > currentLvl) {
         levels.set(nodeId, lvl);
@@ -1575,34 +1588,16 @@ export class FamilyTreeEngine {
       const spouseBirth = birth - 5 + Math.floor(Math.random() * 10);
       const spouseDeath = spouseBirth + 55 + Math.floor(Math.random() * 35);
 
-      const father = {
-        id: fId,
-        name: fName,
-        gender: 'M',
+      const father = this.createPlaceholder(fId, fName, 'M', {
         spouses: [mName],
-        fatherId: '',
-        fatherName: '',
-        motherId: '',
-        motherName: '',
-        grandfatherName: '',
         birthYear: birth,
-        deathYear: death,
-        children: []
-      };
-      const mother = {
-        id: mId,
-        name: mName,
-        gender: 'F',
+        deathYear: death
+      });
+      const mother = this.createPlaceholder(mId, mName, 'F', {
         spouses: [fName],
-        fatherId: '',
-        fatherName: '',
-        motherId: '',
-        motherName: '',
-        grandfatherName: '',
         birthYear: spouseBirth,
-        deathYear: spouseDeath,
-        children: []
-      };
+        deathYear: spouseDeath
+      });
       
       this.people.set(fId, father);
       this.people.set(mId, mother);
@@ -1639,20 +1634,15 @@ export class FamilyTreeEngine {
           // Spouse
           if (currentIdNum >= totalSize) {
             // Add single child without spouse
-            const childNode = {
-              id: childId,
-              name: childName,
-              gender: gender,
-              spouses: [],
+            const childNode = this.createPlaceholder(childId, childName, gender, {
               fatherId: couple.fatherId,
               fatherName: this.people.get(couple.fatherId).name,
               motherId: couple.motherId,
               motherName: this.people.get(couple.motherId).name,
               grandfatherName: this.people.get(couple.fatherId).fatherName || '',
               birthYear: birth,
-              deathYear: death,
-              children: []
-            };
+              deathYear: death
+            });
             this.people.set(childId, childNode);
             this.indexName(childName, childId);
             this.people.get(couple.fatherId).children.push(childId);
@@ -1672,10 +1662,7 @@ export class FamilyTreeEngine {
           const spouseLifespan = 55 + Math.floor(Math.random() * 35);
           const spouseDeath = (spouseBirth + spouseLifespan > 2026) ? null : (spouseBirth + spouseLifespan);
 
-          const childNode = {
-            id: childId,
-            name: childName,
-            gender: gender,
+          const childNode = this.createPlaceholder(childId, childName, gender, {
             spouses: [spouseName],
             fatherId: couple.fatherId,
             fatherName: this.people.get(couple.fatherId).name,
@@ -1683,24 +1670,14 @@ export class FamilyTreeEngine {
             motherName: this.people.get(couple.motherId).name,
             grandfatherName: this.people.get(couple.fatherId).fatherName || '',
             birthYear: birth,
-            deathYear: death,
-            children: []
-          };
+            deathYear: death
+          });
 
-          const spouseNode = {
-            id: spouseId,
-            name: spouseName,
-            gender: spouseGender,
+          const spouseNode = this.createPlaceholder(spouseId, spouseName, spouseGender, {
             spouses: [childName],
-            fatherId: '',
-            fatherName: '',
-            motherId: '',
-            motherName: '',
-            grandfatherName: '',
             birthYear: spouseBirth,
-            deathYear: spouseDeath,
-            children: []
-          };
+            deathYear: spouseDeath
+          });
 
           this.people.set(childId, childNode);
           this.people.set(spouseId, spouseNode);
@@ -2366,7 +2343,7 @@ export class FamilyTreeEngine {
       });
       this.indexName(p.name, p.id);
     });
-    this.saveToDB();
+    this.forceSaveToDB();
     return true;
   }
 
@@ -2479,7 +2456,7 @@ export class FamilyTreeEngine {
     });
 
     this.rebuildTokenIndex();
-    this.saveToDB();
+    this.forceSaveToDB();
     return true;
   }
 
