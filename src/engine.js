@@ -2307,7 +2307,7 @@ export class FamilyTreeEngine {
        if (!p2.spouses) p2.spouses = [];
        if (!p1.spouses.includes(p2.name)) p1.spouses.push(p2.name);
        if (!p2.spouses.includes(p1.name)) p2.spouses.push(p1.name);
-    } else if (relationType === 'Uncle of') {
+    } else if (relationType === 'عم') {
        // P1 is Paternal Uncle of P2 -> P1 is brother of P2's Father
        let fId = p2.fatherId;
        if (!fId) {
@@ -2360,6 +2360,7 @@ export class FamilyTreeEngine {
       });
       this.indexName(p.name, p.id);
     });
+    this.saveToDB();
     return true;
   }
 
@@ -2460,6 +2461,7 @@ export class FamilyTreeEngine {
     });
 
     this.rebuildTokenIndex();
+    this.saveToDB();
     return true;
   }
 
