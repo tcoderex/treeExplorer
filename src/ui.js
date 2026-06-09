@@ -592,7 +592,11 @@ export class FamilyTreeUI {
         enabled ? "Applying Pedigree layout..." : "Restoring standard layout...",
         () => {
           this.canvas.computeLayout();
-          this.canvas.zoomFit();
+          if (enabled || !this.canvas.focusPersonId) {
+            this.canvas.zoomFit();
+          } else {
+            this.canvas.centerOnNode(this.canvas.focusPersonId);
+          }
         }
       );
     };
@@ -620,7 +624,11 @@ export class FamilyTreeUI {
         enabled ? "Applying Network layout..." : "Restoring standard layout...",
         () => {
           this.worldCanvas.computeLayout();
-          this.worldCanvas.zoomFit();
+          if (enabled || !this.worldCanvas.focusPersonId) {
+            this.worldCanvas.zoomFit();
+          } else {
+            this.worldCanvas.centerOnNode(this.worldCanvas.focusPersonId);
+          }
         }
       );
     };
@@ -1890,8 +1898,12 @@ export class FamilyTreeUI {
         this.initCanvas();
         if (this.canvas) {
           this.canvas.resizeCanvas();
-          if (this.focusPersonId) {
+          if (this.focusPersonId && this.canvas.focusPersonId !== this.focusPersonId) {
             this.canvas.setFocus(this.focusPersonId);
+          } else if (this.canvas.focusPersonId) {
+            this.canvas.centerOnNode(this.canvas.focusPersonId);
+          } else {
+            this.canvas.draw();
           }
         }
       }, 50);
@@ -1903,7 +1915,13 @@ export class FamilyTreeUI {
         this.initWorldCanvas();
         if (this.worldCanvas) {
           this.worldCanvas.resizeCanvas();
-          this.worldCanvas.zoomFit();
+          if (this.focusPersonId && this.worldCanvas.focusPersonId !== this.focusPersonId) {
+            this.worldCanvas.setFocus(this.focusPersonId);
+          } else if (this.worldCanvas.focusPersonId) {
+            this.worldCanvas.centerOnNode(this.worldCanvas.focusPersonId);
+          } else {
+            this.worldCanvas.zoomFit();
+          }
         }
       }, 50);
     }
