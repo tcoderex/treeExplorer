@@ -35,6 +35,7 @@ export class LineageCanvas {
 
     // Animation & Centering Properties
     this.focusPersonId = null;
+    this.layoutRootPersonId = null;
     this.layoutDirection = 'vertical'; // 'vertical' or 'horizontal'
     this.filterType = 'all'; // 'all', 'M', 'F', 'roots'
     this.searchQuery = '';
@@ -226,9 +227,21 @@ export class LineageCanvas {
   }
 
   // Set the focus person and compute layout
-  setFocus(personId) {
+  setFocus(personId, instant = false, shouldCenter = true) {
     this.focusPersonId = personId;
-    this.centerOnNode(personId);
+    if (shouldCenter) {
+      this.layoutRootPersonId = personId;
+      this.centerOnNode(personId, instant);
+    } else {
+      if (!this.layoutRootPersonId) {
+        this.layoutRootPersonId = personId;
+      }
+      // Only recompute layout if it has not been computed yet
+      if (!this.isWorldMode && this.nodes.length === 0) {
+        this.computeLayout();
+      }
+      this.draw();
+    }
   }
 
   // Toggle layout direction
@@ -239,7 +252,8 @@ export class LineageCanvas {
 
   // Clear zoom and fit the entire active subgraph in window
   zoomFit() {
-    if (!this.isWorldMode && (!this.focusPersonId || !this.engine.getPerson(this.focusPersonId))) return;
+    const rootId = this.layoutRootPersonId || this.focusPersonId;
+    if (!this.isWorldMode && (!rootId || !this.engine.getPerson(rootId))) return;
 
     this.computeLayout();
     if (this.nodes.length === 0) return;
@@ -312,11 +326,12 @@ export class LineageCanvas {
     this.animationFrameId = requestAnimationFrame(animate);
   }
 
-  centerOnNode(personId) {
+  centerOnNode(personId, instant = false) {
     if (!personId) return;
     // In Tree mode, focus changes require a new layout graph. In World mode, the graph is global and physics-based, so DO NOT reset it!
     if (!this.isWorldMode) {
       this.focusPersonId = personId;
+      this.layoutRootPersonId = personId;
       this.computeLayout();
     }
     const node = this.nodes.find(n => String(n.id) === String(personId));
@@ -331,7 +346,14 @@ export class LineageCanvas {
     const targetPanX = width / 2 - (node.x + this.nodeWidth / 2) * targetZoom;
     const targetPanY = height / 2 - (node.y + this.nodeHeight / 2) * targetZoom;
 
-    this.animateTransition(targetPanX, targetPanY, targetZoom, 600);
+    if (instant) {
+      this.panX = targetPanX;
+      this.panY = targetPanY;
+      this.zoom = targetZoom;
+      this.draw();
+    } else {
+      this.animateTransition(targetPanX, targetPanY, targetZoom, 600);
+    }
   }
 
   setFilter(filterType) {
@@ -388,12 +410,13 @@ export class LineageCanvas {
       return;
     }
 
-    if (!this.focusPersonId) {
+    const rootId = this.layoutRootPersonId || this.focusPersonId;
+    if (!rootId) {
       this.nodes = [];
       return;
     }
 
-    const focus = this.engine.getPerson(this.focusPersonId);
+    const focus = this.engine.getPerson(rootId);
     if (!focus) {
       this.nodes = [];
       return;
@@ -498,11 +521,12 @@ export class LineageCanvas {
   
   // 1. Strict Left-To-Right Pedigree Ancestor Layout (including Siblings)
   computeGenealogyTreeLayout() {
-    if (!this.focusPersonId) {
+    const rootId = this.layoutRootPersonId || this.focusPersonId;
+    if (!rootId) {
       this.nodes = [];
       return;
     }
-    const focus = this.engine.getPerson(this.focusPersonId);
+    const focus = this.engine.getPerson(rootId);
     if (!focus) {
       this.nodes = [];
       return;
@@ -723,9 +747,10 @@ export class LineageCanvas {
          const siblings = [];
          const focusArr = [];
          const spouses = [];
-         const focusPerson = this.engine.getPerson(this.focusPersonId);
+         const rootId = this.layoutRootPersonId || this.focusPersonId;
+         const focusPerson = this.engine.getPerson(rootId);
          members.forEach(m => {
-           if (String(m.id) === String(this.focusPersonId)) focusArr.push(m);
+           if (String(m.id) === String(rootId)) focusArr.push(m);
            else if (focusPerson && focusPerson.spouses && focusPerson.spouses.includes(m.name)) spouses.push(m);
            else siblings.push(m);
          });
@@ -1525,11 +1550,12 @@ export class LineageCanvas {
       if (this.isWorldMode) {
         badgeLabel = `GENERATION ${node.layerIdx}`;
       } else {
+        const isLayoutRoot = String(node.id) === String(this.layoutRootPersonId || this.focusPersonId);
         if (node.layerIdx === 0) {
-           if (isFocus) badgeLabel = 'FOCUS';
+           if (isLayoutRoot) badgeLabel = 'FOCUS';
            else {
-               const focusPerson = this.engine.getPerson(this.focusPersonId);
-               if (focusPerson && focusPerson.spouses && focusPerson.spouses.includes(node.person.name)) {
+               const rootPerson = this.engine.getPerson(this.layoutRootPersonId || this.focusPersonId);
+               if (rootPerson && rootPerson.spouses && rootPerson.spouses.includes(node.person.name)) {
                    badgeLabel = 'SPOUSE';
                } else {
                    badgeLabel = 'SIBLING';

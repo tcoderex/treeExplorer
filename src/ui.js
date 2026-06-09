@@ -899,8 +899,7 @@ export class FamilyTreeUI {
     document.getElementById('btn-modal-focus').addEventListener('click', () => {
       const id = document.getElementById('detail-id').innerText.trim();
       if (id) {
-        const activeTab = document.querySelector('.nav-tab.active');
-        const isWorldTab = activeTab && activeTab.dataset.tab === 'world';
+        const isWorldTab = this.currentTab === 'world';
 
         this.setFocusPerson(id);
         
@@ -1748,7 +1747,10 @@ export class FamilyTreeUI {
     if (this.canvas) return;
     const canvasElem = document.getElementById('lineage-canvas');
     if (canvasElem) {
-      this.canvas = new LineageCanvas(canvasElem, this.engine, (id) => this.showPersonDetail(id));
+      this.canvas = new LineageCanvas(canvasElem, this.engine, (id) => {
+        this.setFocusPerson(id, false);
+        this.showPersonDetail(id);
+      });
       
       const savedTreeMode = localStorage.getItem('family-tree-genealogy-tree-mode');
       if (savedTreeMode === 'true') {
@@ -1773,6 +1775,7 @@ export class FamilyTreeUI {
     const canvasElem = document.getElementById('world-canvas');
     if (canvasElem) {
       this.worldCanvas = new LineageCanvas(canvasElem, this.engine, (id) => {
+        this.setFocusPerson(id, false);
         this.showPersonDetail(id);
       }, true);
 
@@ -1898,12 +1901,13 @@ export class FamilyTreeUI {
         this.initCanvas();
         if (this.canvas) {
           this.canvas.resizeCanvas();
+          this.canvas.computeLayout();
           if (this.focusPersonId && this.canvas.focusPersonId !== this.focusPersonId) {
-            this.canvas.setFocus(this.focusPersonId);
+            this.canvas.setFocus(this.focusPersonId, true);
           } else if (this.canvas.focusPersonId) {
-            this.canvas.centerOnNode(this.canvas.focusPersonId);
+            this.canvas.centerOnNode(this.canvas.focusPersonId, true);
           } else {
-            this.canvas.draw();
+            this.canvas.zoomFit();
           }
         }
       }, 50);
@@ -1915,10 +1919,11 @@ export class FamilyTreeUI {
         this.initWorldCanvas();
         if (this.worldCanvas) {
           this.worldCanvas.resizeCanvas();
+          this.worldCanvas.computeLayout();
           if (this.focusPersonId && this.worldCanvas.focusPersonId !== this.focusPersonId) {
-            this.worldCanvas.setFocus(this.focusPersonId);
+            this.worldCanvas.setFocus(this.focusPersonId, true);
           } else if (this.worldCanvas.focusPersonId) {
-            this.worldCanvas.centerOnNode(this.worldCanvas.focusPersonId);
+            this.worldCanvas.centerOnNode(this.worldCanvas.focusPersonId, true);
           } else {
             this.worldCanvas.zoomFit();
           }
@@ -2613,15 +2618,19 @@ export class FamilyTreeUI {
      PEDIGREE VIEW & EXPLORER DETAIL MODAL
      ========================================================================== */
 
-  setFocusPerson(id) {
+  setFocusPerson(id, shouldCenter = true) {
     this.focusPersonId = id;
     this.activeSpouseFilter = 'all';
     
+    const isWorldActive = (this.currentTab === 'world');
+    
     if (this.canvas) {
-      this.canvas.setFocus(id);
+      const centerTree = shouldCenter && !isWorldActive;
+      this.canvas.setFocus(id, false, centerTree);
     }
     if (this.worldCanvas) {
-      this.worldCanvas.setFocus(id);
+      const centerWorld = shouldCenter && isWorldActive;
+      this.worldCanvas.setFocus(id, false, centerWorld);
     }
 
     this.renderPedigreeDiagram();
@@ -2771,7 +2780,7 @@ export class FamilyTreeUI {
             card.className = `pedigree-node node-${spouseObj.gender}`;
             card.style.borderBottomColor = '#e3008c';
             card.innerText = spouseObj.name;
-            card.onclick = () => this.setFocusPerson(spouseObj.id);
+            card.onclick = () => this.setFocusPerson(spouseObj.id, false);
             spousesContainer.appendChild(card);
           } else {
             // Show name as unlinked
@@ -2796,7 +2805,7 @@ export class FamilyTreeUI {
           card.className = `pedigree-node node-${sib.gender}`;
           card.style.borderBottomColor = '#8855cc';
           card.innerText = sib.name;
-          card.onclick = () => this.setFocusPerson(sib.id);
+          card.onclick = () => this.setFocusPerson(sib.id, false);
           siblingsContainer.appendChild(card);
         });
       } else {
@@ -2857,7 +2866,7 @@ export class FamilyTreeUI {
           const card = document.createElement('div');
           card.className = `pedigree-node node-${child.gender}`;
           card.innerText = child.name;
-          card.onclick = () => this.setFocusPerson(child.id);
+          card.onclick = () => this.setFocusPerson(child.id, false);
           childrenContainer.appendChild(card);
         }
       });
@@ -2868,7 +2877,7 @@ export class FamilyTreeUI {
     if (person) {
       element.innerText = person.name;
       element.className = `pedigree-node node-${person.gender}`;
-      element.onclick = () => this.setFocusPerson(person.id);
+      element.onclick = () => this.setFocusPerson(person.id, false);
     } else {
       element.innerText = 'No Record';
       element.className = 'pedigree-node empty-node';
@@ -2882,8 +2891,9 @@ export class FamilyTreeUI {
     if (!p) return;
 
     // Auto-focus the person to keep the left lineage preview and canvas in sync!
+    // Use shouldCenter=false to avoid camera movement when opening a card
     if (this.focusPersonId !== id) {
-      this.setFocusPerson(id);
+      this.setFocusPerson(id, false);
     }
 
     const modal = document.getElementById('modal-member-detail');
@@ -3331,10 +3341,6 @@ export class FamilyTreeUI {
       item.style.cursor = 'pointer';
       item.title = 'Make Focus in Explorer';
       item.addEventListener('click', () => {
-        if (this.canvas && !this.canvas.isGenealogyMode) {
-          window.alert("Please change the Tree View to Genealogy to make focus work.");
-          return;
-        }
         this.setFocusPerson(p.id);
         this.switchTab('explorer');
         document.getElementById('modal-v8-pathfinder').classList.add('hidden');
