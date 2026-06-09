@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Arabic Area</title>
+  <!-- SEO & Optimization -->
+  <meta name="description" content="A premium Windows 11 Fluent styled Family Tree application for massive lineage scaling, featuring a custom parentage mapping engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="./src/styles.css">
+
+  <style>
+    /* Hide the Google Translate UI banner and iframe */
+    body { top: 0 !important; }
+    .skiptranslate iframe, .goog-te-banner-frame { display: none !important; }
+    #google_translate_element { display: none !important; }
+  </style>
+
+  <!-- Google Translate Element Initialization -->
+  <div id="google_translate_element"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,ar',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+
+    function triggerGoogleTranslate(langCode) {
+      const tryTrigger = () => {
+        const selectEl = document.querySelector('.goog-te-combo');
+        if (selectEl) {
+          selectEl.value = langCode;
+          selectEl.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+        } else {
+          setTimeout(tryTrigger, 100);
+        }
+      };
+      tryTrigger();
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="fluent-app">
+  <!-- Mica Backdrop Blur Overlay -->
+  <div class="mica-overlay"></div>
+
+  <div class="app-container">
+    <!-- Windows 11 Styled Header Title Bar -->
+    <header class="windows-titlebar" id="app-titlebar">
+      <div class="titlebar-left">
+        <svg class="app-icon" viewBox="0 0 24 24" width="16" height="16">
+          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        <span class="app-title-text">The Arabic Area</span>
+        <span class="app-build-badge">Version 9.0</span>
+      </div>
+      <div class="titlebar-center">
+        <div class="header-search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14">
+            <path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+          <input type="text" id="global-search-input" placeholder="Search members (e.g. John, William...)" autocomplete="off">
+          <div id="search-suggestions-dropdown" class="suggestions-dropdown hidden"></div>
+        </div>
+      </div>
+      <div class="titlebar-right" style="position: relative; display: flex; align-items: center;">
+        <div style="position: relative; display: flex; align-items: center; height: 100%;">
+          <!-- Database Layer Menu Button -->
+          <button class="titlebar-btn database" id="btn-titlebar-database" title="Data Backup & Restore" aria-label="Database Actions">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 2C6.48 2 2 4.02 2 6.5v11c0 2.48 4.48 4.5 10 4.5s10-2.02 10-4.5v-11C22 4.02 17.52 2 12 2zm0 3c4.58 0 8 1.54 8 2.5S16.58 10 12 10s-8-1.54-8-2.5S7.42 5 12 5zm0 13.5c-4.58 0-8-1.54-8-2.5V14c1.87 1.25 4.81 1.5 8 1.5s6.13-.25 8-1.5v2c0 .96-3.42 2.5-8 2.5zm0-4.5c-4.58 0-8-1.54-8-2.5v-2c1.87 1.25 4.81 1.5 8 1.5s6.13-.25 8-1.5v2c0 .96-3.42 2.5-8 2.5z"/>
+            </svg>
+          </button>
+
+          <!-- Glassmorphic Dropdown Layer Menu -->
+          <div id="flyout-data-layer" class="suggestions-dropdown data-flyout hidden">
+            <div class="flyout-header-title">Data Management Hub</div>
+            <div class="flyout-divider"></div>
+            <button class="flyout-item-btn" id="btn-flyout-export">
+              <span class="flyout-icon">📤</span>
+              <div class="flyout-text-group">
+                <span class="flyout-label">Export Local Backup</span>
+                <span class="flyout-desc">Save the entire family tree database as a JSON file.</span>
+              </div>
+            </button>
+            <button class="flyout-item-btn" id="btn-flyout-import">
+              <span class="flyout-icon">📥</span>
+              <div class="flyout-text-group">
+                <span class="flyout-label">Import Local Backup</span>
+                <span class="flyout-desc">Load a family tree from a JSON backup file.</span>
+              </div>
+              <input type="file" id="input-file-import" accept=".json" style="display: none;">
+            </button>
+            <button class="flyout-item-btn" id="btn-flyout-ignored">
+              <span class="flyout-icon">🚫</span>
+              <div class="flyout-text-group">
+                <span class="flyout-label">Ignored Suggestions</span>
+                <span class="flyout-desc">View and restore smart relationship suggestions you previously ignored.</span>
+              </div>
+            </button>
+            <div class="flyout-divider"></div>
+            <button class="flyout-item-btn flyout-danger" id="btn-flyout-reset">
+              <span class="flyout-icon">🗑️</span>
+              <div class="flyout-text-group">
+                <span class="flyout-label">Reset Local Tree</span>
+                <span class="flyout-desc">Completely clear all database entries.</span>
+              </div>
+            </button>
+          </div>
+             <!-- Settings Button -->
+        <button class="titlebar-btn settings" id="btn-titlebar-settings" title="Personalization & Theme Settings" aria-label="Settings Actions">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49-.12-.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+          </svg>
+        </button>
+        </div>
+
+        <!-- Native-looking Mock Control Buttons -->
+        <button class="titlebar-btn minimize" aria-label="Minimize">
+          <svg viewBox="0 0 10 1" width="10" height="1"><rect width="10" height="1" fill="currentColor"/></svg>
+        </button>
+        <button class="titlebar-btn maximize" aria-label="Maximize">
+          <svg viewBox="0 0 10 10" width="10" height="10"><rect width="10" height="10" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+        </button>
+        <button class="titlebar-btn close" aria-label="Close">
+          <svg viewBox="0 0 10 10" width="10" height="10"><path d="M0,0 L10,10 M0,10 L10,0" stroke="currentColor" stroke-width="1"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="app-workspace">
+      
+      <!-- Windows 11 Styled Sidebar Navigation -->
+      <aside class="fluent-sidebar" id="app-sidebar">
+        <div class="sidebar-toggle-row">
+          <button id="btn-sidebar-toggle" class="sidebar-toggle-btn" type="button" aria-label="Toggle Navigation Pane">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+          </button>
+        </div>
+
+        <div class="sidebar-user-panel">
+          <div class="avatar-ring">
+            <div class="user-avatar">🌳</div>
+          </div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-username">My Family Tree</div>
+            <div class="sidebar-userstatus" id="sidebar-status-text">0 Members Loaded</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="#dashboard" class="nav-item active" data-tab="dashboard" id="btn-nav-dashboard">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+            </svg>
+            <span class="nav-text">Dashboard</span>
+            <span class="nav-active-indicator"></span>
+          </a>
+
+          <a href="#explorer" class="nav-item" data-tab="explorer" id="btn-nav-explorer">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M22 11h-5V9h-3V5h-4v4H7v2H2v6h5v-2h3v4h4v-4h3v2h5v-6zm-17 4H3v-2h2v2zm7 2h-2v-2h2v2zm7-2h-2v-2h2v2z"/>
+            </svg>
+            <span class="nav-text">Tree Explorer</span>
+            <span class="nav-active-indicator"></span>
+          </a>
+
+          <a href="#world" class="nav-item" data-tab="world" id="btn-nav-world">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <span class="nav-text">World Forest</span>
+            <span class="nav-active-indicator"></span>
+          </a>
+
+          <a href="#members" class="nav-item" data-tab="members" id="btn-nav-members">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.83 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+            <span class="nav-text">All Members</span>
+            <span class="nav-active-indicator"></span>
+          </a>
+
+          <a href="#import" class="nav-item" data-tab="import" id="btn-nav-import">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            <span class="nav-text">Add / Import</span>
+            <span class="nav-active-indicator"></span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="footer-system-info">
+            <div>The Arabic Area</div>
+            <div class="os-version">Version 9.0 (Fluent Build)</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Views Container -->
+      <main class="fluent-content-view">
+        
+        <!-- ==================== DASHBOARD VIEW ==================== -->
+        <section id="tab-dashboard" class="content-tab-panel">
+          <div class="panel-header">
+            <div class="header-titles">
+              <h1 class="fluent-title">Family Overview</h1>
+              <p class="fluent-subtitle">Lineage statistics, depth metrics, and quick diagnostics.</p>
+            </div>
+            <div class="header-actions">
+              <button id="btn-dash-univ-linker" class="fluent-btn btn-solid" style="margin-right: 8px; background-color: var(--win-accent);">
+                🔗 Universal Linker
+              </button>
+              <button id="btn-dash-start-tour" class="fluent-btn btn-solid" style="margin-right: 8px;">
+                🚀 Start Interactive Tour
+              </button>
+              <button id="btn-dash-import-mock" class="fluent-btn btn-secondary">
+                ⚡ Load 2000+ Mock Tree
+              </button>
+            </div>
+          </div>
+
+          <!-- Cards Grid -->
+          <div class="stats-cards-grid">
+            <div class="fluent-card stats-card animated-card">
+              <div class="card-accent-strip bg-blue"></div>
+              <div class="card-icon-container text-blue">👥</div>
+              <div class="card-content">
+                <span class="card-label">Total Registered</span>
+                <span class="card-value" id="stat-total-people">0</span>
+                <span class="card-desc">Linked family individuals</span>
+              </div>
+            </div>
+
+            <div class="fluent-card stats-card animated-card">
+              <div class="card-accent-strip bg-purple"></div>
+              <div class="card-icon-container text-purple">👑</div>
+              <div class="card-content">
+                <span class="card-label">Tree Generations</span>
+                <span class="card-value" id="stat-generations">0</span>
+                <span class="card-desc">Max lineage depth</span>
+              </div>
+            </div>
+
+            <div class="fluent-card stats-card animated-card">
+              <div class="card-accent-strip bg-green"></div>
+              <div class="card-icon-container text-green">🏰</div>
+              <div class="card-content">
+                <span class="card-label">Family Branches</span>
+                <span class="card-value" id="stat-branches">0</span>
+                <span class="card-desc">Unique patriarch roots</span>
+              </div>
+            </div>
+
+            <div class="fluent-card stats-card animated-card">
+              <div class="card-accent-strip bg-orange"></div>
+              <div class="card-icon-container text-orange">🧬</div>
+              <div class="card-content">
+                <span class="card-label">Engine Linkages</span>
+                <span class="card-value" id="stat-linkage-rate">0%</span>
+                <span class="card-desc">Connected parent lines</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard Charts / Insights Row -->
+          <div class="dashboard-row">
+            <div class="fluent-card flex-2">
+              <h2 class="card-title">Family Demographics & Distribution</h2>
+              <div class="demographics-container">
+                <div class="gender-split-visual">
+                  <div class="gender-label-container">
+                    <span>Male: <strong id="lbl-male-count">0</strong></span>
+                    <span>Female: <strong id="lbl-female-count">0</strong></span>
+                  </div>
+                  <div class="gender-bar-wrapper">
+                    <div id="bar-male" class="gender-segment bar-male" style="width: 50%"></div>
+                    <div id="bar-female" class="gender-segment bar-female" style="width: 50%"></div>
+                  </div>
+                </div>
+                
+                <div class="generations-list-container">
+                  <h3 class="subsection-title">Members per Generation</h3>
+                  <div id="generation-bar-chart" class="gen-bar-chart-container">
+                    <!-- Dynamic rendering of bars -->
+                    <div class="empty-state">No lineage data parsed yet. Load a mock tree or add members.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fluent-card flex-1">
+              <h2 class="card-title">Lineage Diagnostics</h2>
+              <ul class="diagnostic-list" id="diagnostic-list">
+                <li class="diagnostic-item success-item">
+                  <span class="diag-bullet">✓</span>
+                  <div class="diag-info">
+                    <div class="diag-name">Lineage Engine Operational</div>
+                    <div class="diag-sub">Path detection running offline.</div>
+                  </div>
+                </li>
+                <li class="diagnostic-item warning-item" id="diag-orphans-card">
+                  <span class="diag-bullet">!</span>
+                  <div class="diag-info">
+                    <div class="diag-name">Unlinked Members</div>
+                    <div class="diag-sub" id="lbl-unlinked-count">0 members lack specified parents.</div>
+                  </div>
+                </li>
+              </ul>
+              <div class="diag-actions">
+                <button id="btn-goto-unlinked" class="fluent-btn btn-secondary">View unlinked members</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Welcome Banner / Guide -->
+          <div class="fluent-card welcome-banner">
+            <div class="welcome-text-side">
+              <h3>Get Started with Windows Family Tree Engine</h3>
+              <p>This light edition uses advanced recursive heuristics to parse name paths (e.g., "Ahmad bin Ali bin Hassan"). You can add members individually, import lines in bulk, or use the Mock Generator to instantly populate a massive, interconnected tree with 1,000+ nodes to test our layout capabilities and responsive rendering speed.</p>
+              <div class="welcome-buttons">
+                <button id="btn-banner-mock" class="fluent-btn btn-solid">⚡ Load 1000+ Mock Members</button>
+                <button id="btn-banner-add" class="fluent-btn btn-secondary">+ Add First Member</button>
+              </div>
+            </div>
+            <div class="welcome-graphic">🌳</div>
+          </div>
+        </section>
+
+
+        <!-- ==================== TREE EXPLORER VIEW ==================== -->
+        <section id="tab-explorer" class="content-tab-panel hidden" style="height: 100%;">
+          <div class="explorer-layout-wrapper" style="height: 100%;">
+            
+            <!-- Left Side: Interactive Pedigree Navigation -->
+            <div class="explorer-pedigree-side">
+              <div class="panel-header-mini">
+                <h2 class="mini-title">Focused Pedigree Viewer</h2>
+                <p class="mini-desc">Click cards to shift the focal tree view.</p>
+              </div>
+
+              <div class="pedigree-scroller">
+                <div class="pedigree-diagram-container">
+                  
+                  <!-- Grandparents Row -->
+                  <div class="pedigree-row grandparents-row">
+                    <div class="pedigree-cell">
+                      <span class="pedigree-rel">Father's Father</span>
+                      <div id="pedigree-ff" class="pedigree-node empty-node">No Record</div>
+                    </div>
+                    <div class="pedigree-cell">
+                      <span class="pedigree-rel">Father's Mother</span>
+                      <div id="pedigree-fm" class="pedigree-node empty-node">No Record</div>
+                    </div>
+                    <div class="pedigree-cell">
+                      <span class="pedigree-rel">Mother's Father</span>
+                      <div id="pedigree-mf" class="pedigree-node empty-node">No Record</div>
+                    </div>
+                    <div class="pedigree-cell">
+                      <span class="pedigree-rel">Mother's Mother</span>
+                      <div id="pedigree-mm" class="pedigree-node empty-node">No Record</div>
+                    </div>
+                  </div>
+
+                  <div class="pedigree-connector-row"><div class="connector-line"></div></div>
+
+                  <!-- Parents Row -->
+                  <div class="pedigree-row parents-row">
+                    <div class="pedigree-cell flex-1">
+                      <span class="pedigree-rel">Father</span>
+                      <div id="pedigree-father" class="pedigree-node empty-node">No Record</div>
+                    </div>
+                    <div class="pedigree-cell flex-1">
+                      <span class="pedigree-rel">Mother</span>
+                      <div id="pedigree-mother" class="pedigree-node empty-node">No Record</div>
+                    </div>
+                  </div>
+
+                  <div class="pedigree-connector-row"><div class="connector-line"></div></div>
+
+                  <!-- Active Focus Person Card -->
+                  <div class="pedigree-row focal-row">
+                    <div class="pedigree-cell">
+                      <span class="pedigree-rel accent-rel">CURRENT FOCUS</span>
+                      <div id="pedigree-focus" class="pedigree-node focal-node empty-node">Select a Member</div>
+                    </div>
+                  </div>
+
+                  <div class="pedigree-connector-row"><div class="connector-line"></div></div>
+
+                  <!-- Children List Row -->
+                  <div class="pedigree-children-block">
+                    <span class="pedigree-rel">Children</span>
+                    <div id="pedigree-spouse-filter-bar" class="spouse-filter-bar hidden"></div>
+                    <div id="pedigree-children-container" class="children-horizontal-list">
+                      <div class="empty-text">No Children Recorded</div>
+                    </div>
+                  </div>
+
+                  <div class="pedigree-connector-row" style="height: 14px;"><div class="connector-line" style="border-left: 2px dashed var(--win-border-heavy); background: none; width: 0;"></div></div>
+
+                  <!-- Spouses List Row -->
+                  <div class="pedigree-spouses-block">
+                    <span class="pedigree-rel" style="color: #e3008c;">Spouses</span>
+                    <div id="pedigree-spouses-container" class="spouses-horizontal-list">
+                      <div class="empty-text">No Spouses Recorded</div>
+                    </div>
+                  </div>
+
+                  <div class="pedigree-connector-row" style="height: 14px;"><div class="connector-line" style="border-left: 2px dotted var(--win-border-heavy); background: none; width: 0;"></div></div>
+
+                  <!-- Siblings List Row -->
+                  <div class="pedigree-siblings-block">
+                    <span class="pedigree-rel" style="color: #8855cc;">Siblings</span>
+                    <div id="pedigree-siblings-container" class="siblings-horizontal-list">
+                      <div class="empty-text">No Siblings Found</div>
+                    </div>
+                  </div>
+
+                  <!-- Info Summary Row -->
+                  <div style="width: 100%; margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <div id="pedigree-info-generation" class="pedigree-info-chip">Gen —</div>
+                    <div id="pedigree-info-children-count" class="pedigree-info-chip">Children: 0</div>
+                    <div id="pedigree-info-descendants" class="pedigree-info-chip">Descendants: 0</div>
+                    <div id="pedigree-info-siblings-count" class="pedigree-info-chip">Siblings: 0</div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side: Zoom/Pan HTML5 Lineage Graph -->
+            <div class="explorer-canvas-side">
+              <div class="canvas-header-bar">
+                <div class="canvas-controls-left">
+                  <h3 class="canvas-title">Interactive Lineage Graph</h3>
+                  <span id="canvas-focused-label" class="canvas-focused-badge">Root: Not Selected</span>
+                </div>
+                <!-- Interactive search for focused pedigree tree -->
+                <div class="canvas-search-middle" style="position: relative; display: flex; align-items: center; max-width: 300px; width: 100%;">
+                  <input type="text" id="explorer-search-input" class="fluent-input header-search-box" placeholder="Filter/Search focused person..." autocomplete="off" style="width: 100%; height: 28px; font-size: 12px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); backdrop-filter: blur(8px); color: var(--win-text-primary);">
+                  <div id="explorer-search-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 32px; left: 0; width: 100%; z-index: 1000; max-height: 250px; overflow-y: auto; background: var(--win-card-bg); backdrop-filter: blur(20px); border: 1px solid var(--win-border-light); border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);"></div>
+                </div>
+                <div class="canvas-controls-right" style="display: flex; align-items: center; gap: 6px;">
+                  <button id="btn-toggle-v9-tree" title="Toggle V9 Pedigree View">
+                    🧬 Pedigree
+                  </button>
+                  <button id="btn-explorer-export" class="fluent-btn btn-secondary" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; height: 26px; display: flex; align-items: center; gap: 4px;" title="Export Tree to JSON">
+                    📥 Export JSON
+                  </button>
+                  <button id="btn-canvas-zoom-in" class="canvas-control-btn" title="Zoom In">＋</button>
+                  <button id="btn-canvas-zoom-out" class="canvas-control-btn" title="Zoom Out">－</button>
+                  <button id="btn-canvas-zoom-fit" class="canvas-control-btn" title="Fit to Screen">⛶</button>
+                  <button id="btn-canvas-toggle-direction" class="canvas-control-btn" title="Toggle Layout Direction">⇄</button>
+                </div>
+              </div>
+              
+              <!-- The actual interactive canvas workspace -->
+              <div class="canvas-container-outer" id="lineage-canvas-wrapper">
+                <canvas id="lineage-canvas" width="800" height="500"></canvas>
+                
+                <!-- Floating canvas instructions overlay -->
+                <div class="canvas-overlay-tips">
+                  <span>🖱 Left click to Focus • 🔀 Drag to Pan • 📜 Scroll to Zoom</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ==================== WORLD FOREST VIEW ==================== -->
+        <section id="tab-world" class="content-tab-panel hidden" style="height: 100%;">
+          <div class="explorer-layout-wrapper" style="height: 100%; display: flex; flex-direction: column;">
+            
+            <div class="explorer-canvas-side" style="flex: 1; display: flex; flex-direction: column;">
+              <div class="canvas-header-bar">
+                <div class="canvas-controls-left">
+                  <h3 class="canvas-title">World Family Forest</h3>
+                  <span id="canvas-world-label" class="canvas-focused-badge">Displaying All Connected & Unlinked Lineages</span>
+                </div>
+                <!-- Interactive search and filters for World Forest -->
+                <div class="canvas-search-middle" style="position: relative; display: flex; align-items: center; gap: 8px; max-width: 450px; width: 100%;">
+                  <div style="position: relative; flex: 1;">
+                    <input type="text" id="world-search-input" class="fluent-input header-search-box" placeholder="Filter/Search 100,000+ members..." autocomplete="off" style="width: 100%; height: 28px; font-size: 12px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); backdrop-filter: blur(8px); color: var(--win-text-primary);">
+                    <div id="world-search-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 32px; left: 0; width: 100%; z-index: 1000; max-height: 250px; overflow-y: auto; background: var(--win-card-bg); backdrop-filter: blur(20px); border: 1px solid var(--win-border-light); border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);"></div>
+                  </div>
+                  
+                  <div class="canvas-filter-buttons" style="display: flex; gap: 4px; flex-shrink: 0;">
+                    <button class="fluent-filter-btn active" data-filter="all" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">All</button>
+                    <button class="fluent-filter-btn" data-filter="M" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Male</button>
+                    <button class="fluent-filter-btn" data-filter="F" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Female</button>
+                    <button class="fluent-filter-btn" data-filter="roots" style="height: 28px; padding: 0 10px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--win-border-light); background: var(--win-card-bg); cursor: pointer; transition: all 0.2s; color: var(--win-text-primary);">Roots</button>
+                  </div>
+                </div>
+                <div class="canvas-controls-right" style="display: flex; align-items: center; gap: 6px;">
+                  <button id="btn-toggle-v9-world" title="Toggle V9 Network View">
+                    🌐 Network
+                  </button>
+                  <button id="btn-world-zoom-in" class="canvas-control-btn" title="Zoom In">＋</button>
+                  <button id="btn-world-zoom-out" class="canvas-control-btn" title="Zoom Out">－</button>
+                  <button id="btn-world-zoom-fit" class="canvas-control-btn" title="Fit to Screen">⛶</button>
+                  <button id="btn-world-toggle-direction" class="canvas-control-btn" title="Toggle Layout Direction">⇄</button>
+                </div>
+              </div>
+              
+              <!-- The actual interactive canvas workspace -->
+              <div class="canvas-container-outer" id="world-canvas-wrapper" style="flex: 1; position: relative;">
+                <canvas id="world-canvas" width="800" height="500"></canvas>
+                
+                <!-- Floating canvas instructions overlay -->
+                <div class="canvas-overlay-tips">
+                  <span>🖱 Left click to Focus • 🔀 Drag to Pan • 📜 Scroll to Zoom</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!-- ==================== MEMBERS GRID VIEW ==================== -->
+        <section id="tab-members" class="content-tab-panel hidden">
+          <div class="panel-header">
+            <div class="header-titles">
+              <h1 class="fluent-title">All Family Members</h1>
+              <p class="fluent-subtitle">Filter, search, and view granular relationships across the complete tree.</p>
+            </div>
+            <div class="header-actions row-gap-10">
+              <div class="filter-group">
+                <select id="grid-filter-gender" class="fluent-select">
+                  <option value="all">All Genders</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                </select>
+                <select id="grid-filter-generation" class="fluent-select">
+                  <option value="all">All Generations</option>
+                  <!-- Dynamically populated options -->
+                </select>
+                <select id="grid-filter-status" class="fluent-select">
+                  <option value="all">All Structures</option>
+                  <option value="orphans">Root Patriarchs/Matriarchs</option>
+                  <option value="connected">Has Parents</option>
+                </select>
+              </div>
+              <button id="btn-grid-clear-filters" class="fluent-btn btn-secondary" style="height: 32px; padding: 0 16px; border-radius: 6px; box-sizing: border-box; font-size: 13px;">Reset Filters</button>
+              <button id="btn-grid-delete-selected" class="fluent-btn btn-danger" style="margin-left: 12px; height: 32px; padding: 0 16px; border-radius: 6px; box-sizing: border-box; font-size: 13px; display: flex; align-items: center; gap: 8px;" disabled>
+                🗑️ حذف المحدد
+              </button>
+            </div>
+          </div>
+
+          <!-- Data Grid -->
+          <div class="fluent-card grid-table-container">
+            <div class="grid-table-header">
+              <div class="table-search-bar">
+                <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="grid-search" placeholder="Type to filter rows instantly...">
+              </div>
+              <div class="table-stats-count" id="grid-rows-count">0 of 0 Members shown</div>
+            </div>
+            
+            <div class="grid-scroll-viewport">
+              <table class="fluent-data-table" id="members-data-table">
+                <thead>
+                  <tr>
+                    <th class="checkbox-header" style="width: 40px; text-align: center;"><input type="checkbox" id="chk-grid-select-all-header" style="height: 16px; width: 16px; margin: 0;"></th>
+                    <th data-sort="id">ID ⇅</th>
+                    <th data-sort="name">First Name ⇅</th>
+                    <th data-sort="familyName">Family Name ⇅</th>
+                    <th data-sort="father">Father ⇅</th>
+                    <th data-sort="grandfather">Grandfather ⇅</th>
+                    <th data-sort="gender">Gender ⇅</th>
+                    <th data-sort="generation">Gen ⇅</th>
+                    <th class="actions-header">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="members-table-body">
+                  <tr>
+                    <td colspan="8" class="loading-state">
+                      <div class="empty-state">No family members registered. Go to "Add / Import" or load mock tree.</div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Virtualized/Paginated controls to handle 1000+ smoothly -->
+            <div class="grid-table-footer">
+              <div class="pagination-info" id="grid-pagination-info">Showing page 1 of 1</div>
+              <div class="pagination-buttons">
+                <button id="btn-grid-prev" class="pagination-btn" disabled>‹ Previous</button>
+                <button id="btn-grid-next" class="pagination-btn" disabled>Next ›</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ==================== ADD / IMPORT VIEW ==================== -->
+        <section id="tab-import" class="content-tab-panel hidden">
+          <div class="panel-header">
+            <div class="header-titles">
+              <h1 class="fluent-title">Add / Import Core</h1>
+              <p class="fluent-subtitle">Add single nodes, paste raw text lineages, or trigger the 1000+ mock database engine.</p>
+            </div>
+          </div>
+
+          <div class="import-panel-row">
+            
+            <!-- Column 1: Structured Manual Insertion -->
+            <div class="fluent-card flex-1">
+              <h2 class="card-title">＋ Add Individual</h2>
+              <p class="card-subtitle">Manually add an individual node into the engine.</p>
+              
+              <form id="form-add-person" class="fluent-form">
+                <div class="form-group-row">
+                  <div class="form-control flex-1">
+                    <label for="input-person-name">First Name <span class="required">*</span></label>
+                    <input type="text" id="input-person-name" required placeholder="e.g. Robert">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-person-family-name">Family Name <span class="optional">(Optional)</span></label>
+                    <input type="text" id="input-person-family-name" placeholder="e.g. Miller">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-person-id">ID <span class="optional">(Optional)</span></label>
+                    <input type="text" id="input-person-id" placeholder="Auto-generated if empty">
+                  </div>
+                </div>
+
+                <div class="form-group-row">
+                  <div class="form-control flex-1">
+                    <label for="input-person-gender">Gender</label>
+                    <select id="input-person-gender" class="fluent-select">
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </select>
+                  </div>
+                  <div class="form-control flex-1">
+                    <label>Spouse Details <span class="optional">(Optional)</span></label>
+                    <div id="add-spouse-rows">
+                      <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" class="input-spouse-first-name" placeholder="First Name" style="flex: 1;">
+                        <input type="text" class="input-spouse-family-name" placeholder="Family Name" style="flex: 1;">
+                        <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="0" title="Add Details">[+]</button>
+                      </div>
+                    </div>
+                    <a href="#" id="btn-add-another-spouse" style="font-size: 12px; color: var(--win-accent);">+ Add another Spouse</a>
+                  </div>
+                </div>
+
+                <div class="form-control" style="margin-bottom: 12px;">
+                  <label>Sibling Details <span class="optional">(Optional)</span></label>
+                  <div id="add-sibling-rows">
+                    <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                      <input type="text" class="input-sibling-first-name" placeholder="First Name" style="flex: 1;">
+                      <input type="text" class="input-sibling-family-name" placeholder="Family Name" style="flex: 1;">
+                      <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="0" title="Add Details">[+]</button>
+                    </div>
+                  </div>
+                  <a href="#" id="btn-add-another-sibling" style="font-size: 12px; color: var(--win-accent);">+ Add another Sibling</a>
+                </div>
+
+                <div class="form-group-row">
+                  <div class="form-control flex-1">
+                    <label for="input-person-birth">Birth Year <span class="optional">(Optional)</span></label>
+                    <input type="number" id="input-person-birth" placeholder="e.g. 1920">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-person-death">Death Year <span class="optional">(Optional)</span></label>
+                    <input type="number" id="input-person-death" placeholder="e.g. 1995 (leave empty if alive)">
+                  </div>
+                </div>
+
+                <div class="form-control">
+                  <label for="input-person-photo">Photo <span class="optional">(Optional)</span></label>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" id="input-person-photo" placeholder="e.g. https://example.com/photo.jpg" style="flex: 1;">
+                    <button type="button" id="btn-browse-photo" class="fluent-btn btn-secondary">Browse...</button>
+                    <input type="file" id="file-person-photo" accept="image/*" style="display: none;">
+                  </div>
+                  <span class="input-helper">Provide a URL or upload a local image to display an avatar on the lineage graph.</span>
+                </div>
+
+                <hr class="form-divider">
+
+                <div class="form-group-row" style="align-items: flex-end;">
+                  <div class="form-control flex-1">
+                    <label for="input-father-name">Father's First <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-father-name" placeholder="e.g. William">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-father-family-name">Father's Last <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-father-family-name" placeholder="e.g. Miller">
+                  </div>
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="father" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
+                </div>
+                <span class="input-helper">If the father exists, we will link them; if not, the engine creates them.</span>
+
+                <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
+                  <div class="form-control flex-1">
+                    <label for="input-mother-name">Mother's First <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-mother-name" placeholder="e.g. Mary">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-mother-family-name">Mother's Maiden <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-mother-family-name" placeholder="e.g. Smith">
+                  </div>
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="mother" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
+                </div>
+                <span class="input-helper">If the mother exists, we will link them; if not, the engine creates them.</span>
+
+                <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
+                  <div class="form-control flex-1">
+                    <label for="input-grandfather-name">Grandfather's First <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-grandfather-name" placeholder="e.g. Arthur">
+                  </div>
+                  <div class="form-control flex-1">
+                    <label for="input-grandfather-family-name">Grandfather's Last <span class="optional">(Opt)</span></label>
+                    <input type="text" id="input-grandfather-family-name" placeholder="e.g. Miller">
+                  </div>
+                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="grandfather" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
+                </div>
+                <span class="input-helper">Links father to grandfather automatically to maintain structure.</span>
+
+                <div class="form-actions-right">
+                  <button type="reset" class="fluent-btn btn-secondary">Clear Fields</button>
+                  <button type="submit" class="fluent-btn btn-solid">Save Member</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Column 2: Bulk Text Import & Mock Injector -->
+            <div class="flex-1 vertical-layout-cards">
+              
+              <!-- Smart Bulk Parser -->
+              <div class="fluent-card">
+                <div class="card-header-actions" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                  <div>
+                    <h2 class="card-title">📖 Smart Lineage Text Parser</h2>
+                    <p class="card-subtitle" style="margin-bottom: 0;">Paste lists of lineages. One line per person. The engine parses relations.</p>
+                  </div>
+                  <button id="btn-start-parser-tour" class="fluent-btn btn-secondary" style="font-size: 11px; padding: 4px 8px; flex-shrink: 0; margin-left: 10px;" type="button">
+                    🚀 Run Parser Tour
+                  </button>
+                </div>
+
+
+                
+                <div class="form-control text-area-wrapper">
+                  <textarea id="textarea-bulk" rows="8" placeholder="Format options:
+1. [ID] Name son/daughter of Father [mother MotherName]
+2. [ID] GivenName, FatherName, GrandfatherName, Gender, Spouse
+(You can also append lifespan like 'YYYY-YYYY' or 'YYYY-present')
+
+Examples:
+[wasim-1] Wasim son of Hamouda mother Najwa, m, Yoser
+[william-1] William, Robert, Arthur, M, Mary, 1955-2010
+58p john mon 1985-present"></textarea>
+                </div>
+                
+                <div class="form-actions-between">
+                  <button id="btn-clear-bulk" class="fluent-btn btn-secondary">Clear</button>
+                  <button id="btn-submit-bulk" class="fluent-btn btn-solid">⚡ Parse & Link Text</button>
+                </div>
+              </div>
+
+              <!-- High Scale Mock Injector -->
+              <div class="fluent-card bg-acrylic-cyan">
+                <div class="card-accent-strip bg-blue"></div>
+                <h2 class="card-title">⚡ High-Scale Testing Suite (100,000 Members)</h2>
+                <p class="card-subtitle">Directly evaluate rendering, searching, and structural speed.</p>
+                
+                <p class="stats-box-text">Generate mock family forest datasets to test database searches, canvas render loops, and UI response times at scale:</p>
+                
+                <div class="form-actions-right mt-15" style="gap: 8px; justify-content: flex-end; display: flex;">
+                  <button id="btn-import-mock-giant" class="fluent-btn btn-secondary">
+                    🌳 Load 2,000+ Mock Tree
+                  </button>
+                  <button id="btn-import-mock-giant-100k" class="fluent-btn btn-solid bg-blue text-white">
+                    🚀 Load 100,000 Mock Tree
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ==================== ONBOARDING TUTORIALS SYSTEM ==================== -->
+          <div class="fluent-card mt-15">
+            <div class="card-accent-strip bg-purple"></div>
+            <h2 class="card-title">📖 Windows Family Tree Interactive User Tutorial</h2>
+            <p class="card-subtitle">Comprehensive step-by-step masterclass on adding and auto-linking members in the engine.</p>
+            
+            <div class="tutorial-accordion-container">
+              
+              <!-- Accordion Step 1 -->
+              <div class="tutorial-accordion-item">
+                <button class="tutorial-header-btn" id="btn-tuto-1">
+                  <span class="tuto-step-badge bg-blue">Step 1</span>
+                  <span class="tuto-title-text">Method A: The Guided Form Wizard (Single Addition)</span>
+                  <span class="tuto-arrow">▼</span>
+                </button>
+                <div class="tutorial-content-panel hidden" id="tuto-content-1">
+                  <div class="tuto-inner-body">
+                    <p>The manual form is optimized for absolute control. It features relationship auto-linking, spouse pairings, maternal links, and self-healing cycle prevention:</p>
+                    <ul class="tuto-bullet-list">
+                      <li><strong>Given Name &amp; ID:</strong> Specify the individual's name and an optional unique bracketed custom ID. If no ID is provided, the engine auto-generates one.</li>
+                      <li><strong>Father's &amp; Mother's Name:</strong> Specify their parents. The engine matches existing nodes in your tree. If they do not exist, it builds placeholders. Spouses are tracked to allow interactive child filtering in the visual tree.</li>
+                      <li><strong>Grandfather's Name:</strong> Links the father to the grandfather automatically to preserve lineage structure across generations.</li>
+                      <li><strong>Self-Healing Loop Prevention:</strong> The database engine analyzes relationships recursively on save. If any addition would create a loop (e.g. child becoming their own ancestor), it is blocked, and names are split into unique identifiers.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accordion Step 2 -->
+              <div class="tutorial-accordion-item">
+                <button class="tutorial-header-btn" id="btn-tuto-2">
+                  <span class="tuto-step-badge bg-purple">Step 2</span>
+                  <span class="tuto-title-text">Method B: Smart Natural Language Parser (Bulk Importing)</span>
+                  <span class="tuto-arrow">▼</span>
+                </button>
+                <div class="tutorial-content-panel hidden" id="tuto-content-2">
+                  <div class="tuto-inner-body">
+                    <p>The bulk importer uses a robust, off-line regex parsing system designed for rapid database injection. It supports English, Arabic, and Semitic lineages, and CSV mappings:</p>
+                    
+                    <h4 class="tuto-sub-title">1. English Lineage Strings (Recursive)</h4>
+                    <p class="tuto-code-block">John son of Robert son of William [mother Jane]<br>Alice daughter of Robert son of William</p>
+                    <span class="tuto-desc">The parser detects <em>son of</em> (Male) or <em>daughter of</em> (Female) delimiters, extracts mother names, and recursively resolves the tree path <code>William ➔ Robert ➔ John/Alice</code>.</span>
+
+                    <h4 class="tuto-sub-title mt-10">2. Arabic / Semitic Lineage Chains</h4>
+                    <p class="tuto-code-block">Ahmad bin Ali bin Hassan<br>Fatima bint Ali bin Hassan</p>
+                    <span class="tuto-desc">Detects <em>bin</em> (Male) or <em>bint</em> (Female) delimiters and establishes the exact lineage connections seamlessly.</span>
+
+                    <h4 class="tuto-sub-title mt-10">3. Comma-Separated CSV Formatting with IDs</h4>
+                    <p class="tuto-code-block">ID, GivenName, FatherName, GrandfatherName, Gender(M/F), SpouseName</p>
+                    <span class="tuto-desc">Examples:<br>
+                    • <code>55df, John, Ahmad</code> (Alphanumeric ID)<br>
+                    • <code>1, John, Ahmad</code> (Numeric ID)<br>
+                    • <code>aaaaa-aaa-a1, John, Ahmad</code> (Hyphenated ID)<br>
+                    The engine automatically identifies the first column as the unique ID if it contains at least one digit.</span>
+
+                    <h4 class="tuto-sub-title mt-10">4. Declaring Unique IDs in Linear Chains (Parentheses &amp; Brackets)</h4>
+                    <p class="tuto-code-block">(jm-1) John son of (rm-1) Robert son of (wm-1) William<br>
+                    [sm-1] Sarah daughter of (rm-1) Robert son of (wm-1) William</p>
+                    <span class="tuto-desc">You can prefix any name in a lineage chain with a parenthesized <code>(id)</code> or bracketed <code>[id]</code> unique identifier containing at least one digit. This maps connections cleanly in memory and prevents duplicate-name collisions!</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accordion Step 3 -->
+              <div class="tutorial-accordion-item">
+                <button class="tutorial-header-btn" id="btn-tuto-3">
+                  <span class="tuto-step-badge bg-green">Step 3</span>
+                  <span class="tuto-title-text">Method C: V4.0 High-Scale Engine &amp; Visual Exploration</span>
+                  <span class="tuto-arrow">▼</span>
+                </button>
+                <div class="tutorial-content-panel hidden" id="tuto-content-3">
+                  <div class="tuto-inner-body">
+                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 9.0 upgrades:</p>
+                    <ul class="tuto-bullet-list">
+                      <li>Click the <strong>"🚀 Load 100,000 Mock Tree"</strong> button in the High-Scale Testing Suite. The database injects 100,000 members and rebuilds a fast token search index in under 500ms.</li>
+                      <li><strong>8-Generation Local Pedigree:</strong> The visual tree explorer calculates and centers a complete 8-generation pedigree layout around the focused individual (4 generations up and 4 down) labeled from Great-Great-Grandparents to Great-Great-Grandgrandchildren.</li>
+                      <li><strong>Smooth Camera Animations:</strong> Select a name from the suggestions or click any card. The camera pans and zooms smoothly to center on the focused member using a cubic-bezier easing animation.</li>
+                      <li><strong>Opacity Filter Controls:</strong> Filter the entire family forest by Male, Female, or Root ancestors. Unmatching nodes fade to 15% opacity instantly, keeping relationships visible.</li>
+                      <li><strong>Fluent Personalization:</strong> Toggle between Light and Dark mode instantly inside the Settings page. The canvas, panels, grid registries, forms, and glassmorphic overlays update their styling live.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== SETTINGS VIEW ==================== -->
+        <section id="tab-settings" class="content-tab-panel hidden">
+          <div class="panel-header">
+            <div class="header-titles">
+              <h1 class="fluent-title">Settings</h1>
+              <p class="fluent-subtitle">Personalize your app workspace theme and configuration settings.</p>
+            </div>
+          </div>
+
+          <div class="settings-container" style="max-width: 800px; display: flex; flex-direction: column; gap: 16px; margin-top: 15px;">
+            
+            <!-- Section: Personalization -->
+            <div class="fluent-card settings-section">
+              <div class="settings-section-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
+                <span class="settings-section-icon" style="font-size: 24px;">🎨</span>
+                <div class="settings-section-text">
+                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">Personalization</h2>
+                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Change the background, colors, and overall appearance of the workspace.</p>
+                </div>
+              </div>
+              
+              <div class="settings-row">
+                <div class="settings-item-label" style="display: flex; flex-direction: column; gap: 2px; max-width: 300px;">
+                  <span class="settings-item-title" style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">App Theme</span>
+                  <span class="settings-item-desc" style="font-size: 11px; color: var(--win-text-secondary);">Select Light or Dark mode for the app interface.</span>
+                </div>
+                
+                <div class="theme-options-grid">
+                  
+                  <!-- Light Theme Option Card -->
+                  <div class="theme-card-option" id="theme-opt-light" data-theme="light">
+                    <div class="theme-preview-box preview-light" style="width: 100px; height: 60px; border-radius: 4px; background: radial-gradient(circle at 10% 20%, rgba(240, 244, 250, 0.9) 0%, rgba(243, 243, 243, 0.9) 90%); border: 1px solid rgba(0,0,0,0.1); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                      <div class="mini-window" style="width: 80px; height: 40px; background: rgba(255,255,255,0.7); border-radius: 3px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; gap: 4px; padding: 4px; box-sizing: border-box;">
+                        <div class="mini-card male" style="flex: 1; border-radius: 2px; background: rgba(0, 120, 212, 0.15); border-left: 2px solid #0078d4;"></div>
+                        <div class="mini-card female" style="flex: 1; border-radius: 2px; background: rgba(227, 0, 140, 0.15); border-left: 2px solid #e3008c;"></div>
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <input type="radio" name="app-theme-radio" id="radio-theme-light" checked style="pointer-events: none;">
+                      <span class="theme-option-name" style="font-size: 11px; font-weight: 500; color: var(--win-text-primary);">Light Mode</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Dark Theme Option Card -->
+                  <div class="theme-card-option" id="theme-opt-dark" data-theme="dark">
+                    <div class="theme-preview-box preview-dark" style="width: 100px; height: 60px; border-radius: 4px; background: radial-gradient(circle at 10% 20%, rgba(28, 28, 28, 0.9) 0%, rgba(32, 32, 32, 0.9) 90%); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                      <div class="mini-window" style="width: 80px; height: 40px; background: rgba(45,45,45,0.7); border-radius: 3px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: flex; gap: 4px; padding: 4px; box-sizing: border-box;">
+                        <div class="mini-card male" style="flex: 1; border-radius: 2px; background: rgba(96, 205, 255, 0.2); border-left: 2px solid #60cdff;"></div>
+                        <div class="mini-card female" style="flex: 1; border-radius: 2px; background: rgba(255, 140, 218, 0.2); border-left: 2px solid #ff8cda;"></div>
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <input type="radio" name="app-theme-radio" id="radio-theme-dark" style="pointer-events: none;">
+                      <span class="theme-option-name" style="font-size: 11px; font-weight: 500; color: var(--win-text-primary);">Dark Mode</span>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+
+              <!-- Language Setting Row -->
+              <div class="settings-row" style="margin-top: 16px; border-top: 1px solid var(--win-border-light); padding-top: 16px;">
+                <div class="settings-item-label" style="display: flex; flex-direction: column; gap: 2px; max-width: 300px;">
+                  <span class="settings-item-title" style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">🌐 Languages</span>
+                  <span class="settings-item-desc" style="font-size: 11px; color: var(--win-text-secondary);">Choose the display language for the app interface.</span>
+                </div>
+                <button id="btn-open-language-modal" class="fluent-btn btn-solid" style="padding: 8px 20px; font-size: 13px; background-color: var(--win-accent); color: #ffffff; border-color: var(--win-accent);">
+                  🌐 Select Language
+                </button>
+              </div>
+            </div>
+
+            <!-- Section: V8 Advanced Features -->
+            <div class="fluent-card settings-section">
+              <div class="settings-section-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
+                <span class="settings-section-icon" style="font-size: 24px;">⚡</span>
+                <div class="settings-section-text">
+                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">V9 Advanced Features</h2>
+                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Toggle radar maps, story mode, and genealogy layouts.</p>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Radar Map -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Radar Map (Mini-map)</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Show a small overview map of the entire tree.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-radar">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Story Mode -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Story Mode Presentation</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Automatically pan and zoom across key ancestors.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-story">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Heatmap -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Lifespan Heatmap</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Color-code canvas nodes based on lifespan duration.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-heatmap">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Command Palette -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Command Palette (Ctrl+K)</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Enable keyboard shortcut to trigger the commands panel.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-palette" checked>
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Sound Effects -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Interface Sound Effects</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Play fluid, soft audio tones on button clicks.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-sounds" checked>
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Generational Timeline -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Generational Timeline guides</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Draw horizontal/vertical guidelines behind canvas generations.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-v8-timeline">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Poster -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Export Poster</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Save the entire canvas as a giant image file.</div>
+                  </div>
+                  <button class="fluent-btn btn-secondary" id="btn-v8-poster" style="padding: 4px 12px;">Export Poster</button>
+                </div>
+
+                <!-- Stats -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500;">Family Statistics</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">View detailed demographic charts.</div>
+                  </div>
+                  <button class="fluent-btn btn-secondary" id="btn-v8-stats" style="padding: 4px 12px;">View Stats</button>
+                </div>
+
+                <!-- Transform Genealogy -->
+                <div class="settings-row" style="margin-top: 8px; border-top: 1px solid var(--win-border-light); padding-top: 16px;">
+                  <div class="settings-item-label" style="display: flex; flex-direction: column; gap: 2px; max-width: 300px;">
+                    <span class="settings-item-title" style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">🧬 Transform Genealogy View</span>
+                    <span class="settings-item-desc" style="font-size: 11px; color: var(--win-text-secondary);">Toggle pedigree chart and network graph layouts.</span>
+                  </div>
+                  <button id="btn-settings-transform" class="fluent-btn btn-solid" style="padding: 8px 20px; font-size: 13px; background-color: var(--win-accent); color: #ffffff; border-color: var(--win-accent);">
+                    🧬 Configure Views
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: System Information (About) -->
+            <div class="fluent-card settings-section">
+              <div class="settings-section-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 15px;">
+                <span class="settings-section-icon" style="font-size: 24px;">💻</span>
+                <div class="settings-section-text">
+                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">About This App</h2>
+                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Specifications, engine performance details, and build metrics.</p>
+                </div>
+              </div>
+              
+              <div class="about-info-list" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--win-border-light);">
+                <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
+                  <span class="info-label" style="color: var(--win-text-secondary);">Application Name</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">The Arabic Area</span>
+                </div>
+                <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
+                  <span class="info-label" style="color: var(--win-text-secondary);">Version</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">9.6.0 (Fluent Build)</span>
+                </div>
+                <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
+                  <span class="info-label" style="color: var(--win-text-secondary);">High-Performance Engine</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">Prefix-based search index (&lt; 2ms lookups at 100,000 nodes)</span>
+                </div>
+                <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
+                  <span class="info-label" style="color: var(--win-text-secondary);">Capabilities</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">8-generation pedigree, smooth camera eased transitions, spousal filter opacity</span>
+                </div>
+                <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
+                  <span class="info-label" style="color: var(--win-text-secondary);">Frameworks &amp; Environment</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">Electron 31, Vite, Vanilla HTML5 Canvas &amp; CSS Variables</span>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== DETAIL OVERLAY DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-member-detail" class="fluent-modal-overlay hidden">
+    <div class="fluent-modal-card">
+      <div class="modal-header">
+        <div class="modal-badge-row">
+          <span id="detail-gender-badge" class="gender-badge male">Male</span>
+          <span id="detail-gen-badge" class="gen-badge">Gen 1</span>
+        </div>
+        <button id="btn-close-modal" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+          <img id="detail-photo" class="hidden" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #0078d4;" />
+          <div>
+            <h2 id="detail-full-name" class="modal-title" style="margin-bottom: 0; padding-bottom: 0;">John Robert William</h2>
+            <p class="modal-subtitle">ID: <span id="detail-id">P-12345</span></p>
+          </div>
+        </div>
+
+        <div class="modal-tabs">
+          <span class="modal-tab-indicator active" id="modal-tab-indicator">Lineage Details</span>
+        </div>
+
+        <div class="modal-grid">
+          
+          <!-- Lineage Info Columns -->
+          <div class="modal-col flex-1">
+            <h3 class="modal-section-title">Direct Parentage</h3>
+            <ul class="modal-info-list">
+              <li>
+                <span class="info-label">Father</span>
+                <span class="info-val" id="detail-father-link">Robert</span>
+              </li>
+              <li>
+                <span class="info-label">Mother</span>
+                <span class="info-val" id="detail-mother-link">Unknown</span>
+              </li>
+              <li>
+                <span class="info-label">Grandfather</span>
+                <span class="info-val" id="detail-grandfather-link">William</span>
+              </li>
+              <li>
+                <span class="info-label">Spouse</span>
+                <span class="info-val" id="detail-spouse-val">None</span>
+              </li>
+            </ul>
+
+            <h3 class="modal-section-title mt-15">Siblings</h3>
+            <div id="detail-siblings-list" class="mini-bubble-list">
+              <span class="empty-subtext">No siblings registered.</span>
+            </div>
+          </div>
+
+          <!-- Relationships & Actions Column -->
+          <div class="modal-col flex-1">
+            <h3 class="modal-section-title">Children (<span id="detail-children-count">0</span>)</h3>
+            <div id="detail-children-list" class="mini-bubble-list">
+              <span class="empty-subtext">No children registered.</span>
+            </div>
+
+            <h3 class="modal-section-title mt-15">Diagnostics</h3>
+            <ul class="modal-info-list">
+              <li>
+                <span class="info-label">Root Patriarch</span>
+                <span class="info-val" id="detail-patriarch-val">William</span>
+              </li>
+              <li>
+                <span class="info-label">Descendant Count</span>
+                <span class="info-val" id="detail-descendants-count">0 members</span>
+              </li>
+              <li>
+                <span class="info-label">Lifespan</span>
+                <span class="info-val" id="detail-lifespan-val">Unknown</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-modal-focus" class="fluent-btn btn-solid">🎯 Make Focus in Explorer</button>
+        <button id="btn-modal-edit" class="fluent-btn btn-secondary">✏️ Modify Member</button>
+        <button id="btn-modal-delete" class="fluent-btn btn-danger">🗑 Delete Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EDIT MEMBER DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-member-edit" class="fluent-modal-overlay hidden">
+    <div class="fluent-modal-card modal-edit-card">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Modify Family Member</h3>
+        <button id="btn-close-edit-modal" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px;">
+        <form id="form-edit-person" class="fluent-form">
+          <input type="hidden" id="edit-person-id">
+          
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="edit-person-new-id">Member ID <span class="required">*</span></label>
+              <input type="text" id="edit-person-new-id" required placeholder="e.g. P-101">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-person-gender">Gender</label>
+              <select id="edit-person-gender" class="fluent-select">
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="edit-person-name">First Name <span class="required">*</span></label>
+              <input type="text" id="edit-person-name" required placeholder="e.g. Robert">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-person-family-name">Family Name <span class="optional">(Optional)</span></label>
+              <input type="text" id="edit-person-family-name" placeholder="e.g. Miller">
+            </div>
+          </div>
+
+          <div class="form-control">
+            <label>Spouse Details <span class="optional">(Optional)</span></label>
+            <div id="edit-spouse-rows">
+              <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;">
+                <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="0" title="Add Details">[+]</button>
+              </div>
+            </div>
+            <a href="#" id="btn-edit-another-spouse" style="font-size: 12px; color: var(--win-accent);">+ Add another Spouse</a>
+          </div>
+
+          <div class="form-control" style="margin-bottom: 12px;">
+            <label>Sibling Details <span class="optional">(Optional)</span></label>
+            <div id="edit-sibling-rows">
+              <div class="dynamic-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;">
+                <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;">
+                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="0" title="Add Details">[+]</button>
+              </div>
+            </div>
+            <a href="#" id="btn-edit-another-sibling" style="font-size: 12px; color: var(--win-accent);">+ Add another Sibling</a>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="edit-person-birth">Birth Year <span class="optional">(Optional)</span></label>
+              <input type="number" id="edit-person-birth" placeholder="e.g. 1920">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-person-death">Death Year <span class="optional">(Optional)</span></label>
+              <input type="number" id="edit-person-death" placeholder="e.g. 1995 (leave empty if alive)">
+            </div>
+          </div>
+
+          <div class="form-control">
+            <label for="edit-person-photo">Photo <span class="optional">(Optional)</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="edit-person-photo" placeholder="e.g. https://example.com/photo.jpg" style="flex: 1;">
+              <button type="button" id="btn-edit-browse-photo" class="fluent-btn btn-secondary">Browse...</button>
+              <input type="file" id="file-edit-person-photo" accept="image/*" style="display: none;">
+            </div>
+            <span class="input-helper">Provide a URL or upload a local image to update the member's avatar on the lineage graph.</span>
+          </div>
+
+          <hr class="form-divider">
+
+          <div class="form-group-row" style="align-items: flex-end;">
+            <div class="form-control flex-1">
+              <label for="edit-father-name">Father's First <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-father-name" placeholder="e.g. William">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-father-family-name">Father's Last <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-father-family-name" placeholder="e.g. Miller">
+            </div>
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="father" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
+          </div>
+          <span class="input-helper">Establishing paternal connections recursively.</span>
+
+          <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
+            <div class="form-control flex-1">
+              <label for="edit-mother-name">Mother's First <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-mother-name" placeholder="e.g. Mary">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-mother-family-name">Mother's Maiden <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-mother-family-name" placeholder="e.g. Smith">
+            </div>
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="mother" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
+          </div>
+          <span class="input-helper">Establishing maternal connections recursively.</span>
+
+          <div class="form-group-row" style="margin-top: 10px; align-items: flex-end;">
+            <div class="form-control flex-1">
+              <label for="edit-grandfather-name">Grandfather's First <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-grandfather-name" placeholder="e.g. Arthur">
+            </div>
+            <div class="form-control flex-1">
+              <label for="edit-grandfather-family-name">Grandfather's Last <span class="optional">(Opt)</span></label>
+              <input type="text" id="edit-grandfather-family-name" placeholder="e.g. Miller">
+            </div>
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="grandfather" title="Add Details" style="height: 38px; padding: 0 12px; margin-bottom: 2px;">[+]</button>
+          </div>
+          <span class="input-helper">Recursive grandfather mapping.</span>
+
+          <div class="form-actions-right mt-15" style="gap: 8px;">
+            <button type="button" id="btn-edit-cancel" class="fluent-btn btn-secondary">Cancel</button>
+            <button type="submit" class="fluent-btn btn-solid">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIRMATION DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-fluent-confirm" class="fluent-modal-overlay hidden">
+    <div class="fluent-modal-card modal-confirm-card">
+      <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column;">
+        <h3 class="modal-title" style="font-size: 16px; margin-bottom: 8px;" id="confirm-title">Delete Family Member?</h3>
+        <p class="modal-subtitle" style="font-size: 13px; margin-bottom: 20px; line-height: 1.4; color: var(--win-text-secondary);" id="confirm-message">Are you sure you want to permanently delete this member? This action cannot be undone.</p>
+        <div class="form-actions-right" style="gap: 8px;">
+          <button id="btn-confirm-cancel" class="fluent-btn btn-secondary" style="height: 30px;">Cancel</button>
+          <button id="btn-confirm-ok" class="fluent-btn btn-danger" style="height: 30px;">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== IMPORT CHOICE DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-import-choice" class="fluent-modal-overlay hidden">
+    <div class="fluent-modal-card modal-confirm-card" style="width: 450px; max-width: 95%;">
+      <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column;">
+        <h3 class="modal-title" style="font-size: 16px; margin-bottom: 8px;">Import Family Database</h3>
+        <p class="modal-subtitle" style="font-size: 12px; margin-bottom: 20px; line-height: 1.4; color: var(--win-text-secondary);">
+          Choose how you want to load this family backup file:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <button id="btn-import-replace" class="fluent-btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 14px; height: auto; display: flex; border: 1px solid var(--win-border-light); border-left: 4px solid var(--win-text-danger); background: var(--win-card-bg);">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+              <strong style="font-size: 12.5px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 2px;">Replace Database (Fresh)</strong>
+              <span style="font-size: 11px; font-weight: normal; color: var(--win-text-secondary); line-height: 1.3;">Completely clear your current family tree and load the backup file as a fresh start.</span>
+            </div>
+          </button>
+          <button id="btn-import-merge" class="fluent-btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 14px; height: auto; display: flex; border: 1px solid var(--win-border-light); border-left: 4px solid var(--win-accent); background: var(--win-card-bg);">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+              <strong style="font-size: 12.5px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 2px;">Merge & Upgrade</strong>
+              <span style="font-size: 11px; font-weight: normal; color: var(--win-text-secondary); line-height: 1.3;">Add new members and merge relationships, preserving your current family entries.</span>
+            </div>
+          </button>
+        </div>
+        <div class="form-actions-right">
+          <button id="btn-import-choice-cancel" class="fluent-btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ID CONFLICT DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-id-conflict-choice" class="fluent-modal-overlay hidden" style="z-index: 10000;">
+    <div class="fluent-modal-card modal-confirm-card" style="width: 420px; max-width: 95%;">
+      <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column;">
+        <h3 class="modal-title" style="font-size: 16px; margin-bottom: 8px;">Member ID Already Exists</h3>
+        <p class="modal-subtitle" style="font-size: 12px; margin-bottom: 20px; line-height: 1.4; color: var(--win-text-secondary);">
+          The Member ID <strong id="conflict-id-display"></strong> is already assigned to <strong id="conflict-name-display"></strong>. Choose how you want to handle this:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <button id="btn-conflict-replace" class="fluent-btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 14px; height: auto; display: flex; border: 1px solid var(--win-border-light); border-left: 4px solid var(--win-text-danger); background: var(--win-card-bg);">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+              <strong style="font-size: 12.5px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 2px;">Replace Existing Member</strong>
+              <span style="font-size: 11px; font-weight: normal; color: var(--win-text-secondary); line-height: 1.3;">Overwrite the existing member's information and relationships with your new input.</span>
+            </div>
+          </button>
+          <button id="btn-conflict-merge" class="fluent-btn btn-secondary" style="justify-content: flex-start; text-align: left; padding: 10px 14px; height: auto; display: flex; border: 1px solid var(--win-border-light); border-left: 4px solid var(--win-accent); background: var(--win-card-bg);">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+              <strong style="font-size: 12.5px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 2px;">Merge Records</strong>
+              <span style="font-size: 11px; font-weight: normal; color: var(--win-text-secondary); line-height: 1.3;">Combine new details (e.g. new spouses, parents) with the existing record.</span>
+            </div>
+          </button>
+        </div>
+        <div class="form-actions-right">
+          <button id="btn-conflict-cancel" class="fluent-btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== UNIVERSAL RELATIONSHIP MANAGER (FLUENT MODAL) ==================== -->
+  <div id="modal-univ-linker" class="fluent-modal-overlay hidden" style="z-index: 10000;">
+    <div class="fluent-modal-card" style="width: 500px; padding: 24px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔗 Universal Relationship Manager</h3>
+        <button id="btn-close-univ-linker" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+        <p class="modal-subtitle" style="font-size: 12px; margin-bottom: 5px;">Connect any two registered profiles with a specific relationship.</p>
+        
+        <div class="form-control" style="position: relative;">
+          <label>Profile 1 <span class="required">*</span></label>
+          <input type="text" id="input-univ-p1" placeholder="Search by name or ID..." autocomplete="off">
+          <input type="hidden" id="hidden-univ-p1">
+          <div id="dropdown-univ-p1" class="suggestions-dropdown hidden" style="top: 100%; position: absolute; z-index: 10001; width: 100%;"></div>
+        </div>
+
+        <div class="form-control">
+          <label>Relationship <span class="required">*</span></label>
+          <select id="select-univ-relation" class="fluent-select">
+            <option value="Father of">Father of</option>
+            <option value="Mother of">Mother of</option>
+            <option value="Son of">Son of</option>
+            <option value="Daughter of">Daughter of</option>
+            <option value="Brother of">Brother of</option>
+            <option value="Sister of">Sister of</option>
+            <option value="Spouse of">Spouse of</option>
+            <option value="عم">عم</option>
+            <option value="Custom">Custom Relationship...</option>
+          </select>
+        </div>
+
+        <div class="form-control hidden" id="group-univ-custom">
+          <label>Custom Relationship Name <span class="required">*</span></label>
+          <input type="text" id="input-univ-custom" placeholder="e.g. Guardian, Mentor">
+        </div>
+
+        <div class="form-control" style="position: relative;">
+          <label>Profile 2 <span class="required">*</span></label>
+          <input type="text" id="input-univ-p2" placeholder="Search by name or ID..." autocomplete="off">
+          <input type="hidden" id="hidden-univ-p2">
+          <div id="dropdown-univ-p2" class="suggestions-dropdown hidden" style="top: 100%; position: absolute; z-index: 10001; width: 100%;"></div>
+        </div>
+
+        <div id="univ-linker-error" class="text-danger" style="font-size: 12px; display: none;"></div>
+
+        <div class="form-actions-right mt-15">
+          <button id="btn-univ-link-submit" class="fluent-btn btn-solid" style="width: 100%;">Create Link</button>
+          <button id="btn-smart-suggest" class="fluent-btn btn-secondary" style="width: 100%; margin-top: 5px;">?? Smart Suggestions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SMART SUGGESTIONS MODAL ==================== -->
+  <div id="modal-smart-suggestions" class="fluent-modal-overlay hidden" style="z-index: 10005;">
+    <div class="fluent-modal-card" style="width: 550px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3 class="modal-title">?? Smart Suggestions</h3>
+        <button id="btn-close-smart-suggestions" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+        <p class="modal-subtitle" style="font-size: 13px; margin-bottom: 15px;">Based on your family tree, we've inferred the following missing relationships.</p>
+        <div id="smart-suggestions-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Suggestions dynamically injected here -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+        <button id="btn-apply-all-suggestions" class="fluent-btn btn-solid">Apply All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== IGNORED PEOPLES MODAL ==================== -->
+  <div id="modal-ignored-peoples" class="fluent-modal-overlay hidden" style="z-index: 10006;">
+    <div class="fluent-modal-card" style="width: 550px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3 class="modal-title">?? Ignored Suggestions</h3>
+        <button id="btn-close-ignored-peoples" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+        <p class="modal-subtitle" style="font-size: 13px; margin-bottom: 15px;">These are smart suggestions you have chosen to ignore. Restore them to see them again.</p>
+        <div id="ignored-peoples-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Ignored items dynamically injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RELATIONSHIP PATH FINDER DIALOG (FLUENT MODAL) ==================== -->
+  <div id="modal-v8-pathfinder" class="fluent-modal-overlay hidden" style="z-index: 10000;">
+    <div class="fluent-modal-card" style="width: 500px; padding: 24px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔍 Find Relationship Path</h3>
+        <button id="btn-close-pathfinder" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+        <p class="modal-subtitle" style="font-size: 12px; margin-bottom: 5px;">Search and select two family members to calculate the shortest relationship path between them.</p>
+        
+        <div class="form-control" style="position: relative;">
+          <label>Start Member</label>
+          <input type="text" id="path-start-input" class="fluent-input" placeholder="Type to search start member..." autocomplete="off">
+          <div id="path-start-suggestions" class="suggestions-dropdown hidden" style="position: absolute; width: 100%; z-index: 1010; max-height: 150px; overflow-y: auto;"></div>
+          <input type="hidden" id="path-start-id">
+        </div>
+
+        <div class="form-control" style="position: relative;">
+          <label>End Member</label>
+          <input type="text" id="path-end-input" class="fluent-input" placeholder="Type to search target member..." autocomplete="off">
+          <div id="path-end-suggestions" class="suggestions-dropdown hidden" style="position: absolute; width: 100%; z-index: 1010; max-height: 150px; overflow-y: auto;"></div>
+
+          <input type="hidden" id="path-end-id">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+          <button id="btn-pathfinder-clear" class="fluent-btn btn-secondary">Clear</button>
+          <button id="btn-pathfinder-calculate" class="fluent-btn btn-solid">Find Path</button>
+        </div>
+
+        <div id="path-results-container" class="hidden" style="margin-top: 15px; padding: 12px; border-radius: 6px; border: 1px solid var(--win-border-light); background: rgba(0,0,0,0.02);">
+          <h4 style="font-size: 12.5px; font-weight: 600; margin-bottom: 8px; color: var(--win-accent);">Shortest Connection Path:</h4>
+          <div id="path-results-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline Relative Details Modal -->
+  <div id="modal-relative-details" class="fluent-modal-overlay hidden" style="z-index: 10005;">
+    <div class="fluent-modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="relative-modal-title">✨ Add Relative Details</h3>
+        <button id="btn-close-relative-modal" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body" style="margin-top: 15px;">
+        <form id="form-relative-details" class="fluent-form">
+          <input type="hidden" id="relative-modal-type">
+          <input type="hidden" id="relative-modal-source">
+          <input type="hidden" id="relative-modal-index">
+
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="relative-gender">Gender <span class="optional">(Optional)</span></label>
+              <select id="relative-gender">
+                <option value="">Auto-Detect</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+            <div class="form-control flex-1">
+              <label for="relative-id">Relative ID <span class="optional">(Optional)</span></label>
+              <input type="text" id="relative-id" placeholder="Auto-generate">
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-control flex-1">
+              <label for="relative-birth">Birth Year</label>
+              <input type="number" id="relative-birth" placeholder="e.g. 1950">
+            </div>
+            <div class="form-control flex-1">
+              <label for="relative-death">Death Year</label>
+              <input type="number" id="relative-death" placeholder="e.g. 2010">
+            </div>
+          </div>
+
+          <div class="form-control">
+            <label for="relative-photo">Photo <span class="optional">(Optional)</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="relative-photo" placeholder="e.g. https://example.com/photo.jpg" style="flex: 1;">
+              <button type="button" id="btn-relative-browse-photo" class="fluent-btn btn-secondary">Browse...</button>
+              <input type="file" id="file-relative-photo" accept="image/*" style="display: none;">
+            </div>
+            <span class="input-helper">Provide a URL or upload a local image to update the relative's avatar on the lineage graph.</span>
+          </div>
+
+          <div class="form-actions-right mt-15">
+            <button type="button" id="btn-relative-cancel" class="fluent-btn btn-secondary">Cancel</button>
+            <button type="submit" class="fluent-btn btn-solid">Save Details</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Glassmorphic Loading Overlay -->
+  <div id="fluent-loading-overlay" class="fluent-modal-overlay hidden" style="z-index: 99999; backdrop-filter: blur(15px); background: rgba(255, 255, 255, 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
+    <div class="loading-container" style="background: rgba(255, 255, 255, 0.8); padding: 30px 40px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.4); text-align: center;">
+      <div class="fluent-spinner" style="width: 40px; height: 40px; border: 4px solid var(--win-accent-light); border-top: 4px solid var(--win-accent); border-radius: 50; margin: 0 auto 15px auto;"></div>
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 5px;" id="loading-title">Populating Database...</h3>
+      <p style="font-size: 13px; color: var(--win-text-secondary); margin: 0;" id="loading-message">Generating 100,000 interconnected family members.</p>
+    </div>
+  </div>
+
+  <!-- Language Selection Modal -->
+  <div id="modal-language-select" class="fluent-modal-overlay hidden" style="z-index: 10010;">
+    <div class="fluent-modal-card" style="max-width: 440px; width: 90%; padding: 0; border-radius: 12px; overflow: hidden;">
+      <div class="modal-body" style="padding: 0;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px 14px; border-bottom: 1px solid var(--win-border-light);">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin: 0;">🌐 Select Language / اختر اللغة</h3>
+          <button id="btn-close-language-modal" class="fluent-btn btn-secondary" style="width: 28px; height: 28px; padding: 0; font-size: 14px; border-radius: 6px; display: flex; align-items: center; justify-content: center;" aria-label="Close">✕</button>
+        </div>
+        <!-- Body -->
+        <div style="padding: 24px;">
+          <p style="font-size: 13px; color: var(--win-text-secondary); margin-bottom: 20px; line-height: 1.6;">
+            Choose your preferred display language. All UI text will switch instantly.
+            <br>
+            اختر لغة العرض المفضلة. سيتغير النص فوراً.
+          </p>
+          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <!-- English Option -->
+            <div id="lang-opt-en" class="lang-option-card" data-lang="en" style="
+              flex: 1; min-width: 160px; max-width: 180px;
+              border: 2px solid var(--win-border-light);
+              border-radius: 12px;
+              padding: 20px 16px;
+              text-align: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: var(--win-card-bg);
+            ">
+              <div style="font-size: 36px; margin-bottom: 10px;">🇺🇸</div>
+              <div style="font-size: 15px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 4px;">English</div>
+              <div style="font-size: 11px; color: var(--win-text-secondary);">Default language</div>
+            </div>
+            <!-- Arabic Option -->
+            <div id="lang-opt-ar" class="lang-option-card" data-lang="ar" style="
+              flex: 1; min-width: 160px; max-width: 180px;
+              border: 2px solid var(--win-border-light);
+              border-radius: 12px;
+              padding: 20px 16px;
+              text-align: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: var(--win-card-bg);
+            ">
+              <div style="font-size: 36px; margin-bottom: 10px;">🇸🇦</div>
+              <div style="font-size: 15px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 4px;">العربية</div>
+              <div style="font-size: 11px; color: var(--win-text-secondary);">Arabic</div>
+            </div>
+          </div>
+          <p id="lang-current-indicator" style="font-size: 11px; color: var(--win-text-secondary); text-align: center; margin-top: 16px;">
+            Current: English
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Genealogy Transform Modal -->
+  <div id="modal-genealogy-transform" class="fluent-modal-overlay hidden" style="z-index: 10010;">
+    <div class="fluent-modal-card" style="max-width: 440px; width: 90%; padding: 0; border-radius: 12px; overflow: hidden; background: var(--win-card-bg); border: 1px solid var(--win-border-light);">
+      <div class="modal-body" style="padding: 0;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px 14px; border-bottom: 1px solid var(--win-border-light);">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin: 0;">🌳 Transform Genealogy View</h3>
+          <button id="btn-close-transform-modal" class="fluent-btn btn-secondary" style="width: 28px; height: 28px; padding: 0; font-size: 14px; border-radius: 6px; display: flex; align-items: center; justify-content: center;" aria-label="Close">✕</button>
+        </div>
+        <!-- Body -->
+        <div style="padding: 24px;">
+          <p style="font-size: 13px; color: var(--win-text-secondary); margin-bottom: 20px; line-height: 1.6;">
+            Enable or disable classic pedigree and force network layout transformations.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Tree View Toggle -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--win-border-light); padding-bottom: 12px;">
+              <div>
+                <div style="font-size: 14px; font-weight: 500;">V9 Genealogy Tree View</div>
+                <div style="font-size: 11px; color: var(--win-text-secondary);">Completely replaces the tree layout with a left-to-right pedigree chart (includes siblings).</div>
+              </div>
+              <label class="fluent-switch">
+                <input type="checkbox" id="toggle-v9-genealogy-tree">
+                <span class="fluent-switch-slider"></span>
+              </label>
+            </div>
+            <!-- World View Toggle -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 14px; font-weight: 500;">V9 Genealogy World View</div>
+                <div style="font-size: 11px; color: var(--win-text-secondary);">Completely replaces the world layout with a force-directed network graph.</div>
+              </div>
+              <label class="fluent-switch">
+                <input type="checkbox" id="toggle-v9-genealogy-world">
+                <span class="fluent-switch-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrapping Frontend Script Injection -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
