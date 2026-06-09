@@ -228,7 +228,11 @@ export class LineageCanvas {
   // Set the focus person and compute layout
   setFocus(personId) {
     this.focusPersonId = personId;
-    this.zoomFit();
+    if (this.isWorldMode) {
+      this.centerOnNode(personId);
+    } else {
+      this.zoomFit();
+    }
   }
 
   // Toggle layout direction
@@ -313,13 +317,16 @@ export class LineageCanvas {
   }
 
   centerOnNode(personId) {
-    this.computeLayout();
+    // In Tree mode, focus changes require a new layout graph. In World mode, the graph is global and physics-based, so DO NOT reset it!
+    if (!this.isWorldMode) {
+      this.computeLayout();
+    }
     const node = this.nodes.find(n => String(n.id) === String(personId));
     if (!node) return;
 
     const rect = this.canvas.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+    const width = rect.width > 0 ? rect.width : (window.innerWidth - 250);
+    const height = rect.height > 0 ? rect.height : window.innerHeight;
 
     // Center on this node
     let targetZoom = 1.0; 

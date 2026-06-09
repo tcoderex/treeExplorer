@@ -568,10 +568,10 @@ export class FamilyTreeUI {
     }
 
     // 5.3. Genealogy Transform — Unified Toggle Logic
-    // Core toggle function used by BOTH header buttons and settings switches
     const applyGenealogyTree = (enabled) => {
       if (!this.canvas) return;
       this.canvas.isGenealogyMode = enabled;
+      localStorage.setItem('family-tree-genealogy-tree-mode', enabled);
 
       // Sync header button
       const btn = document.getElementById('btn-toggle-v9-tree');
@@ -582,27 +582,15 @@ export class FamilyTreeUI {
           btn.classList.remove('v9-active');
         }
       }
-      // Sync settings switch
-      const sw = document.getElementById('toggle-v9-genealogy-tree');
-      if (sw) sw.checked = enabled;
 
-      showTransformOverlay(
-        "Transforming Tree View...",
-        enabled ? "Applying Pedigree layout..." : "Restoring standard layout...",
-        () => {
-          this.canvas.computeLayout();
-          this.canvas.draw();
-          // Re-center after layout change
-          if (this.canvas.focusPersonId) {
-            this.canvas.centerOnNode(this.canvas.focusPersonId);
-          }
-        }
-      );
+      this.canvas.computeLayout();
+      this.canvas.zoomFit();
     };
 
     const applyGenealogyWorld = (enabled) => {
       if (!this.worldCanvas) return;
       this.worldCanvas.isGenealogyMode = enabled;
+      localStorage.setItem('family-tree-genealogy-world-mode', enabled);
 
       // Sync header button
       const btn = document.getElementById('btn-toggle-v9-world');
@@ -613,57 +601,9 @@ export class FamilyTreeUI {
           btn.classList.remove('v9-active');
         }
       }
-      // Sync settings switch
-      const sw = document.getElementById('toggle-v9-genealogy-world');
-      if (sw) sw.checked = enabled;
 
-      showTransformOverlay(
-        "Transforming World View...",
-        enabled ? "Applying Network layout..." : "Restoring standard layout...",
-        () => {
-          this.worldCanvas.computeLayout();
-          this.worldCanvas.draw();
-          // Re-center after layout change
-          this.worldCanvas.zoomFit();
-        }
-      );
-    };
-
-    const showTransformOverlay = (title, message, callback) => {
-      const overlay = document.getElementById('fluent-loading-overlay');
-      const lTitle = document.getElementById('loading-title');
-      const lMsg = document.getElementById('loading-message');
-      
-      const currentLang = localStorage.getItem('app-language') || 'en';
-      let displayTitle = title;
-      let displayMsg = message;
-      
-      if (currentLang === 'ar') {
-        const overlayTrans = {
-          "Transforming Tree View...": "جاري تحويل عرض الشجرة...",
-          "Applying Pedigree layout...": "جاري تطبيق تخطيط السلالة...",
-          "Restoring standard layout...": "جاري استعادة التخطيط القياسي...",
-          "Transforming World View...": "جاري تحويل عرض العالم...",
-          "Applying Network layout...": "جاري تطبيق تخطيط الشبكة..."
-        };
-        displayTitle = overlayTrans[title] || title;
-        displayMsg = overlayTrans[message] || message;
-      }
-
-      if (overlay) {
-        if (lTitle) lTitle.innerText = displayTitle;
-        if (lMsg) lMsg.innerText = displayMsg;
-        overlay.classList.remove('hidden');
-      }
-      setTimeout(() => {
-        try {
-          callback();
-        } catch (e) {
-          console.error("Transform callback failed:", e);
-        } finally {
-          if (overlay) overlay.classList.add('hidden');
-        }
-      }, 400);
+      this.worldCanvas.computeLayout();
+      this.worldCanvas.zoomFit();
     };
 
     // Header toggle buttons (on the canvas toolbar)
@@ -680,43 +620,6 @@ export class FamilyTreeUI {
       btnToggleWorld.addEventListener('click', () => {
         const next = !(this.worldCanvas && this.worldCanvas.isGenealogyMode);
         applyGenealogyWorld(next);
-      });
-    }
-
-    // Settings panel switches (inside the modal)
-    const toggleTree = document.getElementById('toggle-v9-genealogy-tree');
-    const toggleWorld = document.getElementById('toggle-v9-genealogy-world');
-
-    if (toggleTree) {
-      toggleTree.addEventListener('change', (e) => {
-        applyGenealogyTree(e.target.checked);
-      });
-    }
-    if (toggleWorld) {
-      toggleWorld.addEventListener('change', (e) => {
-        applyGenealogyWorld(e.target.checked);
-      });
-    }
-
-    // Settings panel "Transform" button opens the modal
-    const btnOpenTransform = document.getElementById('btn-settings-transform');
-    const btnCloseTransform = document.getElementById('btn-close-transform-modal');
-    const transformModal = document.getElementById('modal-genealogy-transform');
-
-    if (btnOpenTransform && transformModal) {
-      btnOpenTransform.addEventListener('click', () => {
-        // Sync switches to current state before showing
-        if (toggleTree && this.canvas) toggleTree.checked = !!this.canvas.isGenealogyMode;
-        if (toggleWorld && this.worldCanvas) toggleWorld.checked = !!this.worldCanvas.isGenealogyMode;
-        transformModal.classList.remove('hidden');
-      });
-    }
-    if (btnCloseTransform && transformModal) {
-      btnCloseTransform.addEventListener('click', () => transformModal.classList.add('hidden'));
-    }
-    if (transformModal) {
-      transformModal.addEventListener('click', (e) => {
-        if (e.target === transformModal) transformModal.classList.add('hidden');
       });
     }
 
@@ -1750,6 +1653,12 @@ export class FamilyTreeUI {
     const canvasElem = document.getElementById('lineage-canvas');
     if (canvasElem) {
       this.canvas = new LineageCanvas(canvasElem, this.engine, (id) => this.showPersonDetail(id));
+      const savedTreeMode = localStorage.getItem('family-tree-genealogy-tree-mode');
+      if (savedTreeMode === 'true') {
+        this.canvas.isGenealogyMode = true;
+        const btn = document.getElementById('btn-toggle-v9-tree');
+        if (btn) btn.classList.add('v9-active');
+      }
       if (this.focusPersonId) {
         this.canvas.setFocus(this.focusPersonId);
       }
@@ -1765,6 +1674,12 @@ export class FamilyTreeUI {
         this.setFocusPerson(id);
         this.showPersonDetail(id);
       }, true);
+      const savedWorldMode = localStorage.getItem('family-tree-genealogy-world-mode');
+      if (savedWorldMode === 'true') {
+        this.worldCanvas.isGenealogyMode = true;
+        const btn = document.getElementById('btn-toggle-v9-world');
+        if (btn) btn.classList.add('v9-active');
+      }
     }
   }
 
@@ -2117,7 +2032,7 @@ export class FamilyTreeUI {
       sItem.addEventListener('click', () => {
         onSelect(p.id);
         if (!keepValue) input.value = '';
-        dropdown.classList.add('hidden');
+        dropdown.classList.remove('hidden');
       });
 
       dropdown.appendChild(sItem);
@@ -2448,7 +2363,7 @@ export class FamilyTreeUI {
     // Show loading UI
     const btn = document.getElementById('btn-submit-bulk');
     const originalText = btn.innerText;
-    btn.innerText = 'Ã¢ÂÂ³ Parsing...';
+    btn.innerText = 'Ã¢Â Â³ Parsing...';
     btn.disabled = true;
 
     // Send to Web Worker
