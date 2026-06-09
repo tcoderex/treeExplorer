@@ -29,12 +29,16 @@ export class LineageCanvas {
     this.startY = 0;
     this.hoverNode = null;
     this.nodes = []; // Current active drawn nodes with absolute screen coordinates
+    this.mouseDownX = 0;
+    this.mouseDownY = 0;
+    this.clickedNode = null;
 
     // Animation & Centering Properties
     this.focusPersonId = null;
     this.layoutDirection = 'vertical'; // 'vertical' or 'horizontal'
     this.filterType = 'all'; // 'all', 'M', 'F', 'roots'
     this.searchQuery = '';
+    this.isGenealogyMode = false;
     
     // Photo Image Cache
     this.imageCache = new Map();
@@ -62,25 +66,22 @@ export class LineageCanvas {
     // Handle Window Resizing
     window.addEventListener('resize', () => this.resizeCanvas());
 
-    // Mouse Down (Drag start or Select card)
+    // Mouse Down (Drag start or Select card candidate)
     this.canvas.addEventListener('mousedown', (e) => {
       if (this.animationFrameId) {
         cancelAnimationFrame(this.animationFrameId);
         this.animationFrameId = null;
       }
       const pos = this.getMousePos(e);
-      const clicked = this.getNodeAtPosition(pos.x, pos.y);
+      this.mouseDownX = e.clientX;
+      this.mouseDownY = e.clientY;
+      this.clickedNode = this.getNodeAtPosition(pos.x, pos.y);
 
-      if (clicked) {
-        // Node selected
-        if (this.onNodeSelect) this.onNodeSelect(clicked.id);
-      } else {
-        // Start dragging canvas
-        this.isDragging = true;
-        this.startX = e.clientX - this.panX;
-        this.startY = e.clientY - this.panY;
-        this.canvas.style.cursor = 'grabbing';
-      }
+      // Start dragging canvas from anywhere
+      this.isDragging = true;
+      this.startX = e.clientX - this.panX;
+      this.startY = e.clientY - this.panY;
+      this.canvas.style.cursor = 'grabbing';
     });
 
     // Mouse Move (Dragging or Hover detection)
@@ -119,11 +120,31 @@ export class LineageCanvas {
       }
     });
 
-    // Mouse Up (Drag release)
-    window.addEventListener('mouseup', () => {
+    // Mouse Up (Drag release and Click trigger)
+    window.addEventListener('mouseup', (e) => {
       if (this.isDragging) {
         this.isDragging = false;
-        this.canvas.style.cursor = 'grab';
+        
+        // Calculate drag distance to differentiate click from drag
+        const dx = e.clientX - this.mouseDownX;
+        const dy = e.clientY - this.mouseDownY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const hoverNode = this.getNodeAtPosition(mouseX, mouseY);
+        
+        // Trigger select if drag is small or released on the same node
+        if (this.clickedNode && (distance < 12 || (hoverNode && String(hoverNode.id) === String(this.clickedNode.id)))) {
+          if (this.onNodeSelect) this.onNodeSelect(this.clickedNode.id);
+        }
+        
+        this.clickedNode = null;
+        
+        // Restore cursor based on current hover status
+        const hover = this.getNodeAtPosition(mouseX, mouseY);
+        this.canvas.style.cursor = hover ? 'pointer' : 'grab';
       }
     });
 
@@ -166,17 +187,42 @@ export class LineageCanvas {
 
   // Find node at specific X/Y viewport position
   getNodeAtPosition(x, y) {
+    let bestNode = null;
+    let bestDist = Infinity;
+
     for (const node of this.nodes) {
-      if (
-        x >= node.screenX &&
-        x <= node.screenX + this.nodeWidth * this.zoom &&
-        y >= node.screenY &&
-        y <= node.screenY + this.nodeHeight * this.zoom
-      ) {
-        return node;
+      if (this.isWorldMode && this.isGenealogyMode) {
+        // Network Mode: Circular hit test
+        const cx = node.screenX + (this.nodeWidth / 2) * this.zoom;
+        const cy = node.screenY + (this.nodeHeight / 2) * this.zoom;
+        const r = Math.max(32 * this.zoom, 24); // Forgiving clickable radius, min 24px
+        const dx = x - cx;
+        const dy = y - cy;
+        const distSq = dx * dx + dy * dy;
+        if (distSq <= r * r && distSq < bestDist) {
+          bestNode = node;
+          bestDist = distSq;
+        }
+      } else {
+        // Standard Card Mode: Rectangular hit test (with padding if zoomed out)
+        const hitPadding = this.zoom < 0.5 ? 24 : 0;
+        if (
+          x >= node.screenX - hitPadding &&
+          x <= node.screenX + this.nodeWidth * this.zoom + hitPadding &&
+          y >= node.screenY - hitPadding &&
+          y <= node.screenY + this.nodeHeight * this.zoom + hitPadding
+        ) {
+          const cx = node.screenX + (this.nodeWidth / 2) * this.zoom;
+          const cy = node.screenY + (this.nodeHeight / 2) * this.zoom;
+          const distSq = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+          if (distSq < bestDist) {
+            bestNode = node;
+            bestDist = distSq;
+          }
+        }
       }
     }
-    return null;
+    return bestNode;
   }
 
   // Set the focus person and compute layout
@@ -268,7 +314,7 @@ export class LineageCanvas {
 
   centerOnNode(personId) {
     this.computeLayout();
-    const node = this.nodes.find(n => n.id === personId);
+    const node = this.nodes.find(n => String(n.id) === String(personId));
     if (!node) return;
 
     const rect = this.canvas.getBoundingClientRect();
@@ -276,7 +322,10 @@ export class LineageCanvas {
     const height = rect.height;
 
     // Center on this node
-    const targetZoom = 1.0; 
+    let targetZoom = 1.0; 
+    if (this.isWorldMode && this.isGenealogyMode) {
+      targetZoom = this.zoom;
+    }
     const targetPanX = width / 2 - (node.x + this.nodeWidth / 2) * targetZoom;
     const targetPanY = height / 2 - (node.y + this.nodeHeight / 2) * targetZoom;
 
@@ -323,6 +372,15 @@ export class LineageCanvas {
      ========================================================================== */
 
   computeLayout() {
+    if (this.isGenealogyMode) {
+      if (this.isWorldMode) {
+        this.computeGenealogyWorldLayout();
+      } else {
+        this.computeGenealogyTreeLayout();
+      }
+      return;
+    }
+
     if (this.isWorldMode) {
       this.computeWorldLayout();
       return;
@@ -431,9 +489,211 @@ export class LineageCanvas {
     });
 
     this.nodes = calculatedNodes;
+    this.applySmartSpacing();
   }
 
-  // World layout computing algorithm that layouts all family tree members side-by-side by generations
+  // --- NEW GENEALOGY LAYOUTS ---
+  
+  // 1. Strict Left-To-Right Pedigree Ancestor Layout (including Siblings)
+  computeGenealogyTreeLayout() {
+    if (!this.focusPersonId) {
+      this.nodes = [];
+      return;
+    }
+    const focus = this.engine.getPerson(this.focusPersonId);
+    if (!focus) {
+      this.nodes = [];
+      return;
+    }
+
+    const calculatedNodes = [];
+    const horizontalSpacing = 280;
+    const siblingSpacing = 100;
+
+    // Get siblings
+    const siblings = this.engine.getSiblings(focus.id) || [];
+    
+    // Get spouses
+    const spouses = [];
+    if (focus.spouses) {
+      focus.spouses.forEach(spName => {
+        const spObj = this.engine.getAllPeople().find(p => p.name === spName);
+        if (spObj) spouses.push(spObj);
+      });
+    }
+
+    // Stack focus + spouses + siblings at level 0 (x = 0)
+    calculatedNodes.push({
+      id: focus.id,
+      person: focus,
+      x: 0,
+      y: 0,
+      layerIdx: 0
+    });
+
+    let currentOffsetIndex = 1;
+
+    spouses.forEach((spouse) => {
+      const offset = currentOffsetIndex * siblingSpacing * (currentOffsetIndex % 2 === 0 ? 1 : -1);
+      calculatedNodes.push({
+        id: spouse.id,
+        person: spouse,
+        x: 0,
+        y: offset,
+        layerIdx: 0
+      });
+      currentOffsetIndex++;
+    });
+
+    siblings.forEach((sib) => {
+      const offset = currentOffsetIndex * siblingSpacing * (currentOffsetIndex % 2 === 0 ? 1 : -1);
+      calculatedNodes.push({
+        id: sib.id,
+        person: sib,
+        x: 0,
+        y: offset,
+        layerIdx: 0
+      });
+      currentOffsetIndex++;
+    });
+
+    const placeAncestor = (personId, level, verticalOffset, verticalRange) => {
+      const person = this.engine.getPerson(personId);
+      if (!person) return;
+
+      const x = level * horizontalSpacing;
+      const y = verticalOffset + verticalRange / 2 - this.nodeHeight / 2;
+
+      calculatedNodes.push({
+        id: person.id,
+        person,
+        x,
+        y,
+        layerIdx: level
+      });
+
+      if (person.fatherId) placeAncestor(person.fatherId, level + 1, verticalOffset, verticalRange / 2);
+      if (person.motherId) placeAncestor(person.motherId, level + 1, verticalOffset + verticalRange / 2, verticalRange / 2);
+    };
+
+    // Allocate 1600 pixels vertically for ancestors at level 1
+    if (focus.fatherId) {
+      placeAncestor(focus.fatherId, 1, -800, 800);
+    }
+    if (focus.motherId) {
+      placeAncestor(focus.motherId, 1, 0, 800);
+    }
+
+    this.nodes = calculatedNodes;
+  }
+
+  // 2. Force-Directed Organic Network Map for World View
+  computeGenealogyWorldLayout() {
+    const allPeople = this.engine.getAllPeople();
+    if (allPeople.length === 0) {
+      this.nodes = [];
+      return;
+    }
+
+    const calculatedNodes = [];
+    const nodeCount = allPeople.length;
+
+    // Place nodes in a grid to start (prevents spiral pileup)
+    const cols = Math.ceil(Math.sqrt(nodeCount));
+    const spacing = 200;
+
+    allPeople.forEach((person, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      calculatedNodes.push({
+        id: person.id,
+        person,
+        x: (col - cols / 2) * spacing,
+        y: (row - cols / 2) * spacing,
+        vx: 0,
+        vy: 0,
+        layerIdx: 0
+      });
+    });
+
+    this.nodes = calculatedNodes;
+
+    // Build an edge list for attraction
+    const edges = [];
+    this.nodes.forEach(node => {
+      const p = node.person;
+      if (p.fatherId) {
+        const target = this.nodes.find(n => n.id === p.fatherId);
+        if (target) edges.push([node, target]);
+      }
+      if (p.motherId) {
+        const target = this.nodes.find(n => n.id === p.motherId);
+        if (target) edges.push([node, target]);
+      }
+      if (p.spouses) {
+        p.spouses.forEach(spName => {
+          const target = this.nodes.find(n => n.person.name === spName);
+          if (target && target.id > node.id) edges.push([node, target]);
+        });
+      }
+    });
+
+    // Run force simulation
+    const repulsionStrength = 80000;
+    const attractionStrength = 0.003;
+    const damping = 0.82;
+    const idealEdgeLen = 250;
+    // Fewer iterations for large graphs to avoid slow perf
+    const maxIter = nodeCount > 200 ? 40 : (nodeCount > 50 ? 60 : 80);
+
+    for (let iter = 0; iter < maxIter; iter++) {
+      // 1) Repulsion: every node pushes every other node away
+      for (let i = 0; i < this.nodes.length; i++) {
+        for (let j = i + 1; j < this.nodes.length; j++) {
+          const a = this.nodes[i];
+          const b = this.nodes[j];
+          let dx = b.x - a.x;
+          let dy = b.y - a.y;
+          let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const force = repulsionStrength / (dist * dist);
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          a.vx -= fx;
+          a.vy -= fy;
+          b.vx += fx;
+          b.vy += fy;
+        }
+      }
+
+      // 2) Attraction: edges pull connected nodes together
+      edges.forEach(([a, b]) => {
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const displacement = dist - idealEdgeLen;
+        const force = displacement * attractionStrength;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        a.vx += fx;
+        a.vy += fy;
+        b.vx -= fx;
+        b.vy -= fy;
+      });
+
+      // 3) Apply velocities with damping
+      this.nodes.forEach(n => {
+        n.x += n.vx;
+        n.y += n.vy;
+        n.vx *= damping;
+        n.vy *= damping;
+      });
+    }
+
+    // Clean up temporary velocity
+    this.nodes.forEach(n => { delete n.vx; delete n.vy; });
+  }
+
+  // Find center X/Y points of all nodes to frame viewthat layouts all family tree members side-by-side by generations
   computeWorldLayout() {
     const allPeople = this.engine.getAllPeople();
     if (allPeople.length === 0) {
@@ -463,7 +723,7 @@ export class LineageCanvas {
          const spouses = [];
          const focusPerson = this.engine.getPerson(this.focusPersonId);
          members.forEach(m => {
-           if (m.id === this.focusPersonId) focusArr.push(m);
+           if (String(m.id) === String(this.focusPersonId)) focusArr.push(m);
            else if (focusPerson && focusPerson.spouses && focusPerson.spouses.includes(m.name)) spouses.push(m);
            else siblings.push(m);
          });
@@ -584,6 +844,11 @@ export class LineageCanvas {
     const wTop = -this.panY / this.zoom;
     const wBottom = (viewHeight - this.panY) / this.zoom;
 
+    // Adapt settings for pedigree mode
+    const isPedigreeMode = this.isGenealogyMode && !this.isWorldMode;
+    const isVerticalFlow = isPedigreeMode ? false : (this.layoutDirection === 'vertical');
+    const spacing = isPedigreeMode ? 280 : this.levelSpacingY;
+
     activeLayers.forEach(layerIdx => {
       let label = '';
       if (this.isWorldMode) {
@@ -594,16 +859,22 @@ export class LineageCanvas {
         else if (layerIdx === -2) label = 'Grandparents';
         else if (layerIdx === -3) label = 'Great-Grandparents';
         else if (layerIdx === -4) label = 'G-G-Grandparents';
-        else if (layerIdx === 1) label = 'Children';
-        else if (layerIdx === 2) label = 'Grandchildren';
-        else if (layerIdx === 3) label = 'Great-Grandchild';
-        else if (layerIdx === 4) label = 'G-G-Grandchildren';
-        else label = `Generation ${layerIdx > 0 ? '+' : ''}${layerIdx}`;
+        else if (layerIdx === 1) {
+          label = isPedigreeMode ? 'Parents' : 'Children';
+        } else if (layerIdx === 2) {
+          label = isPedigreeMode ? 'Grandparents' : 'Grandchildren';
+        } else if (layerIdx === 3) {
+          label = isPedigreeMode ? 'Great-Grandparents' : 'Great-Grandchild';
+        } else if (layerIdx === 4) {
+          label = isPedigreeMode ? 'G-G-Grandparents' : 'G-G-Grandchildren';
+        } else {
+          label = isPedigreeMode ? `Ancestors Lvl ${layerIdx}` : `Generation ${layerIdx > 0 ? '+' : ''}${layerIdx}`;
+        }
       }
 
       this.ctx.beginPath();
-      if (this.layoutDirection === 'vertical') {
-        const y = layerIdx * this.levelSpacingY + this.nodeHeight / 2;
+      if (isVerticalFlow) {
+        const y = layerIdx * spacing + this.nodeHeight / 2;
         this.ctx.moveTo(wLeft, y);
         this.ctx.lineTo(wRight, y);
         this.ctx.stroke();
@@ -611,7 +882,7 @@ export class LineageCanvas {
         // Draw label text slightly above the line
         this.ctx.fillText(label.toUpperCase(), wLeft + 20, y - 6);
       } else {
-        const x = layerIdx * this.levelSpacingY + this.nodeWidth / 2;
+        const x = layerIdx * spacing + this.nodeWidth / 2;
         this.ctx.moveTo(x, wTop);
         this.ctx.lineTo(x, wBottom);
         this.ctx.stroke();
@@ -631,8 +902,16 @@ export class LineageCanvas {
   // Draw relationship connection curves
   drawConnections() {
     const isDark = document.body.classList.contains('theme-dark');
-    this.ctx.lineWidth = 2;
-    this.ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.12)';
+    const isGenealogyWorld = this.isGenealogyMode && this.isWorldMode;
+
+    // In world network mode, use much thinner, subtler lines
+    if (isGenealogyWorld) {
+      this.ctx.lineWidth = 1;
+      this.ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)';
+    } else {
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.12)';
+    }
 
     this.nodes.forEach(node => {
       const person = node.person;
@@ -641,15 +920,34 @@ export class LineageCanvas {
       person.children.forEach(cid => {
         const childNode = this.nodes.find(n => n.id === cid);
         if (childNode) {
-          this.drawBezierCurve(node, childNode);
+          if (this.isGenealogyMode) {
+            this.drawGenealogyConnection(node, childNode);
+          } else {
+            this.drawBezierCurve(node, childNode);
+          }
         }
       });
+
+      // In tree pedigree mode, clean up old links
+      if (this.isGenealogyMode && !this.isWorldMode) {
+        // Parents already draw modern orthogonal lines to children (including our siblings).
+        // For spouses, we draw a clean bracket if they are stacked at the same X coordinate.
+        if (person.spouses && person.spouses.length > 0) {
+          person.spouses.forEach(spName => {
+            const spouseNode = this.nodes.find(n => n.person.name === spName);
+            if (spouseNode && spouseNode.id > node.id && Math.abs(node.x - spouseNode.x) < 10) {
+              this.drawGenealogySpouseLine(node, spouseNode);
+            }
+          });
+        }
+        return; // Skip the old chaotic spiderweb connections
+      }
 
       // Draw connections to Spouses
       if (person.spouses && person.spouses.length > 0) {
         person.spouses.forEach(spName => {
           const spouseNode = this.nodes.find(n => n.person.name === spName);
-          if (spouseNode && spouseNode.id > node.id) { // draw line once
+          if (spouseNode && spouseNode.id > node.id) {
             this.drawSpouseLine(node, spouseNode);
           }
         });
@@ -659,7 +957,7 @@ export class LineageCanvas {
       if (person.siblings && person.siblings.length > 0) {
         person.siblings.forEach(sid => {
           const siblingNode = this.nodes.find(n => n.id === sid);
-          if (siblingNode && siblingNode.id > node.id) { // draw line once
+          if (siblingNode && siblingNode.id > node.id) {
             this.drawSiblingLine(node, siblingNode);
           }
         });
@@ -711,6 +1009,89 @@ export class LineageCanvas {
     this.ctx.restore();
   }
 
+  // Classic Pedigree Orthogonal Lines (Genealogy Mode)
+  drawGenealogyConnection(startNode, endNode) {
+    this.ctx.save();
+    if (this.filterType && this.filterType !== 'all') {
+      const startMatches = this.filterNodeMatches(startNode.person);
+      const endMatches = this.filterNodeMatches(endNode.person);
+      if (!startMatches || !endMatches) {
+        this.ctx.globalAlpha = 0.15;
+      }
+    }
+    this.ctx.beginPath();
+    
+    const isFocusLine = this.focusPersonId && (String(startNode.id) === String(this.focusPersonId) || String(endNode.id) === String(this.focusPersonId));
+    const isDark = document.body.classList.contains('theme-dark');
+    this.ctx.lineWidth = isFocusLine ? 3 : 2;
+    this.ctx.strokeStyle = isFocusLine 
+      ? (isDark ? '#60cdff' : '#0078d4') 
+      : (isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)');
+
+    let sx, sy, ex, ey;
+
+    if (this.isWorldMode) {
+       // In World Network mode, draw thin straight web lines
+       this.ctx.lineWidth = 1;
+       this.ctx.strokeStyle = isFocusLine 
+         ? (isDark ? 'rgba(96, 205, 255, 0.6)' : 'rgba(0, 120, 212, 0.5)') 
+         : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)');
+       sx = startNode.x + this.nodeWidth / 2;
+       sy = startNode.y + this.nodeHeight / 2;
+       ex = endNode.x + this.nodeWidth / 2;
+       ey = endNode.y + this.nodeHeight / 2;
+       this.ctx.moveTo(sx, sy);
+       this.ctx.lineTo(ex, ey);
+    } else {
+       // In Tree Pedigree mode, draw elegant Left-To-Right Orthogonal lines
+       // Because pedigree traces backwards from child -> parents (child on left, parent on right)
+       if (startNode.x > endNode.x) {
+         // Parent is to the right of the child
+         sx = startNode.x;
+         sy = startNode.y + (this.isGenealogyMode ? (this.nodeHeight - 20) : this.nodeHeight) / 2;
+         ex = endNode.x + this.nodeWidth;
+         ey = endNode.y + (this.isGenealogyMode ? (this.nodeHeight - 20) : this.nodeHeight) / 2;
+       } else {
+         // Parent is to the left of the child
+         sx = startNode.x + this.nodeWidth;
+         sy = startNode.y + (this.isGenealogyMode ? (this.nodeHeight - 20) : this.nodeHeight) / 2;
+         ex = endNode.x;
+         ey = endNode.y + (this.isGenealogyMode ? (this.nodeHeight - 20) : this.nodeHeight) / 2;
+       }
+
+       const midX = sx + (ex - sx) / 2;
+       this.ctx.moveTo(sx, sy);
+       this.ctx.lineTo(midX, sy);
+       this.ctx.lineTo(midX, ey);
+       this.ctx.lineTo(ex, ey);
+    }
+
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
+  // Modern genealogy bracket for spouses
+  drawGenealogySpouseLine(nodeA, nodeB) {
+    this.ctx.save();
+    this.ctx.beginPath();
+    const isDark = document.body.classList.contains('theme-dark');
+    this.ctx.strokeStyle = isDark ? '#ff8cda' : '#e3008c'; // Pink solid
+    this.ctx.lineWidth = 2;
+    
+    // Connect the left edges with a neat bracket to indicate marriage
+    const x = nodeA.x;
+    const yA = nodeA.y + this.nodeHeight / 2;
+    const yB = nodeB.y + this.nodeHeight / 2;
+    
+    this.ctx.moveTo(x, yA);
+    this.ctx.lineTo(x - 20, yA);
+    this.ctx.lineTo(x - 20, yB);
+    this.ctx.lineTo(x, yB);
+    
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
+
   // Draw dash line for spouse links
   drawSpouseLine(nodeA, nodeB) {
     this.ctx.save();
@@ -728,16 +1109,26 @@ export class LineageCanvas {
 
     let ax, ay, bx, by;
 
-    if (this.layoutDirection === 'vertical') {
-      ax = nodeA.x + this.nodeWidth;
-      ay = nodeA.y + this.nodeHeight / 2;
-      bx = nodeB.x;
-      by = nodeB.y + this.nodeHeight / 2;
-    } else {
+    if (this.isWorldMode) {
       ax = nodeA.x + this.nodeWidth / 2;
-      ay = nodeA.y + this.nodeHeight;
+      ay = nodeA.y + this.nodeHeight / 2;
       bx = nodeB.x + this.nodeWidth / 2;
-      by = nodeB.y;
+      by = nodeB.y + this.nodeHeight / 2;
+      const isDark = document.body.classList.contains('theme-dark');
+      this.ctx.strokeStyle = isDark ? 'rgba(255, 140, 218, 0.45)' : 'rgba(227, 0, 140, 0.35)'; // Beautiful semi-transparent pink
+      this.ctx.lineWidth = 1.2;
+    } else {
+      if (this.layoutDirection === 'vertical') {
+        ax = nodeA.x + this.nodeWidth;
+        ay = nodeA.y + this.nodeHeight / 2;
+        bx = nodeB.x;
+        by = nodeB.y + this.nodeHeight / 2;
+      } else {
+        ax = nodeA.x + this.nodeWidth / 2;
+        ay = nodeA.y + this.nodeHeight;
+        bx = nodeB.x + this.nodeWidth / 2;
+        by = nodeB.y;
+      }
     }
 
     this.ctx.moveTo(ax, ay);
@@ -764,17 +1155,26 @@ export class LineageCanvas {
 
     let ax, ay, bx, by;
 
-    // Offset slightly from center so they don't overlap spouse lines
-    if (this.layoutDirection === 'vertical') {
-      ax = nodeA.x + this.nodeWidth;
-      ay = nodeA.y + this.nodeHeight / 2 - 15;
-      bx = nodeB.x;
-      by = nodeB.y + this.nodeHeight / 2 - 15;
+    if (this.isWorldMode) {
+      ax = nodeA.x + this.nodeWidth / 2;
+      ay = nodeA.y + this.nodeHeight / 2;
+      bx = nodeB.x + this.nodeWidth / 2;
+      by = nodeB.y + this.nodeHeight / 2;
+      const isDark = document.body.classList.contains('theme-dark');
+      this.ctx.strokeStyle = isDark ? 'rgba(178, 119, 255, 0.45)' : 'rgba(136, 85, 204, 0.35)'; // Beautiful semi-transparent purple
+      this.ctx.lineWidth = 1.2;
     } else {
-      ax = nodeA.x + this.nodeWidth / 2 - 15;
-      ay = nodeA.y + this.nodeHeight;
-      bx = nodeB.x + this.nodeWidth / 2 - 15;
-      by = nodeB.y;
+      if (this.layoutDirection === 'vertical') {
+        ax = nodeA.x + this.nodeWidth;
+        ay = nodeA.y + this.nodeHeight / 2 - 15;
+        bx = nodeB.x;
+        by = nodeB.y + this.nodeHeight / 2 - 15;
+      } else {
+        ax = nodeA.x + this.nodeWidth / 2 - 15;
+        ay = nodeA.y + this.nodeHeight;
+        bx = nodeB.x + this.nodeWidth / 2 - 15;
+        by = nodeB.y;
+      }
     }
 
     // Rather than just drawing a straight line, let's draw a nice curve if they're not on the same row/col,
@@ -789,7 +1189,7 @@ export class LineageCanvas {
   drawNodes() {
     this.nodes.forEach(node => {
       const p = node.person;
-      const isFocus = node.id === this.focusPersonId;
+      const isFocus = String(node.id) === String(this.focusPersonId);
       const isHovered = this.hoverNode && this.hoverNode.id === node.id;
       const isPhotoHovered = this.hoverPhotoNode && this.hoverPhotoNode.id === node.id;
       const isDark = document.body.classList.contains('theme-dark');
@@ -865,11 +1265,109 @@ export class LineageCanvas {
         }
       }
 
-      // Draw rounded card rectangle
+      if (this.isGenealogyMode) {
+        this.ctx.strokeStyle = strokeColor;
+        this.ctx.lineWidth = isFocus ? 2.5 : 1;
+        this.ctx.fillStyle = fillColor;
+
+        if (this.isWorldMode) {
+          // Network Node mode: Circular dots
+          this.ctx.beginPath();
+          this.ctx.arc(node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 24, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.stroke();
+
+          // Render circular image inside circle
+          if (p.photo) {
+            this.drawCircularAvatar(p.photo, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 22);
+          } else {
+            // Colored circle with initials
+            this.ctx.fillStyle = p.gender === 'M' ? (isDark ? '#60cdff' : '#0078d4') : (isDark ? '#ff8cda' : '#e3008c');
+            this.ctx.beginPath();
+            this.ctx.arc(node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 22, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // Draw initials
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.font = 'bold 11px Outfit, sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            const initials = (p.firstName ? p.firstName[0] : '') + (p.familyName ? p.familyName[0] : '');
+            this.ctx.fillText(initials.toUpperCase(), node.x + this.nodeWidth/2, node.y + this.nodeHeight/2);
+          }
+
+          // Draw name below circle
+          this.ctx.fillStyle = isDark ? '#ffffff' : '#1f1f1f';
+          this.ctx.font = 'bold 11px Outfit, sans-serif';
+          this.ctx.textAlign = 'center';
+          this.ctx.textBaseline = 'top';
+          const firstName = p.firstName || (p.name ? p.name.split(' ')[0] : '') || '';
+          const familyName = p.familyName || '';
+          this.ctx.fillText(firstName, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2 + 28);
+          if (familyName) {
+            this.ctx.font = 'Outfit, sans-serif';
+            this.ctx.fillStyle = isDark ? '#aaaaaa' : '#555555';
+            this.ctx.fillText(familyName, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2 + 40);
+          }
+        } else {
+          // Classic Genealogy pedigree style box
+          this.ctx.shadowBlur = isFocus ? 8 : 2;
+          const cardH = this.nodeHeight - 20; // 50
+          
+          this.ctx.beginPath();
+          this.drawRoundedRect(node.x, node.y, this.nodeWidth, cardH, 6);
+          this.ctx.fill();
+          this.ctx.stroke();
+
+          // Draw small photo on left
+          const cx = node.x + 22;
+          const cy = node.y + cardH / 2;
+          const radius = 16;
+          if (p.photo) {
+            this.drawCircularAvatar(p.photo, cx, cy, radius);
+          } else {
+            // Draw colored placeholder circle
+            this.ctx.fillStyle = p.gender === 'M' ? (isDark ? '#3b78ab' : '#b2d4f5') : (isDark ? '#ab3b82' : '#f5b2dc');
+            this.ctx.beginPath();
+            this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Draw initials
+            this.ctx.fillStyle = isDark ? '#ffffff' : '#333333';
+            this.ctx.font = 'bold 9px Outfit, sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            const initials = (p.firstName ? p.firstName[0] : '') + (p.familyName ? p.familyName[0] : '');
+            this.ctx.fillText(initials.toUpperCase(), cx, cy);
+          }
+
+          // Draw name next to photo
+          this.ctx.fillStyle = isDark ? '#ffffff' : '#1f1f1f';
+          this.ctx.font = 'bold 11px Outfit, sans-serif';
+          this.ctx.textAlign = 'left';
+          this.ctx.textBaseline = 'middle';
+          const displayName = p.name.length > 18 ? p.name.substring(0, 16) + '..' : p.name;
+          
+          // Lifespan string
+          const birth = p.birthYear || '?';
+          const death = p.deathYear || (p.birthYear ? 'Alive' : '?');
+          const lifespanStr = `${birth} - ${death}`;
+
+          // Write name and lifespan
+          this.ctx.fillText(displayName, node.x + 48, node.y + cardH / 2 - 7);
+          this.ctx.font = '500 9px Outfit, sans-serif';
+          this.ctx.fillStyle = isDark ? '#bbbbbb' : '#777777';
+          this.ctx.fillText(lifespanStr, node.x + 48, node.y + cardH / 2 + 7);
+        }
+
+        this.ctx.restore();
+        return;
+      }
+
+      // Modern rounded card
       this.ctx.strokeStyle = strokeColor;
       this.ctx.lineWidth = isFocus ? 2.5 : 1;
       this.ctx.fillStyle = fillColor;
-      
       this.drawRoundedRect(node.x, node.y, this.nodeWidth, this.nodeHeight, 6);
       this.ctx.fill();
       this.ctx.stroke();
@@ -984,17 +1482,23 @@ export class LineageCanvas {
         // Draw First Name
         this.ctx.font = 'bold 12px Outfit, sans-serif';
         const dispFirstName = truncateText(p.firstName || p.name.split(' ')[0] || '', this.nodeWidth - 24);
-        this.ctx.fillText(dispFirstName, node.x + textOffsetX, node.y + 20);
+        if (!(this.isGenealogyMode && this.isWorldMode)) {
+          this.ctx.fillText(dispFirstName, node.x + textOffsetX, node.y + (this.isGenealogyMode ? 16 : 20));
+        }
 
         // Draw Family Name
         this.ctx.font = '800 12px Outfit, sans-serif';
         const dispFamilyName = truncateText(p.familyName || p.name.split(' ').slice(1).join(' ') || '', this.nodeWidth - 24);
-        this.ctx.fillText(dispFamilyName, node.x + textOffsetX, node.y + 34);
+        if (!(this.isGenealogyMode && this.isWorldMode)) {
+          this.ctx.fillText(dispFamilyName, node.x + textOffsetX, node.y + (this.isGenealogyMode ? 30 : 34));
+        }
       } else {
         // Fallback for full name
         this.ctx.font = 'bold 12px Outfit, sans-serif';
         const dispName = truncateText(p.name, this.nodeWidth - 24);
-        this.ctx.fillText(dispName, node.x + textOffsetX, node.y + 26);
+        if (!(this.isGenealogyMode && this.isWorldMode)) {
+          this.ctx.fillText(dispName, node.x + textOffsetX, node.y + (this.isGenealogyMode ? 24 : 26));
+        }
       }
 
       // Draw subtitle (Gender label / Spouse / Generation badge)
@@ -1066,5 +1570,47 @@ export class LineageCanvas {
     this.ctx.lineTo(x, y + r.tl);
     this.ctx.quadraticCurveTo(x, y, x + r.tl, y);
     this.ctx.closePath();
+  }
+
+  // Helper method to draw a circular image clip
+  drawCircularAvatar(photoUrl, cx, cy, radius) {
+    if (!this.imageCache.has(photoUrl)) {
+      const img = new Image();
+      img.src = photoUrl;
+      img.onload = () => {
+        this.imageCache.set(photoUrl, img);
+        this.draw(); // Redraw once loaded
+      };
+      img.onerror = () => {
+        this.imageCache.set(photoUrl, 'error');
+      };
+      this.imageCache.set(photoUrl, 'loading');
+    }
+
+    const img = this.imageCache.get(photoUrl);
+    if (img instanceof Image) {
+      this.ctx.save();
+      this.ctx.beginPath();
+      this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      this.ctx.clip();
+      
+      const imgAspect = img.width / img.height;
+      const dia = radius * 2;
+      let drawW = dia;
+      let drawH = dia;
+      if (imgAspect > 1) {
+        drawW = dia * imgAspect;
+      } else {
+        drawH = dia / imgAspect;
+      }
+      this.ctx.drawImage(img, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
+      this.ctx.restore();
+    } else {
+      const isDark = document.body.classList.contains('theme-dark');
+      this.ctx.fillStyle = isDark ? '#444' : '#e0e0e0';
+      this.ctx.beginPath();
+      this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
   }
 }

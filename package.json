@@ -1,6 +1,6 @@
 {
   "name": "the-arabic-area",
-  "version": "9.0.0",
+  "version": "9.6.0",
   "description": "The Arabic Area: Windows 11 styled family tree explorer for handling 1000+ members",
   "main": "main.js",
   "type": "module",

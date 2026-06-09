@@ -567,6 +567,159 @@ export class FamilyTreeUI {
       });
     }
 
+    // 5.3. Genealogy Transform — Unified Toggle Logic
+    // Core toggle function used by BOTH header buttons and settings switches
+    const applyGenealogyTree = (enabled) => {
+      if (!this.canvas) return;
+      this.canvas.isGenealogyMode = enabled;
+
+      // Sync header button
+      const btn = document.getElementById('btn-toggle-v9-tree');
+      if (btn) {
+        if (enabled) {
+          btn.classList.add('v9-active');
+        } else {
+          btn.classList.remove('v9-active');
+        }
+      }
+      // Sync settings switch
+      const sw = document.getElementById('toggle-v9-genealogy-tree');
+      if (sw) sw.checked = enabled;
+
+      showTransformOverlay(
+        "Transforming Tree View...",
+        enabled ? "Applying Pedigree layout..." : "Restoring standard layout...",
+        () => {
+          this.canvas.computeLayout();
+          this.canvas.draw();
+          // Re-center after layout change
+          if (this.canvas.focusPersonId) {
+            this.canvas.centerOnNode(this.canvas.focusPersonId);
+          }
+        }
+      );
+    };
+
+    const applyGenealogyWorld = (enabled) => {
+      if (!this.worldCanvas) return;
+      this.worldCanvas.isGenealogyMode = enabled;
+
+      // Sync header button
+      const btn = document.getElementById('btn-toggle-v9-world');
+      if (btn) {
+        if (enabled) {
+          btn.classList.add('v9-active');
+        } else {
+          btn.classList.remove('v9-active');
+        }
+      }
+      // Sync settings switch
+      const sw = document.getElementById('toggle-v9-genealogy-world');
+      if (sw) sw.checked = enabled;
+
+      showTransformOverlay(
+        "Transforming World View...",
+        enabled ? "Applying Network layout..." : "Restoring standard layout...",
+        () => {
+          this.worldCanvas.computeLayout();
+          this.worldCanvas.draw();
+          // Re-center after layout change
+          this.worldCanvas.zoomFit();
+        }
+      );
+    };
+
+    const showTransformOverlay = (title, message, callback) => {
+      const overlay = document.getElementById('fluent-loading-overlay');
+      const lTitle = document.getElementById('loading-title');
+      const lMsg = document.getElementById('loading-message');
+      
+      const currentLang = localStorage.getItem('app-language') || 'en';
+      let displayTitle = title;
+      let displayMsg = message;
+      
+      if (currentLang === 'ar') {
+        const overlayTrans = {
+          "Transforming Tree View...": "جاري تحويل عرض الشجرة...",
+          "Applying Pedigree layout...": "جاري تطبيق تخطيط السلالة...",
+          "Restoring standard layout...": "جاري استعادة التخطيط القياسي...",
+          "Transforming World View...": "جاري تحويل عرض العالم...",
+          "Applying Network layout...": "جاري تطبيق تخطيط الشبكة..."
+        };
+        displayTitle = overlayTrans[title] || title;
+        displayMsg = overlayTrans[message] || message;
+      }
+
+      if (overlay) {
+        if (lTitle) lTitle.innerText = displayTitle;
+        if (lMsg) lMsg.innerText = displayMsg;
+        overlay.classList.remove('hidden');
+      }
+      setTimeout(() => {
+        try {
+          callback();
+        } catch (e) {
+          console.error("Transform callback failed:", e);
+        } finally {
+          if (overlay) overlay.classList.add('hidden');
+        }
+      }, 400);
+    };
+
+    // Header toggle buttons (on the canvas toolbar)
+    const btnToggleTree = document.getElementById('btn-toggle-v9-tree');
+    const btnToggleWorld = document.getElementById('btn-toggle-v9-world');
+
+    if (btnToggleTree) {
+      btnToggleTree.addEventListener('click', () => {
+        const next = !(this.canvas && this.canvas.isGenealogyMode);
+        applyGenealogyTree(next);
+      });
+    }
+    if (btnToggleWorld) {
+      btnToggleWorld.addEventListener('click', () => {
+        const next = !(this.worldCanvas && this.worldCanvas.isGenealogyMode);
+        applyGenealogyWorld(next);
+      });
+    }
+
+    // Settings panel switches (inside the modal)
+    const toggleTree = document.getElementById('toggle-v9-genealogy-tree');
+    const toggleWorld = document.getElementById('toggle-v9-genealogy-world');
+
+    if (toggleTree) {
+      toggleTree.addEventListener('change', (e) => {
+        applyGenealogyTree(e.target.checked);
+      });
+    }
+    if (toggleWorld) {
+      toggleWorld.addEventListener('change', (e) => {
+        applyGenealogyWorld(e.target.checked);
+      });
+    }
+
+    // Settings panel "Transform" button opens the modal
+    const btnOpenTransform = document.getElementById('btn-settings-transform');
+    const btnCloseTransform = document.getElementById('btn-close-transform-modal');
+    const transformModal = document.getElementById('modal-genealogy-transform');
+
+    if (btnOpenTransform && transformModal) {
+      btnOpenTransform.addEventListener('click', () => {
+        // Sync switches to current state before showing
+        if (toggleTree && this.canvas) toggleTree.checked = !!this.canvas.isGenealogyMode;
+        if (toggleWorld && this.worldCanvas) toggleWorld.checked = !!this.worldCanvas.isGenealogyMode;
+        transformModal.classList.remove('hidden');
+      });
+    }
+    if (btnCloseTransform && transformModal) {
+      btnCloseTransform.addEventListener('click', () => transformModal.classList.add('hidden'));
+    }
+    if (transformModal) {
+      transformModal.addEventListener('click', (e) => {
+        if (e.target === transformModal) transformModal.classList.add('hidden');
+      });
+    }
+
     // Titlebar Settings Button click trigger is now bound in section 8.2 (flyout settings menu)
 
     // Canvas search inputs
@@ -740,17 +893,26 @@ export class FamilyTreeUI {
       }
     });
     document.getElementById('btn-modal-focus').addEventListener('click', () => {
-      const id = document.getElementById('detail-id').innerText;
+      const id = document.getElementById('detail-id').innerText.trim();
       if (id) {
+        const activeTab = document.querySelector('.nav-tab.active');
+        const isWorldTab = activeTab && activeTab.dataset.tab === 'world';
+
+        if (!isWorldTab && this.canvas && !this.canvas.isGenealogyMode) {
+          window.alert("Please change the Tree View to Genealogy to make focus work.");
+          return;
+        }
+
         this.setFocusPerson(id);
-        if (this.currentTab === 'world') {
-          if (this.worldCanvas) {
-            this.worldCanvas.focusPersonId = id;
-            this.worldCanvas.draw();
-            this.worldCanvas.centerOnNode(id);
-          }
+        
+        // Smart focus logic depending on the active view
+        if (isWorldTab && this.worldCanvas) {
+          this.worldCanvas.centerOnNode(id);
         } else {
           this.switchTab('explorer');
+          if (this.canvas) {
+            if (this.canvas.isGenealogyMode) this.canvas.centerOnNode(id);
+          }
         }
         document.getElementById('modal-member-detail').classList.add('hidden');
       }
@@ -1680,6 +1842,16 @@ export class FamilyTreeUI {
       }
     });
 
+    // Toggle active class on titlebar settings button
+    const titlebarSettingsBtn = document.getElementById('btn-titlebar-settings');
+    if (titlebarSettingsBtn) {
+      if (tabName === 'settings') {
+        titlebarSettingsBtn.classList.add('active');
+      } else {
+        titlebarSettingsBtn.classList.remove('active');
+      }
+    }
+
     // Hide all views, display active
     document.querySelectorAll('.content-tab-panel').forEach(panel => {
       if (panel.id === `tab-${tabName}`) {
@@ -1688,6 +1860,16 @@ export class FamilyTreeUI {
         panel.classList.add('hidden');
       }
     });
+
+    // Prevent main container scrolling on explorer and world tabs
+    const contentView = document.querySelector('.fluent-content-view');
+    if (contentView) {
+      if (tabName === 'explorer' || tabName === 'world') {
+        contentView.style.overflow = 'hidden';
+      } else {
+        contentView.style.overflow = '';
+      }
+    }
 
     // Initialize Canvas lazily
     if (tabName === 'explorer') {
@@ -2408,8 +2590,7 @@ export class FamilyTreeUI {
       this.canvas.setFocus(id);
     }
     if (this.worldCanvas) {
-      this.worldCanvas.focusPersonId = id;
-      this.worldCanvas.draw();
+      this.worldCanvas.setFocus(id);
     }
 
     this.renderPedigreeDiagram();
@@ -2426,12 +2607,24 @@ export class FamilyTreeUI {
     const mmNode = document.getElementById('pedigree-mm');
     const childrenContainer = document.getElementById('pedigree-children-container');
     const spouseFilterBar = document.getElementById('pedigree-spouse-filter-bar');
+    const spousesContainer = document.getElementById('pedigree-spouses-container');
+    const siblingsContainer = document.getElementById('pedigree-siblings-container');
+    const infoGen = document.getElementById('pedigree-info-generation');
+    const infoChildrenCount = document.getElementById('pedigree-info-children-count');
+    const infoDescendants = document.getElementById('pedigree-info-descendants');
+    const infoSiblingsCount = document.getElementById('pedigree-info-siblings-count');
 
     childrenContainer.innerHTML = '';
     if (spouseFilterBar) {
       spouseFilterBar.innerHTML = '';
       spouseFilterBar.classList.add('hidden');
     }
+    if (spousesContainer) spousesContainer.innerHTML = '<div class="empty-text">No Spouses Recorded</div>';
+    if (siblingsContainer) siblingsContainer.innerHTML = '<div class="empty-text">No Siblings Found</div>';
+    if (infoGen) infoGen.innerText = 'Gen —';
+    if (infoChildrenCount) infoChildrenCount.innerText = 'Children: 0';
+    if (infoDescendants) infoDescendants.innerText = 'Descendants: 0';
+    if (infoSiblingsCount) infoSiblingsCount.innerText = 'Siblings: 0';
 
     if (!this.focusPersonId) {
       focusNode.innerText = 'Select a Member';
@@ -2535,6 +2728,64 @@ export class FamilyTreeUI {
 
     // Render children list based on active filter
     this.renderPedigreeChildren(p);
+
+    // ---- Spouses Section ----
+    if (spousesContainer) {
+      spousesContainer.innerHTML = '';
+      if (p.spouses && p.spouses.length > 0) {
+        p.spouses.forEach(spName => {
+          const spouseObj = this.engine.findPatriarchNode(spName);
+          if (spouseObj) {
+            const card = document.createElement('div');
+            card.className = `pedigree-node node-${spouseObj.gender}`;
+            card.style.borderBottomColor = '#e3008c';
+            card.innerText = spouseObj.name;
+            card.onclick = () => this.setFocusPerson(spouseObj.id);
+            spousesContainer.appendChild(card);
+          } else {
+            // Show name as unlinked
+            const card = document.createElement('div');
+            card.className = 'pedigree-node empty-node';
+            card.innerText = spName;
+            spousesContainer.appendChild(card);
+          }
+        });
+      } else {
+        spousesContainer.innerHTML = '<div class="empty-text">No Spouses Recorded</div>';
+      }
+    }
+
+    // ---- Siblings Section ----
+    if (siblingsContainer) {
+      siblingsContainer.innerHTML = '';
+      const siblings = this.engine.getSiblings(p.id);
+      if (siblings.length > 0) {
+        siblings.forEach(sib => {
+          const card = document.createElement('div');
+          card.className = `pedigree-node node-${sib.gender}`;
+          card.style.borderBottomColor = '#8855cc';
+          card.innerText = sib.name;
+          card.onclick = () => this.setFocusPerson(sib.id);
+          siblingsContainer.appendChild(card);
+        });
+      } else {
+        siblingsContainer.innerHTML = '<div class="empty-text">No Siblings Found</div>';
+      }
+
+      // Update siblings count chip
+      if (infoSiblingsCount) infoSiblingsCount.innerText = `Siblings: ${siblings.length}`;
+    }
+
+    // ---- Info Summary Chips ----
+    const levelsMap = this.engine.getGenerationsGrid();
+    const gen = levelsMap.get(p.id) || '—';
+    if (infoGen) infoGen.innerText = `Gen ${gen}`;
+
+    const childrenCount = p.children ? p.children.length : 0;
+    if (infoChildrenCount) infoChildrenCount.innerText = `Children: ${childrenCount}`;
+
+    const descendants = this.engine.getDescendants(p.id);
+    if (infoDescendants) infoDescendants.innerText = `Descendants: ${descendants.length}`;
   }
 
   // Render children cards dynamically based on spousal filters
@@ -3044,6 +3295,10 @@ export class FamilyTreeUI {
       item.style.cursor = 'pointer';
       item.title = 'Make Focus in Explorer';
       item.addEventListener('click', () => {
+        if (this.canvas && !this.canvas.isGenealogyMode) {
+          window.alert("Please change the Tree View to Genealogy to make focus work.");
+          return;
+        }
         this.setFocusPerson(p.id);
         this.switchTab('explorer');
         document.getElementById('modal-v8-pathfinder').classList.add('hidden');
@@ -3241,7 +3496,29 @@ export class FamilyTreeUI {
       const textsToTranslate = [];
       
       // Load Cache
-      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}'); cache['Birth Year'] = 'سنة الميلاد'; cache['Death Year'] = 'سنة الوفاة'; cache['(Optional)'] = '(اختياري)'; cache['Optional'] = 'اختياري';
+      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+      cache['Birth Year'] = 'سنة الميلاد';
+      cache['Death Year'] = 'سنة الوفاة';
+      cache['(Optional)'] = '(اختياري)';
+      cache['Optional'] = 'اختياري';
+      cache['Transform Genealogy View'] = 'تحويل عرض شجرة العائلة';
+      cache['🧬 Transform Genealogy View'] = '🧬 تحويل عرض شجرة العائلة';
+      cache['Toggle pedigree chart and network graph layouts.'] = 'تبديل مخطط السلالة وتخطيطات الرسم بياني للشبكة.';
+      cache['Configure Views'] = 'تكوين العروض';
+      cache['Enable or disable classic pedigree and force network layout transformations.'] = 'تمكين أو تعطيل مخطط السلالة الكلاسيكي وتخطيطات شبكة القوة.';
+      cache['V9 Genealogy Tree View'] = 'عرض شجرة العائلة V9';
+      cache['Completely replaces the tree layout with a left-to-right pedigree chart (includes siblings).'] = 'يستبدل تخطيط الشجرة بالكامل بمخطط سلالة من اليسار إلى اليمين (يشمل الإخوة).';
+      cache['V9 Genealogy World View'] = 'عرض عالم العائلة V9';
+      cache['Completely replaces the world layout with a force-directed network graph.'] = 'يستبدل تخطيط العالم برسم بياني شبكي موجه بالقوة.';
+      cache['🌳 Transform Genealogy View'] = '🌳 تحويل عرض شجرة العائلة';
+      cache['Settings'] = 'الإعدادات';
+      cache['Spouses'] = 'الأزواج';
+      cache['Siblings'] = 'الإخوة';
+      cache['No Spouses Recorded'] = 'لا يوجد أزواج مسجلين';
+      cache['No Siblings Found'] = 'لا يوجد إخوة';
+      cache['No Children Recorded'] = 'لا يوجد أطفال مسجلين';
+      cache['Children'] = 'الأطفال';
+      cache['Descendants'] = 'الأحفاد';
 
       // 1. Collect Text Nodes
       while (node = walk.nextNode()) {

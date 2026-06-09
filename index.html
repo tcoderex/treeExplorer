@@ -194,6 +194,14 @@
             <span class="nav-text">Add / Import</span>
             <span class="nav-active-indicator"></span>
           </a>
+
+          <a href="#settings" class="nav-item" data-tab="settings" id="btn-nav-settings">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49-.12-.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+            </svg>
+            <span class="nav-text">Settings</span>
+            <span class="nav-active-indicator"></span>
+          </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -336,8 +344,8 @@
 
 
         <!-- ==================== TREE EXPLORER VIEW ==================== -->
-        <section id="tab-explorer" class="content-tab-panel hidden">
-          <div class="explorer-layout-wrapper">
+        <section id="tab-explorer" class="content-tab-panel hidden" style="height: 100%;">
+          <div class="explorer-layout-wrapper" style="height: 100%;">
             
             <!-- Left Side: Interactive Pedigree Navigation -->
             <div class="explorer-pedigree-side">
@@ -404,6 +412,34 @@
                     </div>
                   </div>
 
+                  <div class="pedigree-connector-row" style="height: 14px;"><div class="connector-line" style="border-left: 2px dashed var(--win-border-heavy); background: none; width: 0;"></div></div>
+
+                  <!-- Spouses List Row -->
+                  <div class="pedigree-spouses-block">
+                    <span class="pedigree-rel" style="color: #e3008c;">Spouses</span>
+                    <div id="pedigree-spouses-container" class="spouses-horizontal-list">
+                      <div class="empty-text">No Spouses Recorded</div>
+                    </div>
+                  </div>
+
+                  <div class="pedigree-connector-row" style="height: 14px;"><div class="connector-line" style="border-left: 2px dotted var(--win-border-heavy); background: none; width: 0;"></div></div>
+
+                  <!-- Siblings List Row -->
+                  <div class="pedigree-siblings-block">
+                    <span class="pedigree-rel" style="color: #8855cc;">Siblings</span>
+                    <div id="pedigree-siblings-container" class="siblings-horizontal-list">
+                      <div class="empty-text">No Siblings Found</div>
+                    </div>
+                  </div>
+
+                  <!-- Info Summary Row -->
+                  <div style="width: 100%; margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <div id="pedigree-info-generation" class="pedigree-info-chip">Gen —</div>
+                    <div id="pedigree-info-children-count" class="pedigree-info-chip">Children: 0</div>
+                    <div id="pedigree-info-descendants" class="pedigree-info-chip">Descendants: 0</div>
+                    <div id="pedigree-info-siblings-count" class="pedigree-info-chip">Siblings: 0</div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -421,6 +457,9 @@
                   <div id="explorer-search-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 32px; left: 0; width: 100%; z-index: 1000; max-height: 250px; overflow-y: auto; background: var(--win-card-bg); backdrop-filter: blur(20px); border: 1px solid var(--win-border-light); border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);"></div>
                 </div>
                 <div class="canvas-controls-right" style="display: flex; align-items: center; gap: 6px;">
+                  <button id="btn-toggle-v9-tree" title="Toggle V9 Pedigree View">
+                    🧬 Pedigree
+                  </button>
                   <button id="btn-explorer-export" class="fluent-btn btn-secondary" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; height: 26px; display: flex; align-items: center; gap: 4px;" title="Export Tree to JSON">
                     📥 Export JSON
                   </button>
@@ -447,8 +486,8 @@
 
 
         <!-- ==================== WORLD FOREST VIEW ==================== -->
-        <section id="tab-world" class="content-tab-panel hidden">
-          <div class="explorer-layout-wrapper" style="height: calc(100vh - 96px); display: flex; flex-direction: column;">
+        <section id="tab-world" class="content-tab-panel hidden" style="height: 100%;">
+          <div class="explorer-layout-wrapper" style="height: 100%; display: flex; flex-direction: column;">
             
             <div class="explorer-canvas-side" style="flex: 1; display: flex; flex-direction: column;">
               <div class="canvas-header-bar">
@@ -471,6 +510,9 @@
                   </div>
                 </div>
                 <div class="canvas-controls-right" style="display: flex; align-items: center; gap: 6px;">
+                  <button id="btn-toggle-v9-world" title="Toggle V9 Network View">
+                    🌐 Network
+                  </button>
                   <button id="btn-world-zoom-in" class="canvas-control-btn" title="Zoom In">＋</button>
                   <button id="btn-world-zoom-out" class="canvas-control-btn" title="Zoom Out">－</button>
                   <button id="btn-world-zoom-fit" class="canvas-control-btn" title="Fit to Screen">⛶</button>
@@ -917,7 +959,7 @@ Examples:
                   <span class="settings-item-title" style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">🌐 Languages</span>
                   <span class="settings-item-desc" style="font-size: 11px; color: var(--win-text-secondary);">Choose the display language for the app interface.</span>
                 </div>
-                <button id="btn-open-language-modal" class="fluent-btn" style="padding: 8px 20px; font-size: 13px;">
+                <button id="btn-open-language-modal" class="fluent-btn btn-solid" style="padding: 8px 20px; font-size: 13px; background-color: var(--win-accent); color: #ffffff; border-color: var(--win-accent);">
                   🌐 Select Language
                 </button>
               </div>
@@ -928,8 +970,8 @@ Examples:
               <div class="settings-section-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
                 <span class="settings-section-icon" style="font-size: 24px;">⚡</span>
                 <div class="settings-section-text">
-                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">V8 Advanced Features</h2>
-                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Toggle radar maps, story mode, and advanced analytics.</p>
+                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">V9 Advanced Features</h2>
+                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Toggle radar maps, story mode, and genealogy layouts.</p>
                 </div>
               </div>
 
@@ -1023,6 +1065,17 @@ Examples:
                   </div>
                   <button class="fluent-btn btn-secondary" id="btn-v8-stats" style="padding: 4px 12px;">View Stats</button>
                 </div>
+
+                <!-- Transform Genealogy -->
+                <div class="settings-row" style="margin-top: 8px; border-top: 1px solid var(--win-border-light); padding-top: 16px;">
+                  <div class="settings-item-label" style="display: flex; flex-direction: column; gap: 2px; max-width: 300px;">
+                    <span class="settings-item-title" style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">🧬 Transform Genealogy View</span>
+                    <span class="settings-item-desc" style="font-size: 11px; color: var(--win-text-secondary);">Toggle pedigree chart and network graph layouts.</span>
+                  </div>
+                  <button id="btn-settings-transform" class="fluent-btn btn-solid" style="padding: 8px 20px; font-size: 13px; background-color: var(--win-accent); color: #ffffff; border-color: var(--win-accent);">
+                    🧬 Configure Views
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1043,7 +1096,7 @@ Examples:
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Version</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">9.0 (Fluent Build)</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">9.6.0 (Fluent Build)</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">High-Performance Engine</span>
@@ -1604,6 +1657,48 @@ Examples:
           <p id="lang-current-indicator" style="font-size: 11px; color: var(--win-text-secondary); text-align: center; margin-top: 16px;">
             Current: English
           </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Genealogy Transform Modal -->
+  <div id="modal-genealogy-transform" class="fluent-modal-overlay hidden" style="z-index: 10010;">
+    <div class="fluent-modal-card" style="max-width: 440px; width: 90%; padding: 0; border-radius: 12px; overflow: hidden; background: var(--win-card-bg); border: 1px solid var(--win-border-light);">
+      <div class="modal-body" style="padding: 0;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px 14px; border-bottom: 1px solid var(--win-border-light);">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin: 0;">🌳 Transform Genealogy View</h3>
+          <button id="btn-close-transform-modal" class="fluent-btn btn-secondary" style="width: 28px; height: 28px; padding: 0; font-size: 14px; border-radius: 6px; display: flex; align-items: center; justify-content: center;" aria-label="Close">✕</button>
+        </div>
+        <!-- Body -->
+        <div style="padding: 24px;">
+          <p style="font-size: 13px; color: var(--win-text-secondary); margin-bottom: 20px; line-height: 1.6;">
+            Enable or disable classic pedigree and force network layout transformations.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Tree View Toggle -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--win-border-light); padding-bottom: 12px;">
+              <div>
+                <div style="font-size: 14px; font-weight: 500;">V9 Genealogy Tree View</div>
+                <div style="font-size: 11px; color: var(--win-text-secondary);">Completely replaces the tree layout with a left-to-right pedigree chart (includes siblings).</div>
+              </div>
+              <label class="fluent-switch">
+                <input type="checkbox" id="toggle-v9-genealogy-tree">
+                <span class="fluent-switch-slider"></span>
+              </label>
+            </div>
+            <!-- World View Toggle -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 14px; font-weight: 500;">V9 Genealogy World View</div>
+                <div style="font-size: 11px; color: var(--win-text-secondary);">Completely replaces the world layout with a force-directed network graph.</div>
+              </div>
+              <label class="fluent-switch">
+                <input type="checkbox" id="toggle-v9-genealogy-world">
+                <span class="fluent-switch-slider"></span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
     </div>
