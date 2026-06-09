@@ -313,8 +313,10 @@ export class LineageCanvas {
   }
 
   centerOnNode(personId) {
+    if (!personId) return;
     // In Tree mode, focus changes require a new layout graph. In World mode, the graph is global and physics-based, so DO NOT reset it!
     if (!this.isWorldMode) {
+      this.focusPersonId = personId;
       this.computeLayout();
     }
     const node = this.nodes.find(n => String(n.id) === String(personId));
