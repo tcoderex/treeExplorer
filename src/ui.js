@@ -572,6 +572,7 @@ export class FamilyTreeUI {
     const applyGenealogyTree = (enabled) => {
       if (!this.canvas) return;
       this.canvas.isGenealogyMode = enabled;
+      localStorage.setItem('family-tree-genealogy-tree-mode', enabled);
 
       // Sync header button
       const btn = document.getElementById('btn-toggle-v9-tree');
@@ -591,11 +592,7 @@ export class FamilyTreeUI {
         enabled ? "Applying Pedigree layout..." : "Restoring standard layout...",
         () => {
           this.canvas.computeLayout();
-          this.canvas.draw();
-          // Re-center after layout change
-          if (this.canvas.focusPersonId) {
-            this.canvas.centerOnNode(this.canvas.focusPersonId);
-          }
+          this.canvas.zoomFit();
         }
       );
     };
@@ -603,6 +600,7 @@ export class FamilyTreeUI {
     const applyGenealogyWorld = (enabled) => {
       if (!this.worldCanvas) return;
       this.worldCanvas.isGenealogyMode = enabled;
+      localStorage.setItem('family-tree-genealogy-world-mode', enabled);
 
       // Sync header button
       const btn = document.getElementById('btn-toggle-v9-world');
@@ -622,8 +620,6 @@ export class FamilyTreeUI {
         enabled ? "Applying Network layout..." : "Restoring standard layout...",
         () => {
           this.worldCanvas.computeLayout();
-          this.worldCanvas.draw();
-          // Re-center after layout change
           this.worldCanvas.zoomFit();
         }
       );
@@ -898,11 +894,6 @@ export class FamilyTreeUI {
         const activeTab = document.querySelector('.nav-tab.active');
         const isWorldTab = activeTab && activeTab.dataset.tab === 'world';
 
-        if (!isWorldTab && this.canvas && !this.canvas.isGenealogyMode) {
-          window.alert("Please change the Tree View to Genealogy to make focus work.");
-          return;
-        }
-
         this.setFocusPerson(id);
         
         // Smart focus logic depending on the active view
@@ -911,7 +902,7 @@ export class FamilyTreeUI {
         } else {
           this.switchTab('explorer');
           if (this.canvas) {
-            if (this.canvas.isGenealogyMode) this.canvas.centerOnNode(id);
+            this.canvas.centerOnNode(id);
           }
         }
         document.getElementById('modal-member-detail').classList.add('hidden');
@@ -1750,6 +1741,18 @@ export class FamilyTreeUI {
     const canvasElem = document.getElementById('lineage-canvas');
     if (canvasElem) {
       this.canvas = new LineageCanvas(canvasElem, this.engine, (id) => this.showPersonDetail(id));
+      
+      const savedTreeMode = localStorage.getItem('family-tree-genealogy-tree-mode');
+      if (savedTreeMode === 'true') {
+        this.canvas.isGenealogyMode = true;
+        const btn = document.getElementById('btn-toggle-v9-tree');
+        if (btn) btn.classList.add('v9-active');
+      } else if (savedTreeMode === 'false') {
+        this.canvas.isGenealogyMode = false;
+        const btn = document.getElementById('btn-toggle-v9-tree');
+        if (btn) btn.classList.remove('v9-active');
+      }
+
       if (this.focusPersonId) {
         this.canvas.setFocus(this.focusPersonId);
       }
@@ -1762,9 +1765,19 @@ export class FamilyTreeUI {
     const canvasElem = document.getElementById('world-canvas');
     if (canvasElem) {
       this.worldCanvas = new LineageCanvas(canvasElem, this.engine, (id) => {
-        this.setFocusPerson(id);
         this.showPersonDetail(id);
       }, true);
+
+      const savedWorldMode = localStorage.getItem('family-tree-genealogy-world-mode');
+      if (savedWorldMode === 'true') {
+        this.worldCanvas.isGenealogyMode = true;
+        const btn = document.getElementById('btn-toggle-v9-world');
+        if (btn) btn.classList.add('v9-active');
+      } else if (savedWorldMode === 'false') {
+        this.worldCanvas.isGenealogyMode = false;
+        const btn = document.getElementById('btn-toggle-v9-world');
+        if (btn) btn.classList.remove('v9-active');
+      }
     }
   }
 
@@ -2849,6 +2862,11 @@ export class FamilyTreeUI {
   showPersonDetail(id) {
     const p = this.engine.getPerson(id);
     if (!p) return;
+
+    // Auto-focus the person to keep the left lineage preview and canvas in sync!
+    if (this.focusPersonId !== id) {
+      this.setFocusPerson(id);
+    }
 
     const modal = document.getElementById('modal-member-detail');
     const levelsMap = this.engine.getGenerationsGrid();
