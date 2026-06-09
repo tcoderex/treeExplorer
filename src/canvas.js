@@ -228,11 +228,7 @@ export class LineageCanvas {
   // Set the focus person and compute layout
   setFocus(personId) {
     this.focusPersonId = personId;
-    if (this.isWorldMode) {
-      this.centerOnNode(personId);
-    } else {
-      this.zoomFit();
-    }
+    this.centerOnNode(personId);
   }
 
   // Toggle layout direction
@@ -328,11 +324,8 @@ export class LineageCanvas {
     const width = rect.width > 0 ? rect.width : (window.innerWidth - 250);
     const height = rect.height > 0 ? rect.height : window.innerHeight;
 
-    // Center on this node
-    let targetZoom = 1.0; 
-    if (this.isWorldMode && this.isGenealogyMode) {
-      targetZoom = this.zoom;
-    }
+    // Center on this node while keeping the current zoom level intact
+    let targetZoom = this.zoom; 
     const targetPanX = width / 2 - (node.x + this.nodeWidth / 2) * targetZoom;
     const targetPanY = height / 2 - (node.y + this.nodeHeight / 2) * targetZoom;
 
