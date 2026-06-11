@@ -40,6 +40,9 @@ export class FamilyTreeUI {
     // Initialize Language (restore saved preference)
     this.initLanguage();
 
+    // Initialize Sidebar layout, position, and autohide settings
+    this.initSidebarSettings();
+
     // Initialize Spotlight Tour Driver
     this.tour = new FamilyTreeTour(this);
 
@@ -60,9 +63,9 @@ export class FamilyTreeUI {
     const toast = document.createElement('div');
     toast.className = `fluent-toast toast-${type}`;
     
-    let icon = 'Ã¢â€žÂ¹Ã¯Â¸Â';
+    let icon = 'ℹ️';
     if (type === 'success') icon = '✅';
-    else if (type === 'error') icon = 'Ã¢Å¡Â Ã¯Â¸Â';
+    else if (type === 'error') icon = '⚠️';
     else if (type === 'warning') icon = '⚡';
     
     toast.innerHTML = `
@@ -513,19 +516,75 @@ export class FamilyTreeUI {
     document.getElementById('btn-import-mock-giant-100k').addEventListener('click', () => this.triggerGiantMockGeneration());
     document.getElementById('btn-banner-add').addEventListener('click', () => this.switchTab('import'));
 
+    const btnDashFindPath = document.getElementById('btn-dash-find-path');
+    if (btnDashFindPath) {
+      btnDashFindPath.addEventListener('click', () => this.showPathfinderModal());
+    }
+
     // 5.1. Personalization Settings Theme Option Clicks
     const lightCard = document.getElementById('theme-opt-light');
     const darkCard = document.getElementById('theme-opt-dark');
+    const win7Card = document.getElementById('theme-opt-win7');
     if (lightCard) {
       lightCard.addEventListener('click', () => {
-        this.setTheme('light');
-        this.showNotification("Workspace theme changed to Light Mode.", "success");
+        this.transformThemeWithLoading('light');
       });
     }
     if (darkCard) {
       darkCard.addEventListener('click', () => {
-        this.setTheme('dark');
-        this.showNotification("Workspace theme changed to Dark Mode.", "success");
+        this.transformThemeWithLoading('dark');
+      });
+    }
+    if (win7Card) {
+      win7Card.addEventListener('click', () => {
+        this.transformThemeWithLoading('win7');
+      });
+    }
+
+    // Sidebar Customization Event Bindings
+    const selectSidebarStyle = document.getElementById('select-sidebar-style');
+    const selectSidebarPosition = document.getElementById('select-sidebar-position');
+    const toggleSidebarAutohide = document.getElementById('toggle-sidebar-autohide');
+
+    if (selectSidebarStyle) {
+      selectSidebarStyle.addEventListener('change', (e) => {
+        const val = e.target.value;
+        localStorage.setItem('sidebar-style', val);
+        if (val === 'grid') {
+          document.body.classList.add('sidebar-style-grid');
+        } else {
+          document.body.classList.remove('sidebar-style-grid');
+        }
+      });
+    }
+
+    if (selectSidebarPosition) {
+      selectSidebarPosition.addEventListener('change', (e) => {
+        const val = e.target.value;
+        localStorage.setItem('sidebar-position', val);
+        if (val === 'right') {
+          document.body.classList.add('sidebar-pos-right');
+        } else {
+          document.body.classList.remove('sidebar-pos-right');
+        }
+        // Force resize canvas when layout changes
+        if (this.canvas) this.canvas.resizeCanvas();
+        if (this.worldCanvas) this.worldCanvas.resizeCanvas();
+      });
+    }
+
+    if (toggleSidebarAutohide) {
+      toggleSidebarAutohide.addEventListener('change', (e) => {
+        const checked = e.target.checked;
+        localStorage.setItem('sidebar-autohide', checked ? 'true' : 'false');
+        if (checked) {
+          document.body.classList.add('sidebar-autohide');
+        } else {
+          document.body.classList.remove('sidebar-autohide');
+        }
+        // Force resize canvas
+        if (this.canvas) this.canvas.resizeCanvas();
+        if (this.worldCanvas) this.worldCanvas.resizeCanvas();
       });
     }
 
@@ -561,9 +620,8 @@ export class FamilyTreeUI {
     }
     if (langOptAr) {
       langOptAr.addEventListener('click', () => {
-        this.applyLanguage('ar');
-        langModal.classList.add('hidden');
-        this.showNotification('تم تغيير اللغة إلى العربية.', 'success');
+        localStorage.setItem('app-language', 'ar');
+        window.location.reload();
       });
     }
 
@@ -782,6 +840,13 @@ export class FamilyTreeUI {
     });
 
     // 6. Canvas Nav Controls
+    // Tree Explorer: Focus Target button
+    document.getElementById('btn-tree-focus')?.addEventListener('click', () => {
+      if (this.focusPersonId) {
+        this.setFocusPerson(this.focusPersonId, true);
+      }
+    });
+
     document.getElementById('btn-explorer-export').addEventListener('click', () => this.handleExportJSON());
     document.getElementById('btn-canvas-zoom-in').addEventListener('click', () => this.canvas && this.canvas.zoomIn());
     document.getElementById('btn-canvas-zoom-out').addEventListener('click', () => this.canvas && this.canvas.zoomOut());
@@ -897,26 +962,31 @@ export class FamilyTreeUI {
       }
     });
     document.getElementById('btn-modal-focus').addEventListener('click', () => {
-      const id = document.getElementById('detail-id').innerText.trim();
-      if (id) {
-        const isWorldTab = this.currentTab === 'world';
+      try {
+        const el = document.getElementById('detail-id');
+        const id = el.dataset.id || el.innerText.trim();
+        if (id) {
+          document.getElementById('modal-member-detail').classList.add('hidden');
+          const isWorldTab = this.currentTab === 'world';
 
-        this.setFocusPerson(id);
-        
-        // Smart focus logic depending on the active view
-        if (isWorldTab && this.worldCanvas) {
-          this.worldCanvas.centerOnNode(id);
-        } else {
-          this.switchTab('explorer');
-          if (this.canvas) {
-            this.canvas.centerOnNode(id);
+          this.setFocusPerson(id);
+          
+          if (isWorldTab && this.worldCanvas) {
+            this.worldCanvas.centerOnNode(id);
+          } else {
+            this.switchTab('explorer');
+            if (this.canvas) {
+              this.canvas.centerOnNode(id);
+            }
           }
         }
-        document.getElementById('modal-member-detail').classList.add('hidden');
+      } catch(e) {
+        console.error('Focus error:', e);
       }
     });
     document.getElementById('btn-modal-delete').addEventListener('click', () => {
-      const id = document.getElementById('detail-id').innerText;
+      const el = document.getElementById('detail-id');
+      const id = el.dataset.id || el.innerText.trim();
       const name = document.getElementById('detail-full-name').innerText;
       if (id) {
         this.showConfirm(
@@ -957,7 +1027,8 @@ export class FamilyTreeUI {
 
     // 8.1. Modal Edit Bindings
     document.getElementById('btn-modal-edit').addEventListener('click', () => {
-      const id = document.getElementById('detail-id').innerText;
+      const el = document.getElementById('detail-id');
+      const id = el.dataset.id || el.innerText.trim();
       if (id) {
         const p = this.engine.getPerson(id);
         if (p) {
@@ -1795,13 +1866,12 @@ export class FamilyTreeUI {
   // Theme Initialization and Management
   initTheme() {
     const savedTheme = localStorage.getItem('family-tree-theme');
-    let useDark = false;
     if (savedTheme && savedTheme !== 'auto') {
-      useDark = savedTheme === 'dark';
+      this.setTheme(savedTheme);
     } else {
-      useDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const useDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      this.setTheme(useDark ? 'dark' : 'light');
     }
-    this.setTheme(useDark ? 'dark' : 'light');
 
     // Setup OS native theme listener for auto-sync
     if (window.matchMedia) {
@@ -1815,33 +1885,38 @@ export class FamilyTreeUI {
   }
 
   setTheme(theme) {
-    const isDark = theme === 'dark';
-    if (isDark) {
+    document.body.classList.remove('theme-dark', 'theme-win7');
+    localStorage.setItem('family-tree-theme', theme);
+
+    const darkRadio = document.getElementById('radio-theme-dark');
+    const lightRadio = document.getElementById('radio-theme-light');
+    const win7Radio = document.getElementById('radio-theme-win7');
+
+    const darkCard = document.getElementById('theme-opt-dark');
+    const lightCard = document.getElementById('theme-opt-light');
+    const win7Card = document.getElementById('theme-opt-win7');
+
+    if (darkRadio) darkRadio.checked = (theme === 'dark');
+    if (lightRadio) lightRadio.checked = (theme === 'light');
+    if (win7Radio) win7Radio.checked = (theme === 'win7');
+
+    if (darkCard) {
+      if (theme === 'dark') darkCard.classList.add('active');
+      else darkCard.classList.remove('active');
+    }
+    if (lightCard) {
+      if (theme === 'light') lightCard.classList.add('active');
+      else lightCard.classList.remove('active');
+    }
+    if (win7Card) {
+      if (theme === 'win7') win7Card.classList.add('active');
+      else win7Card.classList.remove('active');
+    }
+
+    if (theme === 'dark') {
       document.body.classList.add('theme-dark');
-      localStorage.setItem('family-tree-theme', 'dark');
-      
-      const darkRadio = document.getElementById('radio-theme-dark');
-      const lightRadio = document.getElementById('radio-theme-light');
-      if (darkRadio) darkRadio.checked = true;
-      if (lightRadio) lightRadio.checked = false;
-
-      const darkCard = document.getElementById('theme-opt-dark');
-      const lightCard = document.getElementById('theme-opt-light');
-      if (darkCard) darkCard.classList.add('active');
-      if (lightCard) lightCard.classList.remove('active');
-    } else {
-      document.body.classList.remove('theme-dark');
-      localStorage.setItem('family-tree-theme', 'light');
-
-      const darkRadio = document.getElementById('radio-theme-dark');
-      const lightRadio = document.getElementById('radio-theme-light');
-      if (darkRadio) darkRadio.checked = false;
-      if (lightRadio) lightRadio.checked = true;
-
-      const darkCard = document.getElementById('theme-opt-dark');
-      const lightCard = document.getElementById('theme-opt-light');
-      if (darkCard) darkCard.classList.remove('active');
-      if (lightCard) lightCard.classList.add('active');
+    } else if (theme === 'win7') {
+      document.body.classList.add('theme-win7');
     }
 
     // Immediately repaint canvas views to update colors!
@@ -1850,6 +1925,97 @@ export class FamilyTreeUI {
     }
     if (this.worldCanvas) {
       this.worldCanvas.draw();
+    }
+  }
+
+  transformThemeWithLoading(targetTheme) {
+    const overlay = document.getElementById('win7-transformation-overlay');
+    const statusText = document.getElementById('win7-loading-status');
+    const barFill = document.getElementById('win7-progress-bar-fill');
+    
+    if (!overlay || !statusText || !barFill) {
+      // Fallback if elements aren't found
+      this.setTheme(targetTheme);
+      this.showNotification(`Theme changed to ${targetTheme === 'win7' ? 'Windows 7 Aero' : targetTheme === 'dark' ? 'Dark' : 'Light'} Mode.`, "success");
+      return;
+    }
+
+    // Prepare status messages
+    const messages = [
+      "Analyzing system personalization profiles...",
+      "Stopping Fluent presentation manager...",
+      "Loading classic Aero visual style engine...",
+      "Injecting steel blue glass frames...",
+      "Applying glossy window shadows...",
+      "Enabling High-Performance graphics mode...",
+      "Starting Windows Aero layout..."
+    ];
+
+    overlay.classList.remove('hidden');
+    overlay.style.opacity = '1';
+    
+    let progress = 0;
+    barFill.style.width = '0%';
+    statusText.innerText = `${messages[0]} (0%)`;
+
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 8) + 4;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        
+        // Apply theme at 100%
+        this.setTheme(targetTheme);
+        
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            overlay.classList.add('hidden');
+            const displayNames = {
+              'win7': 'Windows 7 Aero Edition',
+              'dark': 'Dark Mode',
+              'light': 'Light Mode'
+            };
+            this.showNotification(`System theme transformed to ${displayNames[targetTheme]}!`, "success");
+          }, 300);
+        }, 400);
+      }
+      
+      barFill.style.width = `${progress}%`;
+      const msgIndex = Math.min(Math.floor((progress / 100) * messages.length), messages.length - 1);
+      statusText.innerText = `${messages[msgIndex]} (${progress}%)`;
+    }, 100);
+  }
+
+  initSidebarSettings() {
+    const style = localStorage.getItem('sidebar-style') || 'normal';
+    const pos = localStorage.getItem('sidebar-position') || 'left';
+    const autohide = localStorage.getItem('sidebar-autohide') === 'true';
+
+    const selectSidebarStyle = document.getElementById('select-sidebar-style');
+    const selectSidebarPosition = document.getElementById('select-sidebar-position');
+    const toggleSidebarAutohide = document.getElementById('toggle-sidebar-autohide');
+
+    if (selectSidebarStyle) selectSidebarStyle.value = style;
+    if (selectSidebarPosition) selectSidebarPosition.value = pos;
+    if (toggleSidebarAutohide) toggleSidebarAutohide.checked = autohide;
+
+    if (style === 'grid') {
+      document.body.classList.add('sidebar-style-grid');
+    } else {
+      document.body.classList.remove('sidebar-style-grid');
+    }
+
+    if (pos === 'right') {
+      document.body.classList.add('sidebar-pos-right');
+    } else {
+      document.body.classList.remove('sidebar-pos-right');
+    }
+
+    if (autohide) {
+      document.body.classList.add('sidebar-autohide');
+    } else {
+      document.body.classList.remove('sidebar-autohide');
     }
   }
 
@@ -1955,6 +2121,10 @@ export class FamilyTreeUI {
     if (this.worldCanvas) {
       this.worldCanvas.computeLayout();
       this.worldCanvas.draw();
+    }
+
+    if (localStorage.getItem('app-language') === 'ar') {
+      this.preTranslateDatabase();
     }
   }
 
@@ -2090,9 +2260,15 @@ export class FamilyTreeUI {
         lineageText += ` son of ${p.grandfatherName}`;
       }
 
+      let displayName = p.name;
+      if (localStorage.getItem('app-language') === 'ar') {
+        const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+        displayName = cache[p.name] || p.name;
+      }
+
       sItem.innerHTML = `
         <div>
-          <div class="suggestion-name">${p.name}</div>
+          <div class="suggestion-name">${displayName}</div>
           <div class="suggestion-lineage">${lineageText}</div>
         </div>
         <span class="suggestion-gender row-gender-badge badge-${p.gender}">${p.gender}</span>
@@ -2115,19 +2291,18 @@ export class FamilyTreeUI {
     const dropdown = document.getElementById(dropdownId);
     if (!input || !dropdown) return;
     
-    const query = input.value.trim().toLowerCase();
     dropdown.innerHTML = '';
-
-    if (query.length < 1) {
+    const query = input.value.trim();
+    if (query.length === 0) {
       dropdown.classList.add('hidden');
       return;
     }
 
     // High performance token search
-    const matches = this.engine.searchPeopleByTokens(query).slice(0, 8);
-
+    const matches = this.engine.searchPeopleByTokens(query).slice(0, 10);
+    
     if (matches.length === 0) {
-      dropdown.innerHTML = `<div style="padding: 10px; font-size: 12px; color: var(--win-text-secondary); text-align: center;">No matches found</div>`;
+      dropdown.innerHTML = '<div class="suggestion-item" style="color:var(--win-text-disabled); justify-content:center;">No results found</div>';
       dropdown.classList.remove('hidden');
       return;
     }
@@ -2142,9 +2317,15 @@ export class FamilyTreeUI {
         lineageText += ` son of ${p.grandfatherName}`;
       }
 
+      let displayName = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+      if (localStorage.getItem('app-language') === 'ar') {
+        const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+        displayName = cache[p.name] || displayName;
+      }
+
       sItem.innerHTML = `
         <div>
-          <div class="suggestion-name">${(p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim()}</div>
+          <div class="suggestion-name">${displayName}</div>
           <div class="suggestion-lineage">${lineageText}</div>
         </div>
         <span class="suggestion-gender row-gender-badge badge-${p.gender}">${p.gender}</span>
@@ -2484,7 +2665,7 @@ export class FamilyTreeUI {
     // Show loading UI
     const btn = document.getElementById('btn-submit-bulk');
     const originalText = btn.innerText;
-    btn.innerText = 'Ã¢ÂÂ³ Parsing...';
+    btn.innerText = '⏳ Parsing...';
     btn.disabled = true;
 
     // Send to Web Worker
@@ -2618,7 +2799,52 @@ export class FamilyTreeUI {
      PEDIGREE VIEW & EXPLORER DETAIL MODAL
      ========================================================================== */
 
+  promoteDummyPerson(id) {
+    if (!id || !id.toString().startsWith('dummy-')) return null;
+    if (this.engine.people.has(id)) return this.engine.getPerson(id);
+
+    let childId = '';
+    let gender = 'M';
+    if (id.startsWith('dummy-f-')) {
+      childId = id.substring('dummy-f-'.length);
+      gender = 'M';
+    } else if (id.startsWith('dummy-m-')) {
+      childId = id.substring('dummy-m-'.length);
+      gender = 'F';
+    }
+
+    if (childId) {
+      let child = this.engine.getPerson(childId);
+      if (!child && childId.startsWith('dummy-')) {
+        child = this.promoteDummyPerson(childId);
+      }
+      if (child) {
+        const parentName = gender === 'M' ? child.fatherName : child.motherName;
+        if (parentName) {
+          const parent = this.engine.addPerson({
+            id: id,
+            name: parentName,
+            gender: gender
+          });
+          if (parent) {
+            if (gender === 'M') {
+              child.fatherId = id;
+            } else {
+              child.motherId = id;
+            }
+            return parent;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   setFocusPerson(id, shouldCenter = true) {
+    if (id && id.toString().startsWith('dummy-')) {
+      this.promoteDummyPerson(id);
+      this.refreshAllUI();
+    }
     this.focusPersonId = id;
     this.activeSpouseFilter = 'all';
     
@@ -2780,7 +3006,7 @@ export class FamilyTreeUI {
             card.className = `pedigree-node node-${spouseObj.gender}`;
             card.style.borderBottomColor = '#e3008c';
             card.innerText = spouseObj.name;
-            card.onclick = () => this.setFocusPerson(spouseObj.id, false);
+            card.onclick = () => this.setFocusPerson(spouseObj.id);
             spousesContainer.appendChild(card);
           } else {
             // Show name as unlinked
@@ -2805,7 +3031,7 @@ export class FamilyTreeUI {
           card.className = `pedigree-node node-${sib.gender}`;
           card.style.borderBottomColor = '#8855cc';
           card.innerText = sib.name;
-          card.onclick = () => this.setFocusPerson(sib.id, false);
+          card.onclick = () => this.setFocusPerson(sib.id);
           siblingsContainer.appendChild(card);
         });
       } else {
@@ -2866,7 +3092,7 @@ export class FamilyTreeUI {
           const card = document.createElement('div');
           card.className = `pedigree-node node-${child.gender}`;
           card.innerText = child.name;
-          card.onclick = () => this.setFocusPerson(child.id, false);
+          card.onclick = () => this.setFocusPerson(child.id);
           childrenContainer.appendChild(card);
         }
       });
@@ -2877,7 +3103,7 @@ export class FamilyTreeUI {
     if (person) {
       element.innerText = person.name;
       element.className = `pedigree-node node-${person.gender}`;
-      element.onclick = () => this.setFocusPerson(person.id, false);
+      element.onclick = () => this.setFocusPerson(person.id);
     } else {
       element.innerText = 'No Record';
       element.className = 'pedigree-node empty-node';
@@ -2891,9 +3117,8 @@ export class FamilyTreeUI {
     if (!p) return;
 
     // Auto-focus the person to keep the left lineage preview and canvas in sync!
-    // Use shouldCenter=false to avoid camera movement when opening a card
     if (this.focusPersonId !== id) {
-      this.setFocusPerson(id, false);
+      this.setFocusPerson(id);
     }
 
     const modal = document.getElementById('modal-member-detail');
@@ -2910,7 +3135,9 @@ export class FamilyTreeUI {
     const lifespanStr = (p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0) ? `${p.birthYear} - ${p.deathYear || 'Present'}` : 'Unknown';
     const lifespanEl = document.getElementById('detail-lifespan-val');
     if (lifespanEl) lifespanEl.innerText = lifespanStr;
-    document.getElementById('detail-id').innerText = p.id;
+    const detailIdEl = document.getElementById('detail-id');
+    detailIdEl.innerText = p.id;
+    detailIdEl.dataset.id = p.id;
     
     const photoEl = document.getElementById('detail-photo');
     if (p.photo) {
@@ -3081,7 +3308,12 @@ export class FamilyTreeUI {
     if (btnDelete) {
       const count = this.selectedMemberIds.size;
       btnDelete.disabled = count === 0;
-      btnDelete.innerText = count > 0 ? `🗑️ حذف المحدد (${count})` : '🗑️ حذف المحدد';
+      const isAr = localStorage.getItem('app-language') === 'ar';
+      if (isAr) {
+        btnDelete.innerText = count > 0 ? `🗑️ حذف المحدد (${count})` : '🗑️ حذف المحدد';
+      } else {
+        btnDelete.innerText = count > 0 ? `🗑️ Delete Selected (${count})` : '🗑️ Delete Selected';
+      }
     }
   }
 
@@ -3372,6 +3604,19 @@ export class FamilyTreeUI {
   get i18nDictionary() {
     return {
       'Dashboard': 'لوحة القيادة',
+      'My Family Tree': 'شجرة عائلتي',
+      'Sidebar Settings': 'إعدادات الشريط الجانبي',
+      'Customize the sidebar layout, side placement, and visibility behaviors.': 'تخصيص مظهر الشريط الجانبي وموقعه وسلوكيات إظهاره.',
+      'Sidebar Style': 'نمط الشريط الجانبي',
+      'Toggle between a classic list or a space-saving compact grid.': 'التبديل بين القائمة الكلاسيكية أو الشبكة المدمجة الموفرة للمساحة.',
+      'Normal (List)': 'عادي (قائمة)',
+      'Grid (Compact)': 'شبكة (مدمج)',
+      'Sidebar Position': 'موضع الشريط الجانبي',
+      'Choose whether the navigation sidebar stays on the left or right side.': 'اختر ما إذا كان شريط التنقل الجانبي يبقى على الجانب الأيسر أو الأيمن.',
+      'Left Side': 'الجانب الأيسر',
+      'Right Side': 'الجانب الأيمن',
+      'Auto-Hide Sidebar': 'إخفاء تلقائي للشريط الجانبي',
+      'Automatically collapse the sidebar when not active or hovered.': 'إخفاء الشريط الجانبي تلقائياً عندما لا يكون نشطاً أو عند عدم تمرير المؤشر فوقه.',
       'Explorer': 'المستكشف',
       'Grid Registry': 'سجل الشبكة',
       'Import': 'استيراد',
@@ -3524,9 +3769,105 @@ export class FamilyTreeUI {
     };
   }
 
+  _setupDynamicTranslation() {
+    if (this._langObserver) this._langObserver.disconnect();
+    this._langObserver = new MutationObserver(async (mutations) => {
+      if (localStorage.getItem('app-language') !== 'ar') return;
+      
+      const nodes = [];
+      const elementsWithAttrs = [];
+      
+      mutations.forEach(m => {
+        if (m.type === 'childList') {
+          m.addedNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+               nodes.push(node);
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+               const walk = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
+               let n;
+               while (n = walk.nextNode()) nodes.push(n);
+               
+               if (node.hasAttribute && (node.hasAttribute('placeholder') || node.hasAttribute('title'))) {
+                   elementsWithAttrs.push(node);
+               }
+               const attrEls = node.querySelectorAll ? Array.from(node.querySelectorAll('[placeholder], [title]')) : [];
+               elementsWithAttrs.push(...attrEls);
+            }
+          });
+        }
+      });
+      
+      const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+      const toTranslate = [];
+      const translateTargets = [];
+      
+      nodes.forEach(node => {
+        const text = node.nodeValue.trim();
+        if (text && /[A-Za-z]/.test(text)) {
+            if (node.parentElement && (
+              ['SCRIPT', 'STYLE', 'CODE', 'PRE'].includes(node.parentElement.tagName) ||
+              node.parentElement.id === 'detail-id' ||
+              node.parentElement.closest('#detail-id') ||
+              node.parentElement.closest('.no-translate')
+            )) return;
+           if (cache[text]) {
+             node.nodeValue = node.nodeValue.replace(text, cache[text]);
+           } else {
+             toTranslate.push(text);
+             translateTargets.push({ type: 'text', ref: node, trimmed: text, orig: node.nodeValue });
+           }
+        }
+      });
+      
+      elementsWithAttrs.forEach(el => {
+        if (el.placeholder && /[A-Za-z]/.test(el.placeholder)) {
+          if (cache[el.placeholder]) el.placeholder = cache[el.placeholder];
+          else {
+            toTranslate.push(el.placeholder);
+            translateTargets.push({ type: 'placeholder', ref: el, trimmed: el.placeholder });
+          }
+        }
+        if (el.title && /[A-Za-z]/.test(el.title)) {
+          if (cache[el.title]) el.title = cache[el.title];
+          else {
+            toTranslate.push(el.title);
+            translateTargets.push({ type: 'title', ref: el, trimmed: el.title });
+          }
+        }
+      });
+      
+      if (toTranslate.length > 0 && window.api && window.api.translateBatch) {
+        try {
+          const trans = await window.api.translateBatch(toTranslate, 'ar');
+          if (trans && trans.length === toTranslate.length) {
+            for (let i = 0; i < toTranslate.length; i++) {
+              const item = translateTargets[i];
+              const translated = trans[i];
+              cache[item.trimmed] = translated;
+              
+              if (item.type === 'text') item.ref.nodeValue = item.orig.replace(item.trimmed, translated);
+              else if (item.type === 'placeholder') item.ref.placeholder = translated;
+              else if (item.type === 'title') item.ref.title = translated;
+            }
+            localStorage.setItem('ar-translation-cache', JSON.stringify(cache));
+          }
+        } catch(e) {
+          console.error("Dynamic translation error:", e);
+        }
+      }
+    });
+    
+    this._langObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
   async applyLanguage(lang) {
+    if (!this._langObserverInit) {
+      this._setupDynamicTranslation();
+      this._langObserverInit = true;
+    }
     localStorage.setItem('app-language', lang);
     this.updateLangModalIndicator();
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
 
     if (lang === 'ar') {
       const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
@@ -3539,6 +3880,19 @@ export class FamilyTreeUI {
       
       // Load Cache
       const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+      cache['My Family Tree'] = 'شجرة عائلتي';
+      cache['Sidebar Settings'] = 'إعدادات الشريط الجانبي';
+      cache['Customize the sidebar layout, side placement, and visibility behaviors.'] = 'تخصيص مظهر الشريط الجانبي وموقعه وسلوكيات إظهاره.';
+      cache['Sidebar Style'] = 'نمط الشريط الجانبي';
+      cache['Toggle between a classic list or a space-saving compact grid.'] = 'التبديل بين القائمة الكلاسيكية أو الشبكة المدمجة الموفرة للمساحة.';
+      cache['Normal (List)'] = 'عادي (قائمة)';
+      cache['Grid (Compact)'] = 'شبكة (مدمج)';
+      cache['Sidebar Position'] = 'موضع الشريط الجانبي';
+      cache['Choose whether the navigation sidebar stays on the left or right side.'] = 'اختر ما إذا كان شريط التنقل الجانبي يبقى على الجانب الأيسر أو الأيمن.';
+      cache['Left Side'] = 'الجانب الأيسر';
+      cache['Right Side'] = 'الجانب الأيمن';
+      cache['Auto-Hide Sidebar'] = 'إخفاء تلقائي للشريط الجانبي';
+      cache['Automatically collapse the sidebar when not active or hovered.'] = 'إخفاء الشريط الجانبي تلقائياً عندما لا يكون نشطاً أو عند عدم تمرير المؤشر فوقه.';
       cache['Birth Year'] = 'سنة الميلاد';
       cache['Death Year'] = 'سنة الوفاة';
       cache['(Optional)'] = '(اختياري)';
@@ -3562,11 +3916,138 @@ export class FamilyTreeUI {
       cache['Children'] = 'الأطفال';
       cache['Descendants'] = 'الأحفاد';
 
+      // Navigation bar translations
+      cache['Dashboard'] = 'لوحة التحكم';
+      cache['Tree Explorer'] = 'مستكشف الشجرة';
+      cache['World Forest'] = 'عالم العائلة';
+      cache['All Members'] = 'جميع الأعضاء';
+      cache['Add / Import'] = 'إضافة / استيراد';
+
+      // Details Overlay Dialog translations
+      cache['Lineage Details'] = 'تفاصيل النسب';
+      cache['Direct Parentage'] = 'النسب المباشر';
+      cache['Father'] = 'الأب';
+      cache['Mother'] = 'الأم';
+      cache['Grandfather'] = 'الجد';
+      cache['Spouse'] = 'الزوج/الزوجة';
+      cache['Siblings'] = 'الإخوة';
+      cache['Children'] = 'الأبناء';
+      cache['Diagnostics'] = 'التشخيصات';
+      cache['Root Patriarch'] = 'البطريرك المؤسس';
+      cache['Descendant Count'] = 'عدد الأحفاد';
+      cache['Lifespan'] = 'مدى العمر';
+      cache['Unknown'] = 'غير معروف';
+      cache['None'] = 'لا يوجد';
+
+      // Buttons with Emojis & Modals
+      cache['🎯 Make Focus in Explorer'] = '🎯 اجعل التركيز في المستكشف';
+      cache['Make Focus in Explorer'] = 'اجعل التركيز في المستكشف';
+      cache['✏️ Modify Member'] = '✏️ تعديل العضو';
+      cache['Modify Member'] = 'تعديل العضو';
+      cache['🗑 Delete Member'] = '🗑 حذف العضو';
+      cache['Delete Member'] = 'حذف العضو';
+      cache['✏️ Modify Family Member'] = '✏️ تعديل بيانات فرد العائلة';
+      cache['Modify Family Member'] = 'تعديل بيانات فرد العائلة';
+      cache['Delete Selected'] = 'حذف المحدد';
+      cache['🗑️ Delete Selected'] = '🗑️ حذف المحدد';
+      cache['Delete Family Member?'] = 'حذف فرد من العائلة؟';
+      cache['Are you sure you want to permanently delete this member? This action cannot be undone.'] = 'هل أنت متأكد أنك تريد حذف هذا الفرد بشكل دائم؟ لا يمكن التراجع عن هذا الإجراء.';
+      cache['Cancel'] = 'إلغاء';
+      cache['Delete'] = 'حذف';
+      cache['Reset Local Tree?'] = 'إعادة تعيين الشجرة المحلية؟';
+      cache['Are you sure you want to completely clear the entire family tree database? This action cannot be undone.'] = 'هل أنت متأكد أنك تريد مسح قاعدة بيانات شجرة العائلة بالكامل؟ لا يمكن التراجع عن هذا الإجراء.';
+      cache['Start Interactive Tour?'] = 'بدء الجولة التفاعلية؟';
+      cache['Warning: Running this tour will clear your current family tree to load the demo dataset. Do you want to proceed?'] = 'تحذير: سيؤدي تشغيل هذه الجولة إلى مسح شجرة العائلة الحالية لتحميل مجموعة البيانات التجريبية. هل ترغب في المتابعة؟';
+      cache['Run Parser Tour?'] = 'تشغيل جولة المحلل؟';
+      cache['Warning: Running the parser tour will clear your current family tree to walk through the importer steps. Do you want to proceed?'] = 'تحذير: سيؤدي تشغيل جولة المحلل إلى مسح شجرة العائلة الحالية للسير في خطوات المستورد. هل ترغب في المتابعة؟';
+      cache['Generate Mock Tree?'] = 'توليد شجرة عشوائية؟';
+      cache['Generating 2,000+ members will wipe any manual entries. Proceed?'] = 'سيؤدي إنشاء أكثر من 2000 عضو إلى مسح أي إدخالات يدوية. هل تريد المتابعة؟';
+      cache['Generate 100,000 Mock Tree?'] = 'توليد شجرة عشوائية بـ 100,000 عضو؟';
+      cache['Generating 100,000 members will clear any current data and load a massive family forest. Proceed?'] = 'سيؤدي إنشاء 100,000 عضو إلى مسح أي بيانات حالية وتحميل غابة عائلية ضخمة. هل تريد المتابعة؟';
+      cache['Delete Selected Members?'] = 'حذف الأعضاء المحددين؟';
+      cache['Family tree database cleared.'] = 'تم مسح قاعدة بيانات شجرة العائلة.';
+
+      // Add / Import tab translations
+      cache['Add / Import Core'] = 'مركز الإضافة والاستيراد';
+      cache['Add single nodes, paste raw text lineages, or trigger the 1000+ mock database engine.'] = 'إضافة أفراد منفردين، أو لصق نصوص النسب الخام، أو تشغيل محرك البيانات الوهمي +1000.';
+      cache['＋ Add Individual'] = '＋ إضافة فرد';
+      cache['Manually add an individual node into the engine.'] = 'إضافة فرد يدويًا إلى المحرك.';
+      cache['First Name'] = 'الاسم الأول';
+      cache['Family Name'] = 'اسم العائلة';
+      cache['ID'] = 'المعرف';
+      cache['Auto-generated if empty'] = 'توليد تلقائي إذا كان فارغاً';
+      cache['Gender'] = 'الجنس';
+      cache['Spouse Details'] = 'تفاصيل الزوج/الزوجة';
+      cache['+ Add another Spouse'] = '+ إضافة زوج/زوجة آخر';
+      cache['Sibling Details'] = 'تفاصيل الأخ/الأخت';
+      cache['+ Add another Sibling'] = '+ إضافة أخ/أخت آخر';
+      cache['Birth Year'] = 'سنة الميلاد';
+      cache['Death Year'] = 'سنة الوفاة';
+      cache['e.g. 1995 (leave empty if alive)'] = 'مثال: 1995 (اتركه فارغاً إذا كان على قيد الحياة)';
+      cache['Photo'] = 'الصورة';
+      cache['Browse...'] = 'استعراض...';
+      cache['Provide a URL or upload a local image to display an avatar on the lineage graph.'] = 'قدّم رابطًا أو ارفع صورة محلية لعرض الصورة الشخصية في مخطط النسب.';
+      cache['Father\'s First'] = 'الاسم الأول للأب';
+      cache['Father\'s Last'] = 'اسم عائلة الأب';
+      cache['Mother\'s First'] = 'الاسم الأول للأم';
+      cache['Mother\'s Maiden'] = 'اسم عائلة الأم قبل الزواج';
+      cache['Grandfather\'s First'] = 'الاسم الأول للجد';
+      cache['Grandfather\'s Last'] = 'اسم عائلة الجد';
+      cache['Links father to grandfather automatically to maintain structure.'] = 'يربط الأب بالجد تلقائياً للمحافظة على هيكلية النسب.';
+      cache['If the father exists, we will link them; if not, the engine creates them.'] = 'إذا كان الأب موجودًا، فسنقوم بربطه؛ وإلا، فسيقوم المحرك بإنشائه.';
+      cache['If the mother exists, we will link them; if not, the engine creates them.'] = 'إذا كانت الأم موجودة، فسنقوم بربطها؛ وإلا، فسيقوم المحرك بإنشائها.';
+      cache['Clear Fields'] = 'مسح الحقول';
+      cache['Save Member'] = 'حفظ العضو';
+
+      // Pathfinder translations
+      cache['Find Relationship Path'] = 'البحث عن مسار القرابة';
+      cache['🔍 Find Relationship Path'] = '🔍 البحث عن مسار القرابة';
+      cache['Search and select two family members to calculate the shortest relationship path between them.'] = 'ابحث وحدد فردين من العائلة لحساب أقصر مسار قرابة بينهما.';
+      cache['Start Member'] = 'العضو البادئ';
+      cache['Type to search start member...'] = 'اكتب للبحث عن العضو البادئ...';
+      cache['End Member'] = 'العضو المستهدف';
+      cache['Type to search target member...'] = 'اكتب للبحث عن العضو المستهدف...';
+      cache['Clear'] = 'مسح';
+      cache['Find Path'] = 'ابحث عن المسار';
+      cache['Shortest Connection Path:'] = 'أقصر مسار اتصال:';
+      cache['No relationship connection path found between these members.'] = 'لا يوجد مسار قرابة بين هؤلاء الأعضاء.';
+      cache['Step '] = 'خطوة ';
+      cache['Start'] = 'البداية';
+      cache['End'] = 'النهاية';
+
+      // Canvas labels & relation translations
+      cache['Male'] = 'ذكر';
+      cache['Female'] = 'أنثى';
+      cache['Spouse'] = 'الزوج/الزوجة';
+      cache['Spouses'] = 'الأزواج';
+      cache['Alive'] = 'على قيد الحياة';
+      cache['Present'] = 'الحاضر';
+      cache['FOCUS'] = 'الأساس';
+      cache['SPOUSE'] = 'شريك';
+      cache['SIBLING'] = 'أخ/أخت';
+      cache['PARENT'] = 'أب/أم';
+      cache['GRANDPARENT'] = 'جد/جدة';
+      cache['GREAT-GRANDPARENT'] = 'جد أكبر';
+      cache['GREAT-GREAT-GRANDPARENT'] = 'جد أعلى';
+      cache['CHILD'] = 'ابن/ابنة';
+      cache['GRANDCHILD'] = 'حفيد/حفيدة';
+      cache['GREAT-GRANDCHILD'] = 'ابن حفيد';
+      cache['GREAT-GREAT-GRANDCHILD'] = 'حفيد الحفيد';
+      cache['GENERATION'] = 'الجيل';
+      cache['Generation'] = 'الجيل';
+      cache['Focus Generation'] = 'جيل الأساس';
+      cache['Ancestors Lvl'] = 'مستوى الأسلاف';
+
       // 1. Collect Text Nodes
       while (node = walk.nextNode()) {
         const text = node.nodeValue.trim();
         if (text && /[A-Za-z]/.test(text)) {
-          if (node.parentElement && ['SCRIPT', 'STYLE', 'CODE'].includes(node.parentElement.tagName)) continue;
+          if (node.parentElement && (
+            ['SCRIPT', 'STYLE', 'CODE', 'PRE'].includes(node.parentElement.tagName) ||
+            node.parentElement.id === 'detail-id' ||
+            node.parentElement.closest('#detail-id') ||
+            node.parentElement.closest('.no-translate')
+          )) continue;
           
           if (cache[text]) {
             node.nodeValue = node.nodeValue.replace(text, cache[text]);
@@ -3601,8 +4082,9 @@ export class FamilyTreeUI {
         try {
           document.body.style.opacity = '0.7';
           document.body.style.pointerEvents = 'none';
-          
+
           const trans = await window.api.translateBatch(textsToTranslate, 'ar');
+
           if (trans && trans.length === textsToTranslate.length) {
             for (let i = 0; i < textsToTranslate.length; i++) {
               const item = nodesToTranslate[i];
@@ -3623,6 +4105,7 @@ export class FamilyTreeUI {
             // Save cache back to local storage
             localStorage.setItem('ar-translation-cache', JSON.stringify(cache));
           }
+
         } catch(err) {
            console.error("Batch translation failed:", err);
         } finally {
@@ -3630,6 +4113,9 @@ export class FamilyTreeUI {
           document.body.style.pointerEvents = 'all';
         }
       }
+
+      // Background translate names and canvas labels
+      this.preTranslateDatabase();
     } else if (lang === 'en') {
       if (document.body.innerText.match(/[\u0600-\u06FF]/)) {
         window.location.reload();
@@ -3642,6 +4128,53 @@ export class FamilyTreeUI {
       arCard.style.border = lang === 'ar' ? '2px solid var(--win-accent)' : '2px solid var(--win-border-light)';
       enCard.style.background = lang === 'en' ? 'var(--win-accent-light)' : 'var(--win-card-bg)';
       arCard.style.background = lang === 'ar' ? 'var(--win-accent-light)' : 'var(--win-card-bg)';
+    }
+  }
+
+  async preTranslateDatabase() {
+    if (localStorage.getItem('app-language') !== 'ar') return;
+    const people = this.engine.getAllPeople();
+    const texts = [
+      'Male', 'Female', 'Spouse', 'Spouses', 'Alive', 'Present',
+      'FOCUS', 'SPOUSE', 'SIBLING', 'PARENT', 'GRANDPARENT', 'GREAT-GRANDPARENT', 'GREAT-GREAT-GRANDPARENT',
+      'CHILD', 'GRANDCHILD', 'GREAT-GRANDCHILD', 'GREAT-GREAT-GRANDCHILD',
+      'Focus Generation', 'Parents', 'Grandparents', 'Great-Grandparents', 'G-G-Grandparents',
+      'Children', 'Grandchildren', 'Great-Grandchild', 'G-G-Grandchildren',
+      'Find Relationship Path', '🔍 Find Relationship Path',
+      'Search and select two family members to calculate the shortest relationship path between them.',
+      'Start Member', 'Type to search start member...', 'End Member', 'Type to search target member...',
+      'Clear', 'Find Path', 'Shortest Connection Path:', 'No relationship connection path found between these members.',
+      'Step ', 'Start', 'End'
+    ];
+    for (const p of people) {
+      if (p.name) texts.push(p.name);
+      const first = p.firstName || p.name.split(' ')[0];
+      if (first) texts.push(first);
+      const family = p.familyName || p.name.split(' ').slice(1).join(' ');
+      if (family) texts.push(family);
+    }
+
+    const uniqueTexts = [...new Set(texts)].filter(t => t && /[A-Za-z]/.test(t));
+    const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+    const toTranslate = uniqueTexts.filter(t => !cache[t]);
+
+    if (toTranslate.length > 0 && window.api && window.api.translateBatch) {
+      try {
+        for (let i = 0; i < toTranslate.length; i += 50) {
+          const chunk = toTranslate.slice(i, i + 50);
+          const trans = await window.api.translateBatch(chunk, 'ar');
+          if (trans && trans.length === chunk.length) {
+            for (let j = 0; j < chunk.length; j++) {
+              cache[chunk[j]] = trans[j];
+            }
+            localStorage.setItem('ar-translation-cache', JSON.stringify(cache));
+          }
+        }
+        if (this.canvas) this.canvas.draw();
+        if (this.worldCanvas) this.worldCanvas.draw();
+      } catch (err) {
+        console.error("Database pre-translation failed:", err);
+      }
     }
   }
 

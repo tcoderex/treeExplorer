@@ -98,7 +98,7 @@
       const lang = localStorage.getItem('app-language');
       const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
       if (lang === 'ar') {
-        document.querySelector('.app-title').innerText = 'المنطقة العربية';
+        document.querySelector('.app-title').innerText = 'Extra C';
         const subtitle = document.querySelector('.app-subtitle');
         if (Object.keys(cache).length < 50) {
             subtitle.innerText = 'إعداد لأول مرة: جاري تنزيل الترجمة العربية... يرجى الانتظار (قد يستغرق بعض الوقت)';
@@ -113,7 +113,7 @@
 </head>
 <body>
   <img class="app-icon" src="build/icon.png" alt="App Icon" style="width: 96px; height: 96px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);">
-  <div class="app-title">Windows Family Tree Explorer</div>
+  <div class="app-title">Extra C: Family Tree Explorer</div>
   <div class="app-subtitle">Initializing workspace...</div>
   <div class="fluent-loader">
     <div class="dot"></div>

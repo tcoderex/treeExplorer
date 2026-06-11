@@ -1,7 +1,7 @@
 {
-  "name": "the-arabic-area",
-  "version": "6.0.0",
-  "description": "The Arabic Area: Windows 11 styled family tree explorer for handling 1000+ members",
+  "name": "extra-c",
+  "version": "10.0.0",
+  "description": "Extra C: Windows 11 styled family tree explorer for handling 1000+ members",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -27,8 +27,8 @@
   },
   "build": {
     "electronVersion": "31.7.7",
-    "appId": "com.win11.thearabicarea",
-    "productName": "The Arabic Area",
+    "appId": "com.win11.extrac",
+    "productName": "Extra C",
     "win": {
       "icon": "build/icon.png",
       "target": [
@@ -42,7 +42,7 @@
       "allowToChangeInstallationDirectory": true,
       "installerSidebar": "build/installerSidebar.png",
       "installerHeader": "build/installerHeader.png",
-      "uninstallDisplayName": "The Arabic Area",
+      "uninstallDisplayName": "Extra C",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },

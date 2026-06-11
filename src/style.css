@@ -2986,3 +2986,616 @@ body.theme-dark #btn-titlebar-settings.active {
   color: #60cdff !important;
   background: rgba(96, 205, 255, 0.15) !important;
 }
+
+/* ==========================================================================
+   WINDOWS 7 CLASSIC AERO DESIGN SYSTEM OVERRIDES (v10.0.0)
+   ========================================================================== */
+
+body.theme-win7 {
+  --win-bg: #3b8ec2;
+  --win-panel-bg: rgba(200, 225, 248, 0.4);
+  --win-card-bg: rgba(255, 255, 255, 0.82);
+  --win-card-hover: rgba(255, 255, 255, 0.95);
+  
+  --win-accent: #2c7bb3;
+  --win-accent-hover: #165682;
+  --win-accent-light: rgba(44, 123, 179, 0.15);
+  --win-border-light: rgba(255, 255, 255, 0.6);
+  --win-border-heavy: rgba(22, 86, 130, 0.5);
+  --win-border-color: var(--win-border-light);
+  
+  --win-text-primary: #0a1f33;
+  --win-text-secondary: #3b5266;
+  --win-text-disabled: #8ea3b5;
+  
+  --male-color: #1e70a4;
+  --male-bg: rgba(30, 112, 164, 0.12);
+  --female-color: #cb2978;
+  --female-bg: rgba(203, 41, 120, 0.12);
+  
+  --status-success: #208e4e;
+  --status-warning: #c26102;
+  --status-danger: #e04402;
+  
+  --win-shadow: 0 4px 15px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --win-shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --win-shadow-flyout: 0 12px 30px rgba(0, 0, 0, 0.35);
+  
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Base scrollbars in Windows 7 Theme - Glassy, Rounded */
+body.theme-win7 ::-webkit-scrollbar-thumb {
+  background: rgba(30, 110, 160, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 4px;
+}
+body.theme-win7 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 110, 160, 0.55) !important;
+}
+body.theme-win7 ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Mica Backdrop blur effect for Windows 7 Aero (simulates classic wallpaper and glass) */
+body.theme-win7 .mica-overlay {
+  background: radial-gradient(circle at 60% 30%, rgba(220, 240, 255, 0.2) 0%, rgba(30, 110, 175, 0.45) 60%, rgba(5, 45, 90, 0.75) 100%) !important;
+  backdrop-filter: blur(12px) saturate(140%) !important;
+}
+
+/* Sidebar overrides in Windows 7 Aero (Classic Blue Aero Glass) */
+body.theme-win7 .fluent-sidebar {
+  background: linear-gradient(135deg, rgba(220, 240, 255, 0.45) 0%, rgba(150, 195, 235, 0.25) 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.4), 0 0 15px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(20px) saturate(130%) !important;
+}
+
+body.theme-win7 .nav-item {
+  margin: 4px 8px !important;
+  border-radius: 4px !important;
+  border: 1px solid transparent !important;
+  transition: all 0.15s ease !important;
+}
+
+body.theme-win7 .nav-item:hover {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6) 0%, rgba(220, 238, 255, 0.4) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.5) !important;
+  color: #0d385c !important;
+}
+
+body.theme-win7 .nav-item.active {
+  background: linear-gradient(to bottom, rgba(197, 225, 247, 0.75) 0%, rgba(150, 195, 235, 0.85) 50%, rgba(125, 178, 224, 0.9) 51%, rgba(162, 206, 243, 0.75) 100%) !important;
+  border: 1px solid rgba(20, 80, 130, 0.45) !important;
+  border-top-color: rgba(255,255,255,0.8) !important;
+  border-left-color: rgba(255,255,255,0.6) !important;
+  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+  color: #0b2e4b !important;
+  font-weight: 600 !important;
+}
+
+/* Glass Windows Titlebar override */
+body.theme-win7 .windows-titlebar {
+  background: linear-gradient(to bottom, rgba(235, 245, 255, 0.5) 0%, rgba(180, 215, 240, 0.25) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(15px) saturate(120%) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+body.theme-win7 .titlebar-btn:hover {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 0%, rgba(220, 235, 250, 0.3) 100%) !important;
+}
+
+body.theme-win7 .titlebar-btn.close:hover {
+  background: linear-gradient(to bottom, #f37a7a 0%, #d12c2c 50%, #b51c1c 51%, #e04848 100%) !important;
+  border: 1px solid #7d0d0d !important;
+  color: #ffffff !important;
+}
+
+/* Header search bar glassy style */
+body.theme-win7 .header-search-container {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(20, 80, 130, 0.3) !important;
+  border-top-color: rgba(20, 80, 130, 0.4) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.08) !important;
+}
+
+/* Cards & Panels - Rounded glass look */
+body.theme-win7 .fluent-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 250, 255, 0.75) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-top-color: rgba(255, 255, 255, 0.9) !important;
+  border-left-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  border-radius: 6px !important;
+}
+
+body.theme-win7 .fluent-card.bg-acrylic-cyan {
+  background: linear-gradient(135deg, rgba(225, 242, 255, 0.85) 0%, rgba(205, 230, 250, 0.75) 100%) !important;
+  border-color: rgba(30, 110, 175, 0.3) !important;
+}
+
+/* Classic glossy button style for Windows 7 Aero */
+body.theme-win7 .fluent-btn {
+  background: linear-gradient(to bottom, #f9fbfd 0%, #eaeef4 50%, #dbe3ee 51%, #cdd7e6 100%) !important;
+  border: 1px solid #9bb1cb !important;
+  border-top-color: #b5c7dd !important;
+  color: #1a3552 !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-radius: 4px !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7) !important;
+  transition: all 0.1s linear !important;
+}
+
+body.theme-win7 .fluent-btn:hover {
+  background: linear-gradient(to bottom, #f2f7fc 0%, #e1eef7 50%, #d1e5f2 51%, #badaf0 100%) !important;
+  border-color: #709bc5 !important;
+  box-shadow: 0 1px 3px rgba(0,120,212,0.15), inset 0 1px 0 rgba(255,255,255,0.8), 0 0 4px rgba(96,175,233,0.3) !important;
+}
+
+body.theme-win7 .fluent-btn:active {
+  background: linear-gradient(to bottom, #d5e5f3 0%, #b8d4ed 50%, #9bc2e5 51%, #8cb9df 100%) !important;
+  border-color: #5580aa !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Solid accents for submit / important buttons (Glowing Aero Blue) */
+body.theme-win7 .btn-solid {
+  background: linear-gradient(to bottom, #e3f2fd 0%, #b3e5fc 50%, #81d4fa 51%, #4fc3f7 100%) !important;
+  border: 1px solid #4ba8d8 !important;
+  border-top-color: #8ce1ff !important;
+  color: #032d4b !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8), 0 0 6px rgba(129,212,250,0.3) !important;
+}
+
+body.theme-win7 .btn-solid:hover {
+  background: linear-gradient(to bottom, #e1f5fe 0%, #81d4fa 50%, #4fc3f7 51%, #29b6f6 100%) !important;
+  border-color: #269ccf !important;
+  box-shadow: 0 1px 4px rgba(0,120,212,0.25), inset 0 1px 0 rgba(255,255,255,0.9), 0 0 8px rgba(41,182,246,0.5) !important;
+}
+
+/* Danger buttons (Glowing red/orange glossy) */
+body.theme-win7 .btn-danger {
+  background: linear-gradient(to bottom, #fbe9e7 0%, #ffccbc 50%, #ffab91 51%, #ff8a65 100%) !important;
+  border: 1px solid #d37357 !important;
+  border-top-color: #ffbba7 !important;
+  color: #4e190b !important;
+}
+
+body.theme-win7 .btn-danger:hover {
+  background: linear-gradient(to bottom, #fff3e0 0%, #ffab91 50%, #ff8a65 51%, #ff7043 100%) !important;
+  border-color: #c95c3a !important;
+}
+
+/* Inputs & Form controls - Glossy rounded look with steel blue focus */
+body.theme-win7 input[type="text"],
+body.theme-win7 input[type="number"],
+body.theme-win7 select,
+body.theme-win7 textarea {
+  background: #ffffff !important;
+  color: #0c2742 !important;
+  border: 1px solid #a8bbd1 !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06) !important;
+  padding: 6px 10px !important;
+  transition: all 0.15s ease !important;
+}
+
+body.theme-win7 input[type="text"]:focus,
+body.theme-win7 input[type="number"]:focus,
+body.theme-win7 select:focus,
+body.theme-win7 textarea:focus {
+  border-color: #66afe9 !important;
+  outline: 0 !important;
+  box-shadow: inset 0 1.5px 3px rgba(0,0,0,0.05), 0 0 8px rgba(102, 175, 233, 0.6) !important;
+}
+
+/* Headers style (Aero Window Titles) */
+body.theme-win7 .fluent-title {
+  font-family: 'Segoe UI', Tahoma, sans-serif !important;
+  font-weight: bold !important;
+  color: #0b233a !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+body.theme-win7 .fluent-subtitle {
+  color: #3f556b !important;
+}
+
+/* Pedigree Tree Scroller outer frame */
+body.theme-win7 .pedigree-scroller {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.08) !important;
+}
+
+/* Modals styled like classic Aero Glass dialog boxes */
+body.theme-win7 .fluent-modal-card {
+  background: linear-gradient(135deg, rgba(230, 242, 255, 0.9) 0%, rgba(200, 222, 245, 0.85) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.85) !important;
+  border-top-color: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(22, 86, 130, 0.25) !important;
+  border-radius: 8px !important;
+  color: #0a1e30 !important;
+  backdrop-filter: blur(25px) saturate(130%) !important;
+}
+
+body.theme-win7 .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+body.theme-win7 .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+body.theme-win7 .modal-info-list li {
+  border-bottom: 1px solid rgba(20, 80, 130, 0.08) !important;
+}
+
+body.theme-win7 .info-val {
+  color: #0c2d4a !important;
+}
+
+body.theme-win7 .mini-bubble {
+  background: linear-gradient(to bottom, #ffffff 0%, #eef5fb 100%) !important;
+  border: 1px solid #b2c8de !important;
+  color: #123354 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+
+body.theme-win7 .mini-bubble:hover {
+  background: linear-gradient(to bottom, #ffffff 0%, #dbe9f5 100%) !important;
+  border-color: #86afd4 !important;
+}
+
+/* Table styling override for Win7 */
+body.theme-win7 .fluent-data-table th {
+  background: linear-gradient(to bottom, #f2f7fc 0%, #e1eef8 50%, #d1e5f3 51%, #c1dcf0 100%) !important;
+  border-bottom: 1px solid #7eaacb !important;
+  border-right: 1px solid #c8dbe8 !important;
+  color: #102e47 !important;
+  font-weight: bold !important;
+}
+
+body.theme-win7 .fluent-data-table th:hover {
+  background: linear-gradient(to bottom, #fcfdfe 0%, #f1f6fb 50%, #e2eef7 51%, #cfe4f2 100%) !important;
+}
+
+body.theme-win7 .fluent-data-table tbody tr:hover {
+  background: rgba(102, 175, 233, 0.1) !important;
+}
+
+body.theme-win7 .fluent-data-table td {
+  border-bottom: 1px solid #e2ebf0 !important;
+  color: #0c253b !important;
+}
+
+body.theme-win7 .grid-table-header {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border-bottom: 1px solid rgba(20, 80, 130, 0.1) !important;
+}
+
+body.theme-win7 .grid-table-footer {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border-top: 1px solid rgba(20, 80, 130, 0.1) !important;
+}
+
+/* Active Theme Choice Highlighter in Win7 Theme */
+body.theme-win7 .theme-card-option.active {
+  border-color: #66afe9 !important;
+  box-shadow: 0 4px 15px rgba(102, 175, 233, 0.35) !important;
+  background: linear-gradient(to bottom, #f2f8fc 0%, #d1e9f7 100%) !important;
+}
+
+/* Canvas Header overlay styling */
+body.theme-win7 .canvas-header-bar {
+  background: linear-gradient(to bottom, rgba(235, 245, 255, 0.5) 0%, rgba(180, 215, 240, 0.2) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ==========================================================================
+   THEME TRANSFORMATION ANIMATION KEYFRAMES
+   ========================================================================== */
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+@keyframes bounce-color {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.08); opacity: 1; filter: brightness(1.2); }
+}
+
+@keyframes sheen {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* ==========================================================================
+   SIDEBAR CUSTOMIZATION LAYOUT STYLES (v10.0.0 Extra C)
+   ========================================================================== */
+
+/* 1. Sidebar Style: Grid Layout */
+body.sidebar-style-grid .sidebar-nav {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  padding: 0 12px !important;
+}
+
+body.sidebar-style-grid .nav-item {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 76px !important;
+  padding: 8px 4px !important;
+  text-align: center !important;
+  gap: 6px !important;
+  border-radius: 6px !important;
+}
+
+body.sidebar-style-grid .nav-icon {
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0 !important;
+}
+
+body.sidebar-style-grid .nav-text {
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+}
+
+body.sidebar-style-grid .nav-active-indicator {
+  width: 24px !important;
+  height: 3px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  bottom: 4px !important;
+  top: auto !important;
+}
+
+/* Revert grid mode styles when sidebar is collapsed */
+body.sidebar-style-grid .fluent-sidebar.collapsed .sidebar-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+}
+
+body.sidebar-style-grid .fluent-sidebar.collapsed .nav-item {
+  flex-direction: row !important;
+  height: auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+body.sidebar-style-grid .fluent-sidebar.collapsed .nav-active-indicator {
+  width: 3px !important;
+  height: 16px !important;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  bottom: auto !important;
+}
+
+/* 2. Sidebar Position and Direction Layout Overrides */
+
+/* Right-aligned layout (flows reverse if LTR + right position, or RTL + left position) */
+html:not([dir="rtl"]) body.sidebar-pos-right .app-workspace,
+html[dir="rtl"] body:not(.sidebar-pos-right) .app-workspace {
+  flex-direction: row-reverse !important;
+}
+
+/* Left-aligned layout (default LTR + left, or RTL + right) */
+html:not([dir="rtl"]) body:not(.sidebar-pos-right) .app-workspace,
+html[dir="rtl"] body.sidebar-pos-right .app-workspace {
+  flex-direction: row !important;
+}
+
+/* Border and Shadow Styles based on Visual Side */
+
+/* Sidebar visually on LEFT */
+html:not([dir="rtl"]) body:not(.sidebar-pos-right) .fluent-sidebar,
+html[dir="rtl"] body.sidebar-pos-right .fluent-sidebar {
+  border-right: 1px solid var(--win-border-light) !important;
+  border-left: none !important;
+}
+
+html:not([dir="rtl"]) body:not(.sidebar-pos-right).theme-dark .fluent-sidebar,
+html[dir="rtl"] body.sidebar-pos-right.theme-dark .fluent-sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-left: none !important;
+}
+
+html:not([dir="rtl"]) body:not(.sidebar-pos-right).theme-win7 .fluent-sidebar,
+html[dir="rtl"] body.sidebar-pos-right.theme-win7 .fluent-sidebar {
+  border-right: 1px solid rgba(255, 255, 255, 0.55) !important;
+  border-left: none !important;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.4), 0 0 15px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Sidebar visually on RIGHT */
+html:not([dir="rtl"]) body.sidebar-pos-right .fluent-sidebar,
+html[dir="rtl"] body:not(.sidebar-pos-right) .fluent-sidebar {
+  border-left: 1px solid var(--win-border-light) !important;
+  border-right: none !important;
+}
+
+html:not([dir="rtl"]) body.sidebar-pos-right.theme-dark .fluent-sidebar,
+html[dir="rtl"] body:not(.sidebar-pos-right).theme-dark .fluent-sidebar {
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-right: none !important;
+}
+
+html:not([dir="rtl"]) body.sidebar-pos-right.theme-win7 .fluent-sidebar,
+html[dir="rtl"] body:not(.sidebar-pos-right).theme-win7 .fluent-sidebar {
+  border-left: 1px solid rgba(255, 255, 255, 0.55) !important;
+  border-right: none !important;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4), 0 0 15px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Active indicator position based on Visual Side for list mode */
+html:not([dir="rtl"]) body:not(.sidebar-pos-right) .nav-active-indicator,
+html[dir="rtl"] body.sidebar-pos-right .nav-active-indicator {
+  left: 0 !important;
+  right: auto !important;
+}
+
+html:not([dir="rtl"]) body.sidebar-pos-right .nav-active-indicator,
+html[dir="rtl"] body:not(.sidebar-pos-right) .nav-active-indicator {
+  right: 0 !important;
+  left: auto !important;
+}
+
+
+/* 3. Auto-Hide Sidebar behavior */
+body.sidebar-autohide .fluent-sidebar {
+  width: 64px !important;
+  transition: width var(--transition-normal) !important;
+}
+
+body.sidebar-autohide .fluent-sidebar .sidebar-user-info,
+body.sidebar-autohide .fluent-sidebar .nav-text,
+body.sidebar-autohide .fluent-sidebar .footer-system-info {
+  opacity: 0 !important;
+  width: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transition: opacity var(--transition-fast) !important;
+}
+
+body.sidebar-autohide .fluent-sidebar .sidebar-toggle-row {
+  padding: 0 14px 12px 14px !important;
+}
+
+body.sidebar-autohide .fluent-sidebar .sidebar-user-panel {
+  padding: 0 13px 20px 13px !important;
+  gap: 0 !important;
+}
+
+body.sidebar-autohide .fluent-sidebar .nav-item {
+  gap: 0 !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 4px 6px !important;
+}
+
+body.sidebar-autohide .fluent-sidebar .sidebar-footer {
+  padding: 0 8px !important;
+}
+
+/* Auto-hide hover expansion */
+body.sidebar-autohide .fluent-sidebar:hover {
+  width: 250px !important;
+}
+
+body.sidebar-autohide .fluent-sidebar:hover .sidebar-user-info,
+body.sidebar-autohide .fluent-sidebar:hover .nav-text,
+body.sidebar-autohide .fluent-sidebar:hover .footer-system-info {
+  opacity: 1 !important;
+  width: auto !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+body.sidebar-autohide .fluent-sidebar:hover .sidebar-toggle-row {
+  padding: 0 16px 12px 16px !important;
+}
+
+body.sidebar-autohide .fluent-sidebar:hover .sidebar-user-panel {
+  padding: 0 16px 20px 16px !important;
+  gap: 12px !important;
+}
+
+body.sidebar-autohide .fluent-sidebar:hover .nav-item {
+  gap: 12px !important;
+  justify-content: flex-start !important;
+  padding: 8px 16px !important;
+  margin: 4px 12px !important;
+}
+
+body.sidebar-autohide .fluent-sidebar:hover .sidebar-footer {
+  padding: 0 16px !important;
+}
+
+
+/* 4. Auto-Hide and Grid interaction overrides */
+
+/* Expand state */
+body.sidebar-autohide.sidebar-style-grid .fluent-sidebar:hover .sidebar-nav {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  padding: 0 12px !important;
+}
+
+body.sidebar-autohide.sidebar-style-grid .fluent-sidebar:hover .nav-item {
+  flex-direction: column !important;
+  height: 76px !important;
+  padding: 8px 4px !important;
+  gap: 6px !important;
+}
+
+body.sidebar-autohide.sidebar-style-grid .fluent-sidebar:hover .nav-active-indicator {
+  width: 24px !important;
+  height: 3px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  bottom: 4px !important;
+  top: auto !important;
+}
+
+/* Collapse state (Not Hovered) */
+body.sidebar-autohide.sidebar-style-grid .fluent-sidebar:not(:hover) .sidebar-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+body.sidebar-autohide.sidebar-style-grid .fluent-sidebar:not(:hover) .nav-item {
+  flex-direction: row !important;
+  height: auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  justify-content: center !important;
+  margin: 4px 6px !important;
+}
+
+body.sidebar-autohide.sidebar-style-grid .fluent-sidebar:not(:hover) .nav-active-indicator {
+  width: 3px !important;
+  height: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  bottom: auto !important;
+}
+
+/* Adjust collapsed autohide-grid active indicator position based on visual side */
+html:not([dir="rtl"]) body.sidebar-autohide.sidebar-style-grid.sidebar-pos-right .fluent-sidebar:not(:hover) .nav-active-indicator,
+html[dir="rtl"] body.sidebar-autohide.sidebar-style-grid:not(.sidebar-pos-right) .fluent-sidebar:not(:hover) .nav-active-indicator {
+  right: 0 !important;
+  left: auto !important;
+}
+
+html:not([dir="rtl"]) body.sidebar-autohide.sidebar-style-grid:not(.sidebar-pos-right) .fluent-sidebar:not(:hover) .nav-active-indicator,
+html[dir="rtl"] body.sidebar-autohide.sidebar-style-grid.sidebar-pos-right .fluent-sidebar:not(:hover) .nav-active-indicator {
+  left: 0 !important;
+  right: auto !important;
+}
+
+/* Adjust collapsed active indicator position based on visual side when sidebar is collapsed via toggle button */
+html:not([dir="rtl"]) body.sidebar-style-grid.sidebar-pos-right .fluent-sidebar.collapsed .nav-active-indicator,
+html[dir="rtl"] body.sidebar-style-grid:not(.sidebar-pos-right) .fluent-sidebar.collapsed .nav-active-indicator {
+  right: 0 !important;
+  left: auto !important;
+}
+
+html:not([dir="rtl"]) body.sidebar-style-grid:not(.sidebar-pos-right) .fluent-sidebar.collapsed .nav-active-indicator,
+html[dir="rtl"] body.sidebar-style-grid.sidebar-pos-right .fluent-sidebar.collapsed .nav-active-indicator {
+  left: 0 !important;
+  right: auto !important;
+}

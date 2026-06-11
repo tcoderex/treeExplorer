@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Arabic Area</title>
+  <title>Extra C</title>
   <!-- SEO & Optimization -->
   <meta name="description" content="A premium Windows 11 Fluent styled Family Tree application for massive lineage scaling, featuring a custom parentage mapping engine.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="./src/styles.css">
+  <link rel="stylesheet" href="./src/style.css">
 
   <style>
     /* Hide the Google Translate UI banner and iframe */
@@ -56,7 +56,7 @@
         <svg class="app-icon" viewBox="0 0 24 24" width="16" height="16">
           <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
         </svg>
-        <span class="app-title-text">The Arabic Area</span>
+        <span class="app-title-text">Extra C</span>
         <span class="app-build-badge">Version 9.0</span>
       </div>
       <div class="titlebar-center">
@@ -198,7 +198,7 @@
 
         <div class="sidebar-footer">
           <div class="footer-system-info">
-            <div>The Arabic Area</div>
+            <div>Extra C</div>
             <div class="os-version">Version 9.0 (Fluent Build)</div>
           </div>
         </div>
@@ -215,10 +215,13 @@
               <p class="fluent-subtitle">Lineage statistics, depth metrics, and quick diagnostics.</p>
             </div>
             <div class="header-actions">
-              <button id="btn-dash-univ-linker" class="fluent-btn btn-solid" style="margin-right: 8px; background-color: var(--win-accent);">
+              <button id="btn-dash-find-path" class="fluent-btn btn-solid">
+                🔍 Find Relationship Path
+              </button>
+              <button id="btn-dash-univ-linker" class="fluent-btn btn-solid" style="background-color: var(--win-accent);">
                 🔗 Universal Linker
               </button>
-              <button id="btn-dash-start-tour" class="fluent-btn btn-solid" style="margin-right: 8px;">
+              <button id="btn-dash-start-tour" class="fluent-btn btn-solid">
                 🚀 Start Interactive Tour
               </button>
               <button id="btn-dash-import-mock" class="fluent-btn btn-secondary">
@@ -941,6 +944,20 @@ Examples:
                       <span class="theme-option-name" style="font-size: 11px; font-weight: 500; color: var(--win-text-primary);">Dark Mode</span>
                     </div>
                   </div>
+
+                  <!-- Windows 7 Theme Option Card -->
+                  <div class="theme-card-option" id="theme-opt-win7" data-theme="win7">
+                    <div class="theme-preview-box preview-win7" style="width: 100px; height: 60px; border-radius: 4px; background: linear-gradient(135deg, #1f6aa3 0%, #15558c 30%, #3080b8 60%, #4facdb 100%); border: 1px solid rgba(255,255,255,0.2); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                      <div class="mini-window" style="width: 80px; height: 40px; background: rgba(180, 215, 240, 0.4); backdrop-filter: blur(4px); border-radius: 3px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: flex; gap: 4px; padding: 4px; box-sizing: border-box;">
+                        <div class="mini-card male" style="flex: 1; border-radius: 2px; background: linear-gradient(to bottom, #f2f8fc 0%, #c8e2f0 100%); border: 1px solid #5e94b8;"></div>
+                        <div class="mini-card female" style="flex: 1; border-radius: 2px; background: linear-gradient(to bottom, #fcf2f7 0%, #f0c8dd 100%); border: 1px solid #b85e94;"></div>
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <input type="radio" name="app-theme-radio" id="radio-theme-win7" style="pointer-events: none;">
+                      <span class="theme-option-name" style="font-size: 11px; font-weight: 500; color: var(--win-text-primary);">Windows 7 Aero</span>
+                    </div>
+                  </div>
                   
                 </div>
               </div>
@@ -954,6 +971,55 @@ Examples:
                 <button id="btn-open-language-modal" class="fluent-btn btn-solid" style="padding: 8px 20px; font-size: 13px; background-color: var(--win-accent); color: #ffffff; border-color: var(--win-accent);">
                   🌐 Select Language
                 </button>
+              </div>
+            </div>
+
+            <!-- Section: Sidebar Configuration -->
+            <div class="fluent-card settings-section">
+              <div class="settings-section-header" style="display: flex; gap: 12px; align-items: center; margin-bottom: 20px;">
+                <span class="settings-section-icon" style="font-size: 24px;">🗂️</span>
+                <div class="settings-section-text">
+                  <h2 class="settings-section-title" style="font-size: 16px; font-weight: 600; color: var(--win-text-primary);">Sidebar Settings</h2>
+                  <p class="settings-section-desc" style="font-size: 12px; color: var(--win-text-secondary); margin: 0;">Customize the sidebar layout, side placement, and visibility behaviors.</p>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Sidebar Style -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--win-border-light); padding-bottom: 12px;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">Sidebar Style</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Toggle between a classic list or a space-saving compact grid.</div>
+                  </div>
+                  <select id="select-sidebar-style" class="fluent-select" style="width: 150px;">
+                    <option value="normal">Normal (List)</option>
+                    <option value="grid">Grid (Compact)</option>
+                  </select>
+                </div>
+
+                <!-- Sidebar Position -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--win-border-light); padding-bottom: 12px;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">Sidebar Position</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Choose whether the navigation sidebar stays on the left or right side.</div>
+                  </div>
+                  <select id="select-sidebar-position" class="fluent-select" style="width: 150px;">
+                    <option value="left">Left Side</option>
+                    <option value="right">Right Side</option>
+                  </select>
+                </div>
+
+                <!-- Auto-Hide Sidebar Toggle -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div style="font-size: 14px; font-weight: 500; color: var(--win-text-primary);">Auto-Hide Sidebar</div>
+                    <div style="font-size: 11px; color: var(--win-text-secondary);">Automatically collapse the sidebar when not active or hovered.</div>
+                  </div>
+                  <label class="fluent-switch">
+                    <input type="checkbox" id="toggle-sidebar-autohide">
+                    <span class="fluent-switch-slider"></span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -1084,11 +1150,11 @@ Examples:
               <div class="about-info-list" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--win-border-light);">
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Application Name</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">The Arabic Area</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">Extra C</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Version</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">9.6.0 (Fluent Build)</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">10.0.0 (Aero Performance Edition)</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">High-Performance Engine</span>
@@ -1128,7 +1194,7 @@ Examples:
           <img id="detail-photo" class="hidden" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #0078d4;" />
           <div>
             <h2 id="detail-full-name" class="modal-title" style="margin-bottom: 0; padding-bottom: 0;">John Robert William</h2>
-            <p class="modal-subtitle">ID: <span id="detail-id">P-12345</span></p>
+            <p class="modal-subtitle">ID: <span id="detail-id" class="no-translate">P-12345</span></p>
           </div>
         </div>
 
@@ -1595,6 +1661,33 @@ Examples:
       <div class="fluent-spinner" style="width: 40px; height: 40px; border: 4px solid var(--win-accent-light); border-top: 4px solid var(--win-accent); border-radius: 50; margin: 0 auto 15px auto;"></div>
       <h3 style="font-size: 16px; font-weight: 600; color: var(--win-text-primary); margin-bottom: 5px;" id="loading-title">Populating Database...</h3>
       <p style="font-size: 13px; color: var(--win-text-secondary); margin: 0;" id="loading-message">Generating 100,000 interconnected family members.</p>
+    </div>
+  </div>
+
+  <!-- Windows 7 Transformation Loading Overlay -->
+  <div id="win7-transformation-overlay" class="fluent-modal-overlay hidden" style="z-index: 999999; background: radial-gradient(circle at center, #2b6fa6 0%, #082d59 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease; opacity: 0;">
+    <div class="win7-loading-box" style="text-align: center; color: #ffffff; font-family: 'Segoe UI', Tahoma, sans-serif;">
+      <!-- Windows 7 Orb style glow -->
+      <div class="win7-orb-container" style="margin-bottom: 30px; position: relative; width: 100px; height: 100px; margin-left: auto; margin-right: auto;">
+        <div class="win7-orb-glow" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0) 70%); animation: pulse-glow 2s infinite ease-in-out;"></div>
+        <!-- Emojis or SVGs of four colors representing the windows flag -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 44px; height: 44px;">
+          <div style="background: #e74c3c; border-radius: 4px 10px 4px 4px; opacity: 0.85; animation: bounce-color 1.5s infinite 0.1s; box-shadow: 0 0 10px #e74c3c;"></div>
+          <div style="background: #2ecc71; border-radius: 10px 4px 4px 4px; opacity: 0.85; animation: bounce-color 1.5s infinite 0.3s; box-shadow: 0 0 10px #2ecc71;"></div>
+          <div style="background: #3498db; border-radius: 4px 4px 4px 10px; opacity: 0.85; animation: bounce-color 1.5s infinite 0.5s; box-shadow: 0 0 10px #3498db;"></div>
+          <div style="background: #f1c40f; border-radius: 4px 4px 10px 4px; opacity: 0.85; animation: bounce-color 1.5s infinite 0.7s; box-shadow: 0 0 10px #f1c40f;"></div>
+        </div>
+      </div>
+      <h2 style="font-size: 20px; font-weight: 300; margin-bottom: 8px; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Applying Classic Aero Layout...</h2>
+      <p id="win7-loading-status" style="font-size: 13px; color: #a5d3f7; margin-bottom: 20px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Configuring interface modules (0%)...</p>
+      
+      <!-- Windows 7 classic progress bar -->
+      <div class="win7-progress-bar-container" style="width: 320px; height: 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; padding: 2px; box-sizing: border-box; overflow: hidden; margin: 0 auto; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);">
+        <div id="win7-progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(to bottom, #7ce069 0%, #30b61a 50%, #20960a 51%, #4ed339 100%); border-radius: 2px; transition: width 0.1s linear; position: relative; box-shadow: 0 1px 2px rgba(255,255,255,0.4) inset;">
+          <!-- Glowing sweep animation -->
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); animation: sheen 1.5s infinite linear;"></div>
+        </div>
+      </div>
     </div>
   </div>
 

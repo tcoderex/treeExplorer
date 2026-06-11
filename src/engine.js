@@ -1314,29 +1314,59 @@ export class FamilyTreeEngine {
     const parts = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (parts.length === 0) return [];
 
+    let isAr = false;
+    let cache = {};
+    try {
+       if (localStorage.getItem('app-language') === 'ar') {
+         isAr = true;
+         cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+       }
+    } catch(e) {}
+    
+    const arToEn = {};
+    if (isAr) {
+       for (const [en, ar] of Object.entries(cache)) {
+          if (ar) {
+             const arStr = String(ar).toLowerCase();
+             if (!arToEn[arStr]) arToEn[arStr] = [];
+             arToEn[arStr].push(...String(en).toLowerCase().split(/\s+/));
+          }
+       }
+    }
+
     let resultSet = null;
+
+    const addMatches = (token, set) => {
+      if (this.tokenToIds.has(token)) {
+        this.tokenToIds.get(token).forEach(id => set.add(id));
+      }
+      if (token.length >= 1) {
+        this.tokenToIds.forEach((idSet, dictToken) => {
+          if (dictToken.startsWith(token) && dictToken !== token) {
+            idSet.forEach(id => set.add(id));
+          }
+        });
+      }
+    };
 
     for (const part of parts) {
       const partSet = new Set();
       
-      // Exact match lookup
-      if (this.tokenToIds.has(part)) {
-        this.tokenToIds.get(part).forEach(id => partSet.add(id));
-      }
-      
-      // Prefix search on token keys
-      if (part.length >= 1) {
-        this.tokenToIds.forEach((set, token) => {
-          if (token.startsWith(part) && token !== part) {
-            set.forEach(id => partSet.add(id));
+      addMatches(part, partSet);
+
+      if (isAr) {
+        for (const [arVal, enTokens] of Object.entries(arToEn)) {
+          if (arVal.includes(part)) {
+            for (const enTok of enTokens) {
+               addMatches(enTok, partSet);
+            }
           }
-        });
+        }
       }
 
       if (resultSet === null) {
         resultSet = partSet;
       } else {
-        // Intersect sets
         const newSet = new Set();
         partSet.forEach(id => {
           if (resultSet.has(id)) {

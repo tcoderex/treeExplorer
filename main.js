@@ -163,7 +163,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js')
     },
     show: false,
-    title: "The Arabic Area",
+    title: "Extra C",
     backgroundColor: '#f3f3f3',
     frame: false,
     titleBarStyle: 'hidden',
