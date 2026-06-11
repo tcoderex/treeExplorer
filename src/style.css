@@ -3599,3 +3599,269 @@ html[dir="rtl"] body.sidebar-style-grid.sidebar-pos-right .fluent-sidebar.collap
   left: 0 !important;
   right: auto !important;
 }
+
+/* ==========================================================================
+   PLAYSTATION 1 RETRO CONSOLE PREMIUM THEME DESIGN SYSTEM (v10.0.1)
+   ========================================================================== */
+
+body.theme-ps1 {
+  --win-bg: #4a4a5a;
+  --win-panel-bg: #8c8c9e;
+  --win-card-bg: #cecece;
+  --win-card-hover: #dfdfdf;
+  
+  --win-accent: #f39c12; /* Controller Orange Accent */
+  --win-accent-hover: #d35400;
+  --win-accent-light: rgba(243, 156, 18, 0.15);
+  --win-border-light: #ffffff;
+  --win-border-heavy: #555555;
+  --win-border-color: #000000;
+  
+  --win-text-primary: #000000;
+  --win-text-secondary: #333333;
+  --win-text-disabled: #666666;
+  
+  --male-color: #2ecc71; /* Controller Triangle Green */
+  --male-bg: rgba(46, 204, 113, 0.12);
+  --female-color: #f8a5c2; /* Controller Square Pink */
+  --female-bg: rgba(248, 165, 194, 0.12);
+  
+  --status-success: #2ecc71;
+  --status-warning: #f39c12;
+  --status-danger: #e74c3c;
+  
+  --win-shadow: 2px 2px 0px #000000;
+  --win-shadow-hover: 1px 1px 0px #000000;
+  --win-shadow-flyout: 4px 4px 0px #000000;
+  
+  --font-family: monospace, Courier, monospace;
+}
+
+/* Force Blocky Monospace styling on all widgets under PS1 theme */
+body.theme-ps1,
+body.theme-ps1 *,
+body.theme-ps1 input,
+body.theme-ps1 button,
+body.theme-ps1 select,
+body.theme-ps1 textarea {
+  font-family: monospace, Courier, monospace !important;
+  border-radius: 0px !important;
+}
+
+/* CRT Screen Scanline Overlay */
+body.theme-ps1::before {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background-size: 100% 4px, 6px 100%;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+/* CRT Screen Vignette & Flickering Overlay */
+body.theme-ps1::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0) 65%, rgba(0,0,0,0.3) 120%);
+  z-index: 100000;
+  pointer-events: none;
+  animation: crt-flicker-anim 0.2s infinite;
+}
+
+@keyframes crt-flicker-anim {
+  0% { opacity: 0.98; }
+  50% { opacity: 1.0; }
+  100% { opacity: 0.99; }
+}
+
+/* 3D Outset Button Shapes */
+body.theme-ps1 .fluent-btn {
+  background-color: #cecece !important;
+  color: #000000 !important;
+  border: 2px outset #ffffff !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  padding: 6px 14px !important;
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+}
+
+body.theme-ps1 .fluent-btn:hover {
+  background-color: #dfdfdf !important;
+  border: 2px outset #ffffff !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+}
+
+body.theme-ps1 .fluent-btn:active {
+  background-color: #bebebe !important;
+  border: 2px inset #ffffff !important;
+  box-shadow: 1px 1px 0px #000000 !important;
+}
+
+/* Inset Input Boxes */
+body.theme-ps1 input[type="text"],
+body.theme-ps1 input[type="number"],
+body.theme-ps1 select,
+body.theme-ps1 textarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px inset #ffffff !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.4) !important;
+  padding: 6px !important;
+}
+
+body.theme-ps1 input[type="text"]:focus,
+body.theme-ps1 input[type="number"]:focus,
+body.theme-ps1 select:focus,
+body.theme-ps1 textarea:focus {
+  border: 2px inset #ffffff !important;
+  outline: 2px solid #f39c12 !important;
+}
+
+/* Blocky Panel Cards */
+body.theme-ps1 .fluent-card {
+  background-color: #cecece !important;
+  border: 2px outset #ffffff !important;
+  box-shadow: 2px 2px 0px #000000 !important;
+  color: #000000 !important;
+}
+
+/* Sidebar Overrides for PlayStation Console Look */
+body.theme-ps1 .fluent-sidebar {
+  background-color: #8c8c9e !important;
+  border-right: 3px double #ffffff !important;
+  box-shadow: 2px 0px 0px #000000 !important;
+}
+
+body.theme-ps1 .nav-item {
+  border: 2px outset #ffffff !important;
+  background-color: #cecece !important;
+  box-shadow: 1px 1px 0px #000000 !important;
+  margin: 6px 8px !important;
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+body.theme-ps1 .nav-item:hover {
+  background-color: #dfdfdf !important;
+  color: #000000 !important;
+}
+
+body.theme-ps1 .nav-item.active {
+  background-color: #bebebe !important;
+  border: 2px inset #ffffff !important;
+  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5) !important;
+  color: #f39c12 !important; /* Active Orange Highlight */
+}
+
+/* Sidebar grid styles under PS1 */
+body.theme-ps1.sidebar-style-grid .nav-item {
+  height: 68px !important;
+}
+
+/* Header & Titlebars */
+body.theme-ps1 .windows-titlebar {
+  background-color: #4a4a5a !important;
+  border-bottom: 2px solid #000000 !important;
+  color: #ffffff !important;
+}
+
+body.theme-ps1 .titlebar-btn {
+  border: 1px outset #ffffff !important;
+  background-color: #8c8c9e !important;
+  color: #ffffff !important;
+  box-shadow: 1px 1px 0px #000000 !important;
+}
+
+body.theme-ps1 .titlebar-btn:active {
+  border: 1px inset #ffffff !important;
+  box-shadow: 0px 0px 0px #000000 !important;
+}
+
+body.theme-ps1 .header-search-container {
+  background-color: #ffffff !important;
+  border: 2px inset #ffffff !important;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.4) !important;
+}
+
+body.theme-ps1 .canvas-header-bar {
+  background-color: #cecece !important;
+  border-bottom: 2px solid #000000 !important;
+}
+
+/* Active Theme choices grid highlights */
+body.theme-ps1 .theme-card-option {
+  border: 2px outset #ffffff !important;
+  background-color: #cecece !important;
+  box-shadow: 1px 1px 0px #000000 !important;
+}
+
+body.theme-ps1 .theme-card-option.active {
+  border: 2px inset #ffffff !important;
+  background-color: #bebebe !important;
+  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5) !important;
+  outline: 2px solid #f39c12 !important;
+}
+
+/* Modals & Dialog Boxes */
+body.theme-ps1 .fluent-modal-card {
+  background-color: #cecece !important;
+  border: 3px double #ffffff !important;
+  box-shadow: 4px 4px 0px #000000 !important;
+}
+
+body.theme-ps1 .modal-header {
+  border-bottom: 2px solid #000000 !important;
+  background-color: #4a4a5a !important;
+  color: #ffffff !important;
+  padding: 12px 18px !important;
+}
+
+body.theme-ps1 .modal-footer {
+  border-top: 2px solid #000000 !important;
+  background-color: #cecece !important;
+  padding: 12px 18px !important;
+}
+
+/* Tables and Data grids */
+body.theme-ps1 .fluent-data-table {
+  border: 2px inset #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+body.theme-ps1 .fluent-data-table th {
+  background-color: #bebebe !important;
+  color: #000000 !important;
+  border-bottom: 2px solid #000000 !important;
+  border-right: 1px solid #555555 !important;
+}
+
+body.theme-ps1 .fluent-data-table td {
+  border-bottom: 1px solid #cecece !important;
+  border-right: 1px solid #cecece !important;
+  color: #000000 !important;
+}
+
+body.theme-ps1 .fluent-data-table tbody tr:hover {
+  background-color: rgba(243, 156, 18, 0.15) !important;
+}
+
+/* Scrollbars */
+body.theme-ps1 ::-webkit-scrollbar-thumb {
+  background: #cecece !important;
+  border: 2px outset #ffffff !important;
+  box-shadow: 1px 1px 0px #000000 !important;
+}
+
+body.theme-ps1 ::-webkit-scrollbar-track {
+  background: #8c8c9e !important;
+}

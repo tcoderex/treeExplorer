@@ -951,16 +951,17 @@ export class LineageCanvas {
 
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
+    const isPs1 = document.body.classList.contains('theme-ps1');
     this.ctx.save();
     
     // Set dashed line style
-    this.ctx.strokeStyle = isWin7 ? 'rgba(255, 255, 255, 0.2)' : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)');
+    this.ctx.strokeStyle = isPs1 ? 'rgba(0, 0, 0, 0.15)' : (isWin7 ? 'rgba(255, 255, 255, 0.2)' : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'));
     this.ctx.lineWidth = 1;
     this.ctx.setLineDash([6, 4]);
 
     // Label style
-    this.ctx.fillStyle = isWin7 ? 'rgba(255, 255, 255, 0.6)' : (isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)');
-    this.ctx.font = isWin7 ? 'bold 10px "Segoe UI", Tahoma, sans-serif' : 'bold 10px Outfit, sans-serif';
+    this.ctx.fillStyle = isPs1 ? 'rgba(0, 0, 0, 0.5)' : (isWin7 ? 'rgba(255, 255, 255, 0.6)' : (isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)'));
+    this.ctx.font = isPs1 ? 'bold 10px monospace' : (isWin7 ? 'bold 10px "Segoe UI", Tahoma, sans-serif' : 'bold 10px Outfit, sans-serif');
 
     // Find the world bounds of the screen to draw the lines across the entire viewport
     const viewWidth = this.canvas.clientWidth;
@@ -1030,15 +1031,16 @@ export class LineageCanvas {
   drawConnections() {
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
+    const isPs1 = document.body.classList.contains('theme-ps1');
     const isGenealogyWorld = this.isGenealogyMode && this.isWorldMode;
 
     // In world network mode, use much thinner, subtler lines
     if (isGenealogyWorld) {
       this.ctx.lineWidth = 1;
-      this.ctx.strokeStyle = isWin7 ? 'rgba(255, 255, 255, 0.25)' : (isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)');
+      this.ctx.strokeStyle = isPs1 ? 'rgba(0, 0, 0, 0.25)' : (isWin7 ? 'rgba(255, 255, 255, 0.25)' : (isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'));
     } else {
       this.ctx.lineWidth = 2;
-      this.ctx.strokeStyle = isWin7 ? 'rgba(255, 255, 255, 0.45)' : (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.12)');
+      this.ctx.strokeStyle = isPs1 ? 'rgba(0, 0, 0, 0.45)' : (isWin7 ? 'rgba(255, 255, 255, 0.45)' : (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.12)'));
     }
 
     this.nodes.forEach(node => {
@@ -1163,10 +1165,11 @@ export class LineageCanvas {
     const isFocusLine = this.focusPersonId && (String(startNode.id) === String(this.focusPersonId) || String(endNode.id) === String(this.focusPersonId));
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
+    const isPs1 = document.body.classList.contains('theme-ps1');
     this.ctx.lineWidth = isFocusLine ? 3 : 2;
     this.ctx.strokeStyle = isFocusLine 
-      ? (isWin7 ? '#82cae3' : (isDark ? '#60cdff' : '#0078d4')) 
-      : (isWin7 ? 'rgba(255, 255, 255, 0.5)' : (isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)'));
+      ? (isPs1 ? '#e67e22' : (isWin7 ? '#82cae3' : (isDark ? '#60cdff' : '#0078d4'))) 
+      : (isPs1 ? 'rgba(0, 0, 0, 0.4)' : (isWin7 ? 'rgba(255, 255, 255, 0.5)' : (isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)')));
 
     let sx, sy, ex, ey;
 
@@ -1174,8 +1177,8 @@ export class LineageCanvas {
        // In World Network mode, draw thin straight web lines
        this.ctx.lineWidth = 1;
        this.ctx.strokeStyle = isFocusLine 
-         ? (isWin7 ? 'rgba(130, 202, 227, 0.8)' : (isDark ? 'rgba(96, 205, 255, 0.6)' : 'rgba(0, 120, 212, 0.5)')) 
-         : (isWin7 ? 'rgba(255, 255, 255, 0.2)' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)'));
+         ? (isPs1 ? 'rgba(230, 126, 34, 0.8)' : (isWin7 ? 'rgba(130, 202, 227, 0.8)' : (isDark ? 'rgba(96, 205, 255, 0.6)' : 'rgba(0, 120, 212, 0.5)'))) 
+         : (isPs1 ? 'rgba(0, 0, 0, 0.15)' : (isWin7 ? 'rgba(255, 255, 255, 0.2)' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)')));
        sx = startNode.x + this.nodeWidth / 2;
        sy = startNode.y + this.nodeHeight / 2;
        ex = endNode.x + this.nodeWidth / 2;
@@ -1216,7 +1219,8 @@ export class LineageCanvas {
     this.ctx.beginPath();
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
-    this.ctx.strokeStyle = isWin7 ? '#ff9ecb' : (isDark ? '#ff8cda' : '#e3008c'); // Pink solid
+    const isPs1 = document.body.classList.contains('theme-ps1');
+    this.ctx.strokeStyle = isPs1 ? '#ff8cda' : (isWin7 ? '#ff9ecb' : (isDark ? '#ff8cda' : '#e3008c')); // Pink solid
     this.ctx.lineWidth = 2;
     
     // Connect the left edges with a neat bracket to indicate marriage
@@ -1239,9 +1243,10 @@ export class LineageCanvas {
     this.ctx.beginPath();
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
-    this.ctx.strokeStyle = isWin7 ? '#d2aeff' : (isDark ? '#b277ff' : '#8855cc'); // Purple-ish
+    const isPs1 = document.body.classList.contains('theme-ps1');
+    this.ctx.strokeStyle = isPs1 ? '#b277ff' : (isWin7 ? '#d2aeff' : (isDark ? '#b277ff' : '#8855cc')); // Purple-ish
     this.ctx.lineWidth = 2;
-    this.ctx.setLineDash([4, 4]); // Dashed bracket for siblings
+    this.ctx.setLineDash(isPs1 ? [] : [4, 4]); // Solid bracket for PS1, dashed for others
     
     // Connect the right edges with a neat bracket to indicate siblings
     const x = nodeA.x + this.nodeWidth;
@@ -1281,7 +1286,8 @@ export class LineageCanvas {
       by = nodeB.y + this.nodeHeight / 2;
       const isDark = document.body.classList.contains('theme-dark');
       const isWin7 = document.body.classList.contains('theme-win7');
-      this.ctx.strokeStyle = isWin7 ? 'rgba(255, 158, 203, 0.65)' : (isDark ? 'rgba(255, 140, 218, 0.45)' : 'rgba(227, 0, 140, 0.35)'); // Beautiful semi-transparent pink
+      const isPs1 = document.body.classList.contains('theme-ps1');
+      this.ctx.strokeStyle = isPs1 ? 'rgba(255, 140, 218, 0.45)' : (isWin7 ? 'rgba(255, 158, 203, 0.65)' : (isDark ? 'rgba(255, 140, 218, 0.45)' : 'rgba(227, 0, 140, 0.35)')); // Beautiful semi-transparent pink
       this.ctx.lineWidth = 1.2;
     } else {
       if (this.layoutDirection === 'vertical') {
@@ -1315,9 +1321,10 @@ export class LineageCanvas {
     }
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
-    this.ctx.strokeStyle = isWin7 ? '#d2aeff' : (isDark ? '#b277ff' : '#8855cc'); // Purple-ish indicator for siblings
+    const isPs1 = document.body.classList.contains('theme-ps1');
+    this.ctx.strokeStyle = isPs1 ? '#b277ff' : (isWin7 ? '#d2aeff' : (isDark ? '#b277ff' : '#8855cc')); // Purple-ish indicator for siblings
     this.ctx.lineWidth = 2;
-    this.ctx.setLineDash([2, 3]); // Dotted line
+    this.ctx.setLineDash(isPs1 ? [] : [2, 3]); // Solid for PS1
     this.ctx.beginPath();
 
     let ax, ay, bx, by;
@@ -1329,7 +1336,8 @@ export class LineageCanvas {
       by = nodeB.y + this.nodeHeight / 2;
       const isDark = document.body.classList.contains('theme-dark');
       const isWin7 = document.body.classList.contains('theme-win7');
-      this.ctx.strokeStyle = isWin7 ? 'rgba(210, 175, 255, 0.65)' : (isDark ? 'rgba(178, 119, 255, 0.45)' : 'rgba(136, 85, 204, 0.35)'); // Beautiful semi-transparent purple
+      const isPs1 = document.body.classList.contains('theme-ps1');
+      this.ctx.strokeStyle = isPs1 ? 'rgba(178, 119, 255, 0.45)' : (isWin7 ? 'rgba(210, 175, 255, 0.65)' : (isDark ? 'rgba(178, 119, 255, 0.45)' : 'rgba(136, 85, 204, 0.35)')); // Beautiful semi-transparent purple
       this.ctx.lineWidth = 1.2;
     } else {
       if (this.layoutDirection === 'vertical') {
@@ -1376,22 +1384,23 @@ export class LineageCanvas {
       }
 
       const isWin7 = document.body.classList.contains('theme-win7');
+      const isPs1 = document.body.classList.contains('theme-ps1');
 
       // Card drop shadow
-      this.ctx.shadowColor = isWin7 ? 'rgba(0, 0, 0, 0.25)' : (isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.05)');
+      this.ctx.shadowColor = isPs1 ? 'rgba(0, 0, 0, 0.45)' : (isWin7 ? 'rgba(0, 0, 0, 0.25)' : (isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.05)'));
       this.ctx.shadowBlur = isFocus ? 12 : 5;
       this.ctx.shadowOffsetY = 2;
 
       // Accent border
-      let strokeColor = isWin7 ? '#7ca4c0' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)');
+      let strokeColor = isPs1 ? '#555555' : (isWin7 ? '#7ca4c0' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'));
       if (isFocus) {
-        strokeColor = isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4'); // Fluent/Aero blue glow
+        strokeColor = isPs1 ? '#e67e22' : (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4'));
       } else if (isHovered) {
-        strokeColor = isWin7 ? '#5089af' : (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)');
+        strokeColor = isPs1 ? '#888888' : (isWin7 ? '#5089af' : (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)'));
       }
 
       // Card Fill
-      let fillColor = isDark ? '#2d2d2d' : '#ffffff';
+      let fillColor = isPs1 ? '#bebebe' : (isDark ? '#2d2d2d' : '#ffffff');
       const heatmapToggle = document.getElementById('toggle-v8-heatmap');
       const isHeatmapActive = heatmapToggle && heatmapToggle.checked;
       
@@ -1467,7 +1476,9 @@ export class LineageCanvas {
           }
           fillColor = grad;
         } else {
-          if (isFocus) {
+          if (isPs1) {
+            fillColor = '#bebebe';
+          } else if (isFocus) {
             fillColor = isDark ? '#2d2d2d' : '#ffffff';
           } else if (isHovered) {
             fillColor = isDark ? '#383838' : '#fafafa';
@@ -1481,38 +1492,97 @@ export class LineageCanvas {
         this.ctx.fillStyle = fillColor;
 
         if (this.isWorldMode) {
-          // Network Node mode: Circular dots
-          this.ctx.beginPath();
-          this.ctx.arc(node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 24, 0, Math.PI * 2);
-          this.ctx.fill();
-          this.ctx.stroke();
-
-          // Render circular image inside circle
-          if (p.photo) {
-            this.drawCircularAvatar(p.photo, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 22);
-          } else {
-            // Colored circle with initials
-            this.ctx.fillStyle = p.gender === 'M' ? (isDark ? '#60cdff' : '#0078d4') : (isDark ? '#ff8cda' : '#e3008c');
-            this.ctx.beginPath();
-            this.ctx.arc(node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 22, 0, Math.PI * 2);
-            this.ctx.fill();
+          // Network Node mode
+          if (isPs1) {
+            this.ctx.fillStyle = fillColor;
+            this.ctx.fillRect(node.x + this.nodeWidth/2 - 20, node.y + this.nodeHeight/2 - 20, 40, 40);
             
-            // Draw initials
-            this.ctx.fillStyle = '#ffffff';
-            this.ctx.font = 'bold 11px Outfit, sans-serif';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            const rawFirst = p.firstName || (p.name ? p.name.split(' ')[0] : '');
-            const rawFamily = p.familyName || (p.name ? p.name.split(' ').slice(1).join(' ') : '');
-            const transFirst = this.t(rawFirst);
-            const transFamily = this.t(rawFamily);
-            const initials = (transFirst ? transFirst[0] : '') + (transFamily ? transFamily[0] : '');
-            this.ctx.fillText(initials.toUpperCase(), node.x + this.nodeWidth/2, node.y + this.nodeHeight/2);
+            const highlightColor = isFocus ? '#555555' : '#ffffff';
+            const shadowColor = isFocus ? '#ffffff' : '#555555';
+            this.ctx.lineWidth = 2;
+            
+            this.ctx.strokeStyle = highlightColor;
+            this.ctx.beginPath();
+            this.ctx.moveTo(node.x + this.nodeWidth/2 - 19, node.y + this.nodeHeight/2 + 19);
+            this.ctx.lineTo(node.x + this.nodeWidth/2 - 19, node.y + this.nodeHeight/2 - 19);
+            this.ctx.lineTo(node.x + this.nodeWidth/2 + 19, node.y + this.nodeHeight/2 - 19);
+            this.ctx.stroke();
+
+            this.ctx.strokeStyle = shadowColor;
+            this.ctx.beginPath();
+            this.ctx.moveTo(node.x + this.nodeWidth/2 - 19, node.y + this.nodeHeight/2 + 19);
+            this.ctx.lineTo(node.x + this.nodeWidth/2 + 19, node.y + this.nodeHeight/2 + 19);
+            this.ctx.lineTo(node.x + this.nodeWidth/2 + 19, node.y + this.nodeHeight/2 - 19);
+            this.ctx.stroke();
+
+            this.ctx.strokeStyle = '#000000';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(node.x + this.nodeWidth/2 - 20, node.y + this.nodeHeight/2 - 20, 40, 40);
+
+            const cx = node.x + this.nodeWidth/2;
+            const cy = node.y + this.nodeHeight/2;
+            this.ctx.save();
+            this.ctx.shadowBlur = 0;
+            if (!!p.deathYear) {
+              this.ctx.strokeStyle = '#2980b9';
+              this.ctx.lineWidth = 2;
+              this.ctx.beginPath();
+              this.ctx.moveTo(cx - 5, cy - 5);
+              this.ctx.lineTo(cx + 5, cy + 5);
+              this.ctx.moveTo(cx + 5, cy - 5);
+              this.ctx.lineTo(cx - 5, cy + 5);
+              this.ctx.stroke();
+            } else if (isFocus) {
+              this.ctx.strokeStyle = '#e74c3c';
+              this.ctx.lineWidth = 2.5;
+              this.ctx.beginPath();
+              this.ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
+              this.ctx.stroke();
+            } else if (p.gender === 'M') {
+              this.ctx.strokeStyle = '#2ecc71';
+              this.ctx.lineWidth = 2;
+              this.ctx.beginPath();
+              this.ctx.moveTo(cx, cy - 6);
+              this.ctx.lineTo(cx + 6, cy + 4);
+              this.ctx.lineTo(cx - 6, cy + 4);
+              this.ctx.closePath();
+              this.ctx.stroke();
+            } else {
+              this.ctx.strokeStyle = '#f8a5c2';
+              this.ctx.lineWidth = 2;
+              this.ctx.strokeRect(cx - 5, cy - 5, 10, 10);
+            }
+            this.ctx.restore();
+          } else {
+            this.ctx.beginPath();
+            this.ctx.arc(node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 24, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            if (p.photo) {
+              this.drawCircularAvatar(p.photo, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 22);
+            } else {
+              this.ctx.fillStyle = p.gender === 'M' ? (isDark ? '#60cdff' : '#0078d4') : (isDark ? '#ff8cda' : '#e3008c');
+              this.ctx.beginPath();
+              this.ctx.arc(node.x + this.nodeWidth/2, node.y + this.nodeHeight/2, 22, 0, Math.PI * 2);
+              this.ctx.fill();
+              
+              this.ctx.fillStyle = '#ffffff';
+              this.ctx.font = 'bold 11px Outfit, sans-serif';
+              this.ctx.textAlign = 'center';
+              this.ctx.textBaseline = 'middle';
+              const rawFirst = p.firstName || (p.name ? p.name.split(' ')[0] : '');
+              const rawFamily = p.familyName || (p.name ? p.name.split(' ').slice(1).join(' ') : '');
+              const transFirst = this.t(rawFirst);
+              const transFamily = this.t(rawFamily);
+              const initials = (transFirst ? transFirst[0] : '') + (transFamily ? transFamily[0] : '');
+              this.ctx.fillText(initials.toUpperCase(), node.x + this.nodeWidth/2, node.y + this.nodeHeight/2);
+            }
           }
 
           // Draw name below circle
-          this.ctx.fillStyle = isDark ? '#ffffff' : '#1f1f1f';
-          this.ctx.font = 'bold 11px Outfit, sans-serif';
+          this.ctx.fillStyle = isPs1 ? '#000000' : (isDark ? '#ffffff' : '#1f1f1f');
+          this.ctx.font = isPs1 ? 'bold 10px monospace' : 'bold 11px Outfit, sans-serif';
           this.ctx.textAlign = 'center';
           this.ctx.textBaseline = 'top';
           const rawFirst = p.firstName || (p.name ? p.name.split(' ')[0] : '') || '';
@@ -1521,8 +1591,8 @@ export class LineageCanvas {
           const familyName = this.t(rawFamily);
           this.ctx.fillText(firstName, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2 + 28);
           if (familyName) {
-            this.ctx.font = 'Outfit, sans-serif';
-            this.ctx.fillStyle = isDark ? '#aaaaaa' : '#555555';
+            this.ctx.font = isPs1 ? '9px monospace' : 'Outfit, sans-serif';
+            this.ctx.fillStyle = isPs1 ? '#333333' : (isDark ? '#aaaaaa' : '#555555');
             this.ctx.fillText(familyName, node.x + this.nodeWidth/2, node.y + this.nodeHeight/2 + 40);
           }
         } else {
@@ -1530,18 +1600,80 @@ export class LineageCanvas {
           this.ctx.shadowBlur = isFocus ? 8 : 2;
           const cardH = this.nodeHeight - 20; // 50
           
-          this.ctx.beginPath();
-          this.drawRoundedRect(node.x, node.y, this.nodeWidth, cardH, 6);
-          this.ctx.fill();
-          this.ctx.stroke();
-
-          if (isWin7) {
-            this.ctx.save();
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+          if (isPs1) {
+            this.ctx.fillStyle = '#bebebe';
+            this.ctx.fillRect(node.x, node.y, this.nodeWidth, cardH);
+            
+            const highlightColor = isFocus ? '#555555' : '#ffffff';
+            const shadowColor = isFocus ? '#ffffff' : '#555555';
+            
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeStyle = highlightColor;
             this.ctx.beginPath();
-            this.drawRoundedRect(node.x + 1.5, node.y + 1, this.nodeWidth - 3, 2, 2);
-            this.ctx.fill();
+            this.ctx.moveTo(node.x + 1, node.y + cardH - 1);
+            this.ctx.lineTo(node.x + 1, node.y + 1);
+            this.ctx.lineTo(node.x + this.nodeWidth - 1, node.y + 1);
+            this.ctx.stroke();
+
+            this.ctx.strokeStyle = shadowColor;
+            this.ctx.beginPath();
+            this.ctx.moveTo(node.x + 1, node.y + cardH - 1);
+            this.ctx.lineTo(node.x + this.nodeWidth - 1, node.y + cardH - 1);
+            this.ctx.lineTo(node.x + this.nodeWidth - 1, node.y + 1);
+            this.ctx.stroke();
+
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeStyle = '#000000';
+            this.ctx.strokeRect(node.x, node.y, this.nodeWidth, cardH);
+            
+            const badgeCx = node.x + this.nodeWidth - 14;
+            const badgeCy = node.y + 14;
+            this.ctx.save();
+            this.ctx.shadowBlur = 0;
+            if (!!p.deathYear) {
+              this.ctx.strokeStyle = '#2980b9';
+              this.ctx.lineWidth = 2;
+              this.ctx.beginPath();
+              this.ctx.moveTo(badgeCx - 4, badgeCy - 4);
+              this.ctx.lineTo(badgeCx + 4, badgeCy + 4);
+              this.ctx.moveTo(badgeCx + 4, badgeCy - 4);
+              this.ctx.lineTo(badgeCx - 4, badgeCy + 4);
+              this.ctx.stroke();
+            } else if (isFocus) {
+              this.ctx.strokeStyle = '#e74c3c';
+              this.ctx.lineWidth = 2.5;
+              this.ctx.beginPath();
+              this.ctx.arc(badgeCx, badgeCy, 4.5, 0, Math.PI * 2);
+              this.ctx.stroke();
+            } else if (p.gender === 'M') {
+              this.ctx.strokeStyle = '#2ecc71';
+              this.ctx.lineWidth = 2;
+              this.ctx.beginPath();
+              this.ctx.moveTo(badgeCx, badgeCy - 5);
+              this.ctx.lineTo(badgeCx + 4.5, badgeCy + 3.5);
+              this.ctx.lineTo(badgeCx - 4.5, badgeCy + 3.5);
+              this.ctx.closePath();
+              this.ctx.stroke();
+            } else {
+              this.ctx.strokeStyle = '#f8a5c2';
+              this.ctx.lineWidth = 2;
+              this.ctx.strokeRect(badgeCx - 4, badgeCy - 4, 8, 8);
+            }
             this.ctx.restore();
+          } else {
+            this.ctx.beginPath();
+            this.drawRoundedRect(node.x, node.y, this.nodeWidth, cardH, 6);
+            this.ctx.fill();
+            this.ctx.stroke();
+
+            if (isWin7) {
+              this.ctx.save();
+              this.ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+              this.ctx.beginPath();
+              this.drawRoundedRect(node.x + 1.5, node.y + 1, this.nodeWidth - 3, 2, 2);
+              this.ctx.fill();
+              this.ctx.restore();
+            }
           }
 
           const isAr = false; // Disable card layout mirroring in Arabic
@@ -1553,15 +1685,24 @@ export class LineageCanvas {
           if (p.photo) {
             this.drawCircularAvatar(p.photo, cx, cy, radius);
           } else {
-            // Draw colored placeholder circle
-            this.ctx.fillStyle = p.gender === 'M' ? (isWin7 ? '#b2d4f5' : (isDark ? '#3b78ab' : '#b2d4f5')) : (isWin7 ? '#f5b2dc' : (isDark ? '#ab3b82' : '#f5b2dc'));
-            this.ctx.beginPath();
-            this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            this.ctx.fill();
+            // Draw colored placeholder circle/square
+            this.ctx.fillStyle = p.gender === 'M' 
+              ? (isPs1 ? '#95a5a6' : (isWin7 ? '#b2d4f5' : (isDark ? '#3b78ab' : '#b2d4f5'))) 
+              : (isPs1 ? '#bdc3c7' : (isWin7 ? '#f5b2dc' : (isDark ? '#ab3b82' : '#f5b2dc')));
+            if (isPs1) {
+              this.ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+              this.ctx.strokeStyle = '#000000';
+              this.ctx.lineWidth = 1;
+              this.ctx.strokeRect(cx - radius, cy - radius, radius * 2, radius * 2);
+            } else {
+              this.ctx.beginPath();
+              this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+              this.ctx.fill();
+            }
 
             // Draw initials
-            this.ctx.fillStyle = (isDark && !isWin7) ? '#ffffff' : '#0a1f33';
-            this.ctx.font = isWin7 ? 'bold 9px "Segoe UI", Tahoma, sans-serif' : 'bold 9px Outfit, sans-serif';
+            this.ctx.fillStyle = isPs1 ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33');
+            this.ctx.font = isPs1 ? 'bold 9px monospace' : (isWin7 ? 'bold 9px "Segoe UI", Tahoma, sans-serif' : 'bold 9px Outfit, sans-serif');
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             const rawFirst = p.firstName || (p.name ? p.name.split(' ')[0] : '');
@@ -1573,8 +1714,8 @@ export class LineageCanvas {
           }
 
           // Draw name next to photo
-          this.ctx.fillStyle = (isDark && !isWin7) ? '#ffffff' : '#0a1f33';
-          this.ctx.font = isWin7 ? 'bold 11px "Segoe UI", Tahoma, sans-serif' : 'bold 11px Outfit, sans-serif';
+          this.ctx.fillStyle = isPs1 ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33');
+          this.ctx.font = isPs1 ? 'bold 11px monospace' : (isWin7 ? 'bold 11px "Segoe UI", Tahoma, sans-serif' : 'bold 11px Outfit, sans-serif');
           this.ctx.textAlign = isAr ? 'right' : 'left';
           this.ctx.textBaseline = 'middle';
           const translatedName = this.t(p.name);
@@ -1598,20 +1739,50 @@ export class LineageCanvas {
       }
 
       // Modern rounded card
-      this.ctx.strokeStyle = strokeColor;
-      this.ctx.lineWidth = isFocus ? 2.5 : 1;
-      this.ctx.fillStyle = fillColor;
-      this.drawRoundedRect(node.x, node.y, this.nodeWidth, this.nodeHeight, 6);
-      this.ctx.fill();
-      this.ctx.stroke();
-
-      if (isWin7) {
-        this.ctx.save();
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      if (isPs1) {
+        this.ctx.fillStyle = '#bebebe';
+        this.ctx.fillRect(node.x, node.y, this.nodeWidth, this.nodeHeight);
+        
+        const highlightColor = isFocus ? '#555555' : '#ffffff';
+        const shadowColor = isFocus ? '#ffffff' : '#555555';
+        
+        this.ctx.lineWidth = 2;
+        // Top/Left highlights
+        this.ctx.strokeStyle = highlightColor;
         this.ctx.beginPath();
-        this.drawRoundedRect(node.x + 1.5, node.y + 1, this.nodeWidth - 3, 2, 2);
+        this.ctx.moveTo(node.x + 1, node.y + this.nodeHeight - 1);
+        this.ctx.lineTo(node.x + 1, node.y + 1);
+        this.ctx.lineTo(node.x + this.nodeWidth - 1, node.y + 1);
+        this.ctx.stroke();
+
+        // Bottom/Right shadows
+        this.ctx.strokeStyle = shadowColor;
+        this.ctx.beginPath();
+        this.ctx.moveTo(node.x + 1, node.y + this.nodeHeight - 1);
+        this.ctx.lineTo(node.x + this.nodeWidth - 1, node.y + this.nodeHeight - 1);
+        this.ctx.lineTo(node.x + this.nodeWidth - 1, node.y + 1);
+        this.ctx.stroke();
+
+        // Outermost black thin border
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = '#000000';
+        this.ctx.strokeRect(node.x, node.y, this.nodeWidth, this.nodeHeight);
+      } else {
+        this.ctx.strokeStyle = strokeColor;
+        this.ctx.lineWidth = isFocus ? 2.5 : 1;
+        this.ctx.fillStyle = fillColor;
+        this.drawRoundedRect(node.x, node.y, this.nodeWidth, this.nodeHeight, 6);
         this.ctx.fill();
-        this.ctx.restore();
+        this.ctx.stroke();
+
+        if (isWin7) {
+          this.ctx.save();
+          this.ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+          this.ctx.beginPath();
+          this.drawRoundedRect(node.x + 1.5, node.y + 1, this.nodeWidth - 3, 2, 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        }
       }
 
       // Draw gender left accent bar
@@ -1619,20 +1790,78 @@ export class LineageCanvas {
       this.ctx.shadowOffsetY = 0;
 
       const isAr = false; // Disable card layout mirroring in Arabic
-      this.ctx.fillStyle = p.gender === 'M' ? (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4')) : (isWin7 ? '#cb2978' : (isDark ? '#ff8cda' : '#e3008c'));
-      if (isAr) {
-        this.drawRoundedRect(node.x + this.nodeWidth - 5, node.y + 1, 4, this.nodeHeight - 2, { tr: 5, br: 5, tl: 0, bl: 0 });
+      if (isPs1) {
+        // Draw the console-grey symbol background stripe on the left (18px wide)
+        this.ctx.fillStyle = '#a0a0a0';
+        this.ctx.fillRect(node.x + 2, node.y + 2, 18, this.nodeHeight - 4);
+        
+        this.ctx.strokeStyle = '#555555';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(node.x + 2, node.y + 2, 18, this.nodeHeight - 4);
+
+        const cx = node.x + 11;
+        const cy = node.y + this.nodeHeight / 2;
+
+        this.ctx.save();
+        this.ctx.shadowBlur = 0;
+
+        if (!!p.deathYear) {
+          // Deceased: Blue Cross (❌)
+          this.ctx.strokeStyle = '#2980b9';
+          this.ctx.lineWidth = 3;
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx - 5, cy - 5);
+          this.ctx.lineTo(cx + 5, cy + 5);
+          this.ctx.moveTo(cx + 5, cy - 5);
+          this.ctx.lineTo(cx - 5, cy + 5);
+          this.ctx.stroke();
+        } else if (isFocus) {
+          // Active focus node: Red Circle (🔴)
+          this.ctx.strokeStyle = '#e74c3c';
+          this.ctx.lineWidth = 3;
+          this.ctx.beginPath();
+          this.ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
+          this.ctx.stroke();
+        } else if (p.gender === 'M') {
+          // Male: Green Triangle (🔺)
+          this.ctx.strokeStyle = '#2ecc71';
+          this.ctx.lineWidth = 3;
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx, cy - 6);
+          this.ctx.lineTo(cx + 5.5, cy + 4);
+          this.ctx.lineTo(cx - 5.5, cy + 4);
+          this.ctx.closePath();
+          this.ctx.stroke();
+        } else {
+          // Female: Pink Square (⏹️)
+          this.ctx.strokeStyle = '#f8a5c2';
+          this.ctx.lineWidth = 3;
+          this.ctx.strokeRect(cx - 5, cy - 5, 10, 10);
+        }
+
+        this.ctx.restore();
       } else {
-        this.drawRoundedRect(node.x + 1, node.y + 1, 4, this.nodeHeight - 2, { tl: 5, bl: 5, tr: 0, br: 0 });
+        this.ctx.fillStyle = p.gender === 'M' ? (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4')) : (isWin7 ? '#cb2978' : (isDark ? '#ff8cda' : '#e3008c'));
+        if (isAr) {
+          this.drawRoundedRect(node.x + this.nodeWidth - 5, node.y + 1, 4, this.nodeHeight - 2, { tr: 5, br: 5, tl: 0, bl: 0 });
+        } else {
+          this.drawRoundedRect(node.x + 1, node.y + 1, 4, this.nodeHeight - 2, { tl: 5, bl: 5, tr: 0, br: 0 });
+        }
+        this.ctx.fill();
       }
-      this.ctx.fill();
 
       // Draw Node Focus Ring
       if (isFocus) {
-        this.ctx.strokeStyle = isWin7 ? 'rgba(44, 123, 179, 0.3)' : (isDark ? 'rgba(96, 205, 255, 0.2)' : 'rgba(0, 120, 212, 0.15)');
-        this.ctx.lineWidth = 5;
-        this.drawRoundedRect(node.x - 2, node.y - 2, this.nodeWidth + 4, this.nodeHeight + 4, 8);
-        this.ctx.stroke();
+        if (isPs1) {
+          this.ctx.strokeStyle = '#e67e22';
+          this.ctx.lineWidth = 2;
+          this.ctx.strokeRect(node.x - 3, node.y - 3, this.nodeWidth + 6, this.nodeHeight + 6);
+        } else {
+          this.ctx.strokeStyle = isWin7 ? 'rgba(44, 123, 179, 0.3)' : (isDark ? 'rgba(96, 205, 255, 0.2)' : 'rgba(0, 120, 212, 0.15)');
+          this.ctx.lineWidth = 5;
+          this.drawRoundedRect(node.x - 2, node.y - 2, this.nodeWidth + 4, this.nodeHeight + 4, 8);
+          this.ctx.stroke();
+        }
       }
 
       // Render Photo Avatar if exists
@@ -1712,7 +1941,7 @@ export class LineageCanvas {
       }
 
       // TEXT DRAWING
-      this.ctx.fillStyle = (isDark && !isWin7) ? '#ffffff' : '#0a1f33';
+      this.ctx.fillStyle = isPs1 ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33');
       this.ctx.textAlign = isAr ? 'right' : 'left';
       
       const truncateText = (text, maxWidth) => {
@@ -1730,7 +1959,7 @@ export class LineageCanvas {
 
       if (p.firstName || p.familyName) {
         // Draw First Name
-        this.ctx.font = isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif';
+        this.ctx.font = isPs1 ? 'bold 12px monospace' : (isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif');
         const rawFirst = p.firstName || p.name.split(' ')[0] || '';
         const dispFirstName = truncateText(this.t(rawFirst), this.nodeWidth - 24);
         if (!(this.isGenealogyMode && this.isWorldMode)) {
@@ -1738,7 +1967,7 @@ export class LineageCanvas {
         }
 
         // Draw Family Name
-        this.ctx.font = isWin7 ? '800 12px "Segoe UI", Tahoma, sans-serif' : '800 12px Outfit, sans-serif';
+        this.ctx.font = isPs1 ? '900 12px monospace' : (isWin7 ? '800 12px "Segoe UI", Tahoma, sans-serif' : '800 12px Outfit, sans-serif');
         const rawFamily = p.familyName || p.name.split(' ').slice(1).join(' ') || '';
         const dispFamilyName = truncateText(this.t(rawFamily), this.nodeWidth - 24);
         if (!(this.isGenealogyMode && this.isWorldMode)) {
@@ -1746,7 +1975,7 @@ export class LineageCanvas {
         }
       } else {
         // Fallback for full name
-        this.ctx.font = isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif';
+        this.ctx.font = isPs1 ? 'bold 12px monospace' : (isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif');
         const dispName = truncateText(this.t(p.name), this.nodeWidth - 24);
         if (!(this.isGenealogyMode && this.isWorldMode)) {
           this.ctx.fillText(dispName, textX, node.y + (this.isGenealogyMode ? 24 : 26));
@@ -1754,8 +1983,8 @@ export class LineageCanvas {
       }
 
       // Draw subtitle (Gender label / Spouse / Generation badge)
-      this.ctx.font = isWin7 ? '500 9px "Segoe UI", Tahoma, sans-serif' : '500 9px Outfit, sans-serif';
-      this.ctx.fillStyle = (isDark && !isWin7) ? '#bbbbbb' : '#3b5266';
+      this.ctx.font = isPs1 ? '500 9px monospace' : (isWin7 ? '500 9px "Segoe UI", Tahoma, sans-serif' : '500 9px Outfit, sans-serif');
+      this.ctx.fillStyle = isPs1 ? '#333333' : ((isDark && !isWin7) ? '#bbbbbb' : '#3b5266');
       
       let subtitle = p.gender === 'M' ? this.t('Male') : this.t('Female');
       if (p.spouses && p.spouses.length > 0) {
@@ -1769,8 +1998,8 @@ export class LineageCanvas {
       this.ctx.fillText(subtitle, textX, node.y + 48);
 
       // Render mini badge indicating generation relationship to focus
-      this.ctx.font = isWin7 ? 'bold 7px "Segoe UI", Tahoma, sans-serif' : 'bold 7px Outfit, sans-serif';
-      this.ctx.fillStyle = isFocus ? (isWin7 ? '#1e62a8' : (isDark ? '#60cdff' : '#0078d4')) : ((isDark && !isWin7) ? '#888888' : '#3b5266');
+      this.ctx.font = isPs1 ? 'bold 7px monospace' : (isWin7 ? 'bold 7px "Segoe UI", Tahoma, sans-serif' : 'bold 7px Outfit, sans-serif');
+      this.ctx.fillStyle = isFocus ? (isPs1 ? '#d35400' : (isWin7 ? '#1e62a8' : (isDark ? '#60cdff' : '#0078d4'))) : (isPs1 ? '#555555' : ((isDark && !isWin7) ? '#888888' : '#3b5266'));
       
       let badgeLabel = '';
       if (this.isWorldMode) {
@@ -1863,9 +2092,15 @@ export class LineageCanvas {
     } else {
       const isDark = document.body.classList.contains('theme-dark');
       const isWin7 = document.body.classList.contains('theme-win7');
-      this.ctx.fillStyle = isWin7 ? '#c8dbe8' : (isDark ? '#444' : '#e0e0e0');
+      const isPs1 = document.body.classList.contains('theme-ps1');
+      this.ctx.fillStyle = isPs1 ? '#a0a0a0' : (isWin7 ? '#c8dbe8' : (isDark ? '#444' : '#e0e0e0'));
       this.ctx.beginPath();
-      this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      if (isPs1) {
+        // Draw a blocky square placeholder
+        this.ctx.rect(cx - radius, cy - radius, radius * 2, radius * 2);
+      } else {
+        this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      }
       this.ctx.fill();
     }
   }

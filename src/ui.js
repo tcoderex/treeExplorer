@@ -540,6 +540,12 @@ export class FamilyTreeUI {
         this.transformThemeWithLoading('win7');
       });
     }
+    const ps1Card = document.getElementById('theme-opt-ps1');
+    if (ps1Card) {
+      ps1Card.addEventListener('click', () => {
+        this.transformThemeWithLoading('ps1');
+      });
+    }
 
     // Sidebar Customization Event Bindings
     const selectSidebarStyle = document.getElementById('select-sidebar-style');
@@ -613,15 +619,14 @@ export class FamilyTreeUI {
     }
     if (langOptEn) {
       langOptEn.addEventListener('click', () => {
-        this.applyLanguage('en');
         langModal.classList.add('hidden');
-        this.showNotification('Language set to English.', 'success');
+        this.triggerLanguageChangeWithLoading('en');
       });
     }
     if (langOptAr) {
       langOptAr.addEventListener('click', () => {
-        localStorage.setItem('app-language', 'ar');
-        window.location.reload();
+        langModal.classList.add('hidden');
+        this.triggerLanguageChangeWithLoading('ar');
       });
     }
 
@@ -1885,20 +1890,23 @@ export class FamilyTreeUI {
   }
 
   setTheme(theme) {
-    document.body.classList.remove('theme-dark', 'theme-win7');
+    document.body.classList.remove('theme-dark', 'theme-win7', 'theme-ps1');
     localStorage.setItem('family-tree-theme', theme);
 
     const darkRadio = document.getElementById('radio-theme-dark');
     const lightRadio = document.getElementById('radio-theme-light');
     const win7Radio = document.getElementById('radio-theme-win7');
+    const ps1Radio = document.getElementById('radio-theme-ps1');
 
     const darkCard = document.getElementById('theme-opt-dark');
     const lightCard = document.getElementById('theme-opt-light');
     const win7Card = document.getElementById('theme-opt-win7');
+    const ps1Card = document.getElementById('theme-opt-ps1');
 
     if (darkRadio) darkRadio.checked = (theme === 'dark');
     if (lightRadio) lightRadio.checked = (theme === 'light');
     if (win7Radio) win7Radio.checked = (theme === 'win7');
+    if (ps1Radio) ps1Radio.checked = (theme === 'ps1');
 
     if (darkCard) {
       if (theme === 'dark') darkCard.classList.add('active');
@@ -1912,11 +1920,17 @@ export class FamilyTreeUI {
       if (theme === 'win7') win7Card.classList.add('active');
       else win7Card.classList.remove('active');
     }
+    if (ps1Card) {
+      if (theme === 'ps1') ps1Card.classList.add('active');
+      else ps1Card.classList.remove('active');
+    }
 
     if (theme === 'dark') {
       document.body.classList.add('theme-dark');
     } else if (theme === 'win7') {
       document.body.classList.add('theme-win7');
+    } else if (theme === 'ps1') {
+      document.body.classList.add('theme-ps1');
     }
 
     // Immediately repaint canvas views to update colors!
@@ -1928,19 +1942,165 @@ export class FamilyTreeUI {
     }
   }
 
+  playPS1Chime() {
+    const audioContext = (window.App && window.App.v8 && window.App.v8.audioContext) || new (window.AudioContext || window.webkitAudioContext)();
+    if (window.App && window.App.v8 && !window.App.v8.isSoundsEnabled) return;
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    
+    const now = audioContext.currentTime;
+    
+    // Master Gain
+    const masterGain = audioContext.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(0.45, now + 1.5);
+    masterGain.gain.setValueAtTime(0.45, now + 6.0);
+    masterGain.gain.exponentialRampToValueAtTime(0.001, now + 12.0);
+    masterGain.connect(audioContext.destination);
+
+    // Biquad filter for the warm bass/sub
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(150, now);
+    filter.frequency.linearRampToValueAtTime(350, now + 4.0);
+    filter.connect(masterGain);
+
+    // 1. Deep Bass Drone (sub-bass)
+    // 3 sawtooth/triangle oscillators slightly detuned to create a rich chorused sound
+    const bassFreqs = [55.0, 55.4, 110.0, 110.3];
+    bassFreqs.forEach((freq, idx) => {
+      const osc = audioContext.createOscillator();
+      osc.type = idx % 2 === 0 ? 'sawtooth' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      
+      const oscGain = audioContext.createGain();
+      oscGain.gain.setValueAtTime(0, now);
+      oscGain.gain.linearRampToValueAtTime(0.12, now + 2.0);
+      oscGain.gain.setValueAtTime(0.12, now + 5.0);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 10.0);
+      
+      osc.connect(oscGain);
+      oscGain.connect(filter);
+      
+      osc.start(now);
+      osc.stop(now + 12.0);
+    });
+
+    // 2. Rising pad/glide sweep
+    const leadOsc = audioContext.createOscillator();
+    leadOsc.type = 'sawtooth';
+    leadOsc.frequency.setValueAtTime(110, now);
+    leadOsc.frequency.exponentialRampToValueAtTime(440, now + 5.0);
+    
+    const leadGain = audioContext.createGain();
+    leadGain.gain.setValueAtTime(0, now);
+    leadGain.gain.linearRampToValueAtTime(0.08, now + 3.0);
+    leadGain.gain.exponentialRampToValueAtTime(0.001, now + 8.5);
+    
+    leadOsc.connect(leadGain);
+    leadGain.connect(filter);
+    leadOsc.start(now);
+    leadOsc.stop(now + 9.0);
+
+    // 3. Shimmering retro chime chord
+    const chimeFreqs = [261.63, 329.63, 392.00, 493.88, 587.33, 783.99]; // C4, E4, G4, B4, D5, G5
+    chimeFreqs.forEach((freq, idx) => {
+      const chimeOsc = audioContext.createOscillator();
+      chimeOsc.type = 'sine';
+      chimeOsc.frequency.setValueAtTime(freq, now);
+      
+      const lfo = audioContext.createOscillator();
+      const lfoGain = audioContext.createGain();
+      lfo.frequency.value = 4.5 + idx * 0.5;
+      lfoGain.gain.value = 1.5;
+      lfo.connect(lfoGain);
+      lfoGain.connect(chimeOsc.frequency);
+      lfo.start(now);
+      lfo.stop(now + 12.0);
+
+      const chimeGain = audioContext.createGain();
+      const delay = 1.8 + idx * 0.12; 
+      chimeGain.gain.setValueAtTime(0, now);
+      chimeGain.gain.setValueAtTime(0, now + delay);
+      chimeGain.gain.linearRampToValueAtTime(0.08, now + delay + 1.5);
+      chimeGain.gain.setValueAtTime(0.08, now + 6.5);
+      chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 12.0);
+
+      chimeOsc.connect(chimeGain);
+      chimeGain.connect(masterGain);
+      
+      chimeOsc.start(now);
+      chimeOsc.stop(now + 12.0);
+    });
+  }
+
   transformThemeWithLoading(targetTheme) {
+    if (targetTheme === 'ps1') {
+      const overlay = document.getElementById('ps1-transformation-overlay');
+      const statusText = document.getElementById('ps1-bios-text');
+      const barFill = document.getElementById('ps1-progress-bar-fill');
+      
+      if (!overlay || !statusText || !barFill) {
+        this.setTheme(targetTheme);
+        this.showNotification("PlayStation 1 Theme Enabled.", "success");
+        return;
+      }
+
+      this.playPS1Chime();
+
+      overlay.classList.remove('hidden');
+      overlay.style.opacity = '1';
+      
+      let progress = 0;
+      barFill.style.width = '0%';
+      
+      const ps1Events = [
+        { p: 0, text: "SYSTEM ROM CHECK... OK" },
+        { p: 15, text: "MAIN BOARD SONY GP-01 DETECTED" },
+        { p: 30, text: "INITIALIZING RETRO GRAPHICS ENGINE..." },
+        { p: 50, text: "READING MEMORY CARD SLOT 1... OK" },
+        { p: 70, text: "FOUND FAMILY SAVES (100K RECORDS)" },
+        { p: 90, text: "BIOS KERNEL LOADING OK. BOOTING..." }
+      ];
+
+      statusText.innerHTML = ps1Events[0].text;
+
+      const interval = setInterval(() => {
+        progress += Math.floor(Math.random() * 8) + 4;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          this.setTheme(targetTheme);
+          
+          setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+              overlay.classList.add('hidden');
+              this.showNotification("PlayStation 1 Retro Console active!", "success");
+            }, 300);
+          }, 600);
+        }
+        
+        barFill.style.width = `${progress}%`;
+        const activeEvents = ps1Events.filter(e => e.p <= progress);
+        statusText.innerHTML = activeEvents.map(e => e.text).join('<br>');
+      }, 120);
+
+      return;
+    }
+
     const overlay = document.getElementById('win7-transformation-overlay');
     const statusText = document.getElementById('win7-loading-status');
     const barFill = document.getElementById('win7-progress-bar-fill');
     
     if (!overlay || !statusText || !barFill) {
-      // Fallback if elements aren't found
       this.setTheme(targetTheme);
       this.showNotification(`Theme changed to ${targetTheme === 'win7' ? 'Windows 7 Aero' : targetTheme === 'dark' ? 'Dark' : 'Light'} Mode.`, "success");
       return;
     }
 
-    // Prepare status messages
     const messages = [
       "Analyzing system personalization profiles...",
       "Stopping Fluent presentation manager...",
@@ -1964,7 +2124,6 @@ export class FamilyTreeUI {
         progress = 100;
         clearInterval(interval);
         
-        // Apply theme at 100%
         this.setTheme(targetTheme);
         
         setTimeout(() => {
@@ -3858,6 +4017,33 @@ export class FamilyTreeUI {
     });
     
     this._langObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  triggerLanguageChangeWithLoading(lang) {
+    const overlay = document.getElementById('fluent-loading-overlay');
+    const title = document.getElementById('loading-title');
+    const msg = document.getElementById('loading-message');
+    
+    if (overlay && title && msg) {
+      if (lang === 'ar') {
+        title.innerText = "جاري تغيير لغة التطبيق...";
+        msg.innerText = "تطبيق قواعد اللغة وتحديث واجهة المستخدم (يرجى الانتظار)";
+      } else {
+        title.innerText = "Changing application language...";
+        msg.innerText = "Applying language rules and updating UI (Please wait)";
+      }
+      
+      overlay.classList.remove('hidden');
+      overlay.style.opacity = '1';
+      
+      setTimeout(() => {
+        localStorage.setItem('app-language', lang);
+        window.location.reload();
+      }, 1500);
+    } else {
+      localStorage.setItem('app-language', lang);
+      window.location.reload();
+    }
   }
 
   async applyLanguage(lang) {
