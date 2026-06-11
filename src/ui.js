@@ -34,6 +34,10 @@ export class FamilyTreeUI {
     // Initialize DOM binding
     this.bindDOM();
 
+    // Restore last active tab on startup
+    const startTab = localStorage.getItem('active-tab') || 'dashboard';
+    this.switchTab(startTab);
+
     // Initialize Theme
     this.initTheme();
 
@@ -2181,6 +2185,7 @@ export class FamilyTreeUI {
   // Tab switching animations
   switchTab(tabName) {
     this.currentTab = tabName;
+    localStorage.setItem('active-tab', tabName);
     
     // Toggle nav classes
     document.querySelectorAll('.nav-item').forEach(item => {
