@@ -49,7 +49,8 @@ Future agents working on this project must know and utilize the following Antigr
 - **Consistent App Versions**: Ensure that version indicators in `package.json`, the titlebar build badge, sidebar system info, tutorial accordion blocks, and the About section card are bumped synchronously to prevent version mismatches.
 - **Build Verification**: Proactively run `npm run build` after editing code to verify that Vite bundles everything without errors.
 - **Relative Path Bindings**: Always use relative paths (`./`) for assets in Vite/Electron configuration to ensure index.html links resolve correctly under the `file://` protocol.
-- **GitHub Push Restriction**: Never push code changes to GitHub until the user explicitly instructs you to do so. When requested, alert the user first and wait for their confirmation before running git push.
+- **GitHub Push Restriction**: Never proactively suggest, ask, or prompt the user to push to GitHub. The push workflow must only trigger when the user explicitly commands it. When requested, alert the user first and wait for their explicit final confirmation before executing git push.
+- **Windows GUI Sandbox Session Limits**: When requested to run or test the GUI application (such as `npm run electron:start`), launching it from the agent sandbox terminal runs it inside a background/headless session which will not render visually on the user's active screen. Verify the build first, try to launch it to check for start crashes, and then instruct the user to run `npm run electron:start` manually in their local host shell if it doesn't appear.
 
 ---
 

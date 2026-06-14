@@ -19,6 +19,17 @@ Ensure the application compiles natively and launches the visual UI container wi
 - **Native Modules (SQLite)**: If the app crashes on startup complaining about `better-sqlite3` bindings, run `npm rebuild` or `npx electron-rebuild` to rebuild the native SQLite modules matched to your local Electron/Node headers.
 - **Dependency Installation**: If packages are missing, run `npm install` first. Ensure all external client scripts like `jsPDF` reside in `public/` to prevent Vite asset path resolving errors.
 
+## Sandbox GUI Environment Constraints
+> [!WARNING]
+> Because the agent runs in a sandboxed command line shell, launching GUI desktop applications (like `npm run electron:start`) from the agent's background terminal runner may execute them inside a headless, non-interactive Windows session. This means the application process will start successfully in the background but **will not render visually** on the user's active desktop screen.
+> 
+> When testing or verifying UI changes:
+> 1. Execute `npm run build` to confirm Vite compiles with zero errors.
+> 2. Propose `npm run electron:start` to verify the process launches and does not crash on startup.
+> 3. If it launches successfully but does not visually appear on the user's screen, clearly explain this session constraint to the user and suggest they run `npm run electron:start` directly in their own local host terminal.
+
 ## GitHub Push Constraints
 > [!IMPORTANT]
-> Never push code changes to GitHub until the user explicitly instructs you to do so. When the user tells you to push, always alert them first and wait for their confirmation before executing the push command.
+> 1. **Never** proactively suggest, ask, or prompt the user to run a git push to GitHub. 
+> 2. The push workflow should only trigger when the user explicitly instructs you to push to GitHub.
+> 3. When requested by the user, you must alert them first and wait for their explicit final confirmation before executing `git push`.
