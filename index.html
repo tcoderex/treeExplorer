@@ -384,7 +384,16 @@
                 <p class="mini-desc">Click cards to shift the focal tree view.</p>
               </div>
 
-              <div class="pedigree-scroller">
+              <div class="pedigree-tab-bar">
+                <button id="btn-pedigree-view-tab" class="pedigree-tab-button tab-active">
+                  🌳 <span class="no-translate">Pedigree</span>
+                </button>
+                <button id="btn-pedigree-path-tab" class="pedigree-tab-button">
+                  🔗 <span class="no-translate">Path Finder</span>
+                </button>
+              </div>
+
+              <div id="pedigree-tab-content-view" class="pedigree-scroller">
                 <div class="pedigree-diagram-container">
                   
                   <!-- Grandparents Row -->
@@ -470,6 +479,38 @@
                     <div id="pedigree-info-siblings-count" class="pedigree-info-chip">Siblings: 0</div>
                   </div>
 
+                </div>
+              </div>
+
+              <!-- Sidebar Relationship Pathfinder Content Panel -->
+              <div id="pedigree-tab-content-path" class="pedigree-scroller hidden" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <div style="margin-bottom: 5px;">
+                  <h3 style="font-size: 14px; font-weight: 600; color: var(--win-text-primary); margin: 0 0 4px 0;">Lineage Path Finder</h3>
+                  <p style="font-size: 11px; color: var(--win-text-secondary); margin: 0;">Find the exact relationship path between two family members.</p>
+                </div>
+                
+                <div class="form-control" style="position: relative; display: flex; flex-direction: column; gap: 6px;">
+                  <label for="sidebar-path-start-input" style="font-size: 12px; font-weight: 500; color: var(--win-text-primary);">Start Member</label>
+                  <input type="text" id="sidebar-path-start-input" class="fluent-input" placeholder="Search start member..." autocomplete="off">
+                  <input type="hidden" id="sidebar-path-start-id">
+                  <div id="sidebar-path-start-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 58px; left: 0; width: 100%; z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="form-control" style="position: relative; display: flex; flex-direction: column; gap: 6px;">
+                  <label for="sidebar-path-end-input" style="font-size: 12px; font-weight: 500; color: var(--win-text-primary);">End Member</label>
+                  <input type="text" id="sidebar-path-end-input" class="fluent-input" placeholder="Search target member..." autocomplete="off">
+                  <input type="hidden" id="sidebar-path-end-id">
+                  <div id="sidebar-path-end-suggestions" class="suggestions-dropdown hidden" style="position: absolute; top: 58px; left: 0; width: 100%; z-index: 1000; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+
+                <button id="btn-sidebar-calculate-path" class="fluent-btn btn-solid" style="width: 100%; height: 34px; border-radius: 6px; font-weight: bold; background-color: var(--win-accent); color: #ffffff; margin-top: 10px; cursor: pointer;">
+                  🔍 Calculate Path
+                </button>
+
+                <!-- Sidebar Results -->
+                <div id="sidebar-path-results-container" class="hidden" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                  <h4 style="font-size: 12px; font-weight: 600; color: var(--win-text-primary); margin: 0;">Connection Details:</h4>
+                  <div id="sidebar-path-results-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 350px; overflow-y: auto; padding-right: 4px;"></div>
                 </div>
               </div>
             </div>
@@ -1428,6 +1469,8 @@ Examples:
 
       <div class="modal-footer">
         <button id="btn-modal-focus" class="fluent-btn btn-solid">🎯 Make Focus in Explorer</button>
+        <button id="btn-detail-set-path-start" class="fluent-btn btn-secondary">📍 Set Pathfinder Start</button>
+        <button id="btn-detail-set-path-end" class="fluent-btn btn-secondary">📍 Set Pathfinder End</button>
         <button id="btn-modal-edit" class="fluent-btn btn-secondary">✏️ Modify Member</button>
         <button id="btn-modal-delete" class="fluent-btn btn-danger">🗑 Delete Member</button>
       </div>

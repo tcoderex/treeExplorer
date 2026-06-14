@@ -4703,3 +4703,99 @@ body.theme-winxp .btn-fix-conflict {
 }
 
 
+/* ==========================================================================
+   PEDIGREE SIDEBAR TAB & PATHFINDER PANEL OVERRIDES
+   ========================================================================== */
+
+.pedigree-tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--win-card-bg-subtle, rgba(0, 0, 0, 0.05));
+  border-radius: 8px;
+  margin: 10px 16px 12px 16px;
+  border: 1px solid var(--win-border-light);
+}
+
+.pedigree-tab-button {
+  flex: 1;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--win-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pedigree-tab-button:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--win-text-primary);
+}
+
+.theme-dark .pedigree-tab-button:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pedigree-tab-button.tab-active {
+  background: var(--win-card-bg, #ffffff);
+  color: var(--win-text-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+.theme-dark .pedigree-tab-button.tab-active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Theme Adjustments for Win7 */
+body.theme-win7 .pedigree-tab-bar {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+body.theme-win7 .pedigree-tab-button.tab-active {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Theme Adjustments for WinXP */
+body.theme-winxp .pedigree-tab-bar {
+  background: #ede9d8;
+  border: 1px solid #7f9db9;
+  border-radius: 0;
+}
+body.theme-winxp .pedigree-tab-button {
+  font-family: Tahoma, sans-serif;
+  border-radius: 0;
+}
+body.theme-winxp .pedigree-tab-button.tab-active {
+  background: #f1f1e3;
+  border: 1.5px solid #7f9db9;
+  box-shadow: none;
+}
+
+/* Theme Adjustments for PS1 */
+body.theme-ps1 .pedigree-tab-bar {
+  background: #25252b;
+  border: 2px inset #ffffff;
+  border-radius: 0;
+}
+body.theme-ps1 .pedigree-tab-button {
+  font-family: monospace;
+  border-radius: 0;
+  text-transform: uppercase;
+}
+body.theme-ps1 .pedigree-tab-button.tab-active {
+  background: #cecece;
+  border: 2px outset #ffffff;
+  box-shadow: 2px 2px 0 #000000;
+  color: #000000;
+}

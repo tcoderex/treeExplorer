@@ -1713,6 +1713,131 @@ export class FamilyTreeUI {
         this.cancelConflictsScan();
       });
     }
+
+    // 9. Interactive Sidebar Pathfinder bindings
+    const btnPedigreeViewTab = document.getElementById('btn-pedigree-view-tab');
+    const btnPedigreePathTab = document.getElementById('btn-pedigree-path-tab');
+    const tabContentView = document.getElementById('pedigree-tab-content-view');
+    const tabContentPath = document.getElementById('pedigree-tab-content-path');
+
+    if (btnPedigreeViewTab && btnPedigreePathTab && tabContentView && tabContentPath) {
+      btnPedigreeViewTab.addEventListener('click', () => {
+        btnPedigreeViewTab.classList.add('tab-active');
+        btnPedigreePathTab.classList.remove('tab-active');
+        tabContentView.classList.remove('hidden');
+        tabContentPath.classList.add('hidden');
+      });
+
+      btnPedigreePathTab.addEventListener('click', () => {
+        btnPedigreePathTab.classList.add('tab-active');
+        btnPedigreeViewTab.classList.remove('tab-active');
+        tabContentView.classList.add('hidden');
+        tabContentPath.classList.remove('hidden');
+      });
+    }
+
+    const sideStartInput = document.getElementById('sidebar-path-start-input');
+    const sideStartSuggestions = document.getElementById('sidebar-path-start-suggestions');
+    if (sideStartInput && sideStartSuggestions) {
+      sideStartInput.addEventListener('input', () => {
+        this.handleCanvasSearchInput('sidebar-path-start-input', 'sidebar-path-start-suggestions', (id) => {
+          const p = this.engine.getPerson(id);
+          if (p) {
+            sideStartInput.value = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+            document.getElementById('sidebar-path-start-id').value = p.id;
+          }
+        }, true);
+      });
+      sideStartInput.addEventListener('focus', () => {
+        if (sideStartInput.value.trim().length > 0) {
+          sideStartSuggestions.classList.remove('hidden');
+        }
+      });
+    }
+
+    const sideEndInput = document.getElementById('sidebar-path-end-input');
+    const sideEndSuggestions = document.getElementById('sidebar-path-end-suggestions');
+    if (sideEndInput && sideEndSuggestions) {
+      sideEndInput.addEventListener('input', () => {
+        this.handleCanvasSearchInput('sidebar-path-end-input', 'sidebar-path-end-suggestions', (id) => {
+          const p = this.engine.getPerson(id);
+          if (p) {
+            sideEndInput.value = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+            document.getElementById('sidebar-path-end-id').value = p.id;
+          }
+        }, true);
+      });
+      sideEndInput.addEventListener('focus', () => {
+        if (sideEndInput.value.trim().length > 0) {
+          sideEndSuggestions.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Hide sidebar suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (sideStartInput && sideStartSuggestions && !sideStartInput.contains(e.target) && !sideStartSuggestions.contains(e.target)) {
+        sideStartSuggestions.classList.add('hidden');
+      }
+      if (sideEndInput && sideEndSuggestions && !sideEndInput.contains(e.target) && !sideEndSuggestions.contains(e.target)) {
+        sideEndSuggestions.classList.add('hidden');
+      }
+    });
+
+    const btnSidebarCalculatePath = document.getElementById('btn-sidebar-calculate-path');
+    if (btnSidebarCalculatePath) {
+      btnSidebarCalculatePath.addEventListener('click', () => {
+        this.calculateSidebarRelationshipPath();
+      });
+    }
+
+    // Details Modal "Set Pathfinder Start / End" bindings
+    const btnDetailSetPathStart = document.getElementById('btn-detail-set-path-start');
+    const btnDetailSetPathEnd = document.getElementById('btn-detail-set-path-end');
+
+    if (btnDetailSetPathStart) {
+      btnDetailSetPathStart.addEventListener('click', () => {
+        const el = document.getElementById('detail-id');
+        const id = el.dataset.id || el.innerText.trim();
+        const p = this.engine.getPerson(id);
+        if (p) {
+          const name = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+          if (sideStartInput) sideStartInput.value = name;
+          const startIdEl = document.getElementById('sidebar-path-start-id');
+          if (startIdEl) startIdEl.value = p.id;
+          
+          // Switch sidebar tab to Path Finder
+          if (btnPedigreePathTab) btnPedigreePathTab.click();
+          // Hide detail modal
+          document.getElementById('modal-member-detail').classList.add('hidden');
+          // Switch main tab to Explorer if not already there
+          this.switchTab('explorer');
+          this.showNotification(`Set ${name} as Pathfinder Start.`, 'success');
+        }
+      });
+    }
+
+    if (btnDetailSetPathEnd) {
+      btnDetailSetPathEnd.addEventListener('click', () => {
+        const el = document.getElementById('detail-id');
+        const id = el.dataset.id || el.innerText.trim();
+        const p = this.engine.getPerson(id);
+        if (p) {
+          const name = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+          if (sideEndInput) sideEndInput.value = name;
+          const endIdEl = document.getElementById('sidebar-path-end-id');
+          if (endIdEl) endIdEl.value = p.id;
+          
+          // Switch sidebar tab to Path Finder
+          if (btnPedigreePathTab) btnPedigreePathTab.click();
+          // Hide detail modal
+          document.getElementById('modal-member-detail').classList.add('hidden');
+          // Switch main tab to Explorer if not already there
+          this.switchTab('explorer');
+          this.showNotification(`Set ${name} as Pathfinder End.`, 'success');
+        }
+      });
+    }
   }
 
   // Initialize Canvas instance once Explorer tab becomes active
@@ -4183,6 +4308,120 @@ export class FamilyTreeUI {
     }
   }
 
+  getRelationshipStepLabel(p1, p2) {
+    if (!p1 || !p2) return '';
+    const isArabic = localStorage.getItem('app-language') === 'ar';
+    if (p1.fatherId === p2.id) {
+      return isArabic ? 'أب' : 'Father';
+    }
+    if (p1.motherId === p2.id) {
+      return isArabic ? 'أم' : 'Mother';
+    }
+    if (p2.fatherId === p1.id || p2.motherId === p1.id) {
+      if (p2.gender === 'M') return isArabic ? 'ابن' : 'Son';
+      if (p2.gender === 'F') return isArabic ? 'ابنة' : 'Daughter';
+      return isArabic ? 'ولد' : 'Child';
+    }
+    if ((p1.spouses || []).includes(p2.id) || (p2.spouses || []).includes(p1.id)) {
+      if (p2.gender === 'M') return isArabic ? 'زوج' : 'Husband';
+      if (p2.gender === 'F') return isArabic ? 'زوجة' : 'Wife';
+      return isArabic ? 'شريك' : 'Spouse';
+    }
+    if ((p1.fatherId && p1.fatherId === p2.fatherId) || (p1.motherId && p1.motherId === p2.motherId)) {
+      if (p2.gender === 'M') return isArabic ? 'أخ' : 'Brother';
+      if (p2.gender === 'F') return isArabic ? 'أخت' : 'Sister';
+      return isArabic ? 'شقيق' : 'Sibling';
+    }
+    return isArabic ? 'قريب' : 'Relative';
+  }
+
+  renderPathCommon(path, resContainer, resList, isModal) {
+    resContainer.classList.remove('hidden');
+    resList.innerHTML = '';
+
+    if (!path || path.length === 0) {
+      resList.innerHTML = `<div style="font-size:12px; color:var(--win-text-secondary); padding:5px 0; text-align:center;">No relationship connection path found between these members.</div>`;
+      return;
+    }
+
+    path.forEach((personId, index) => {
+      const p = this.engine.getPerson(personId);
+      if (!p) return;
+
+      const item = document.createElement('div');
+      item.style.display = 'flex';
+      item.style.alignItems = 'center';
+      item.style.justifyContent = 'space-between';
+      item.style.padding = '8px 12px';
+      item.style.borderRadius = '4px';
+      item.style.background = 'var(--win-card-bg)';
+      item.style.border = '1px solid var(--win-border-light)';
+      item.style.cursor = 'pointer';
+      item.title = 'Make Focus in Explorer';
+
+      let displayName = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+      if (localStorage.getItem('app-language') === 'ar') {
+        const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+        displayName = cache[p.name] || displayName;
+      }
+
+      let stepLabel = '';
+      if (index === 0) {
+        stepLabel = `<span style="font-size:9px; font-weight:bold; color:var(--win-accent); text-transform:uppercase;">${localStorage.getItem('app-language') === 'ar' ? 'البداية' : 'Start'}</span>`;
+      } else if (index === path.length - 1) {
+        stepLabel = `<span style="font-size:9px; font-weight:bold; color:var(--win-accent); text-transform:uppercase;">${localStorage.getItem('app-language') === 'ar' ? 'النهاية' : 'End'}</span>`;
+      } else {
+        stepLabel = `<span style="font-size:9px; color:var(--win-text-secondary);">${localStorage.getItem('app-language') === 'ar' ? 'خطوة' : 'Step'} ${index}</span>`;
+      }
+
+      item.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:flex-start;">
+          <span style="font-size:12.5px; font-weight:600; color:var(--win-text-primary);">${displayName}</span>
+          <span style="font-size:10px; color:var(--win-text-secondary);">ID: ${p.id}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          ${stepLabel}
+          <span class="row-gender-badge badge-${p.gender}" style="font-size:9px; font-weight:bold; padding:2px 6px; border-radius:10px;">${p.gender}</span>
+        </div>
+      `;
+
+      item.addEventListener('click', () => {
+        this.setFocusPerson(p.id);
+        this.switchTab('explorer');
+        if (isModal) {
+          document.getElementById('modal-v8-pathfinder').classList.add('hidden');
+        }
+        if (this.canvas) {
+          this.canvas.centerOnNode(p.id);
+        }
+      });
+
+      resList.appendChild(item);
+
+      if (index < path.length - 1) {
+        const nextId = path[index + 1];
+        const nextP = this.engine.getPerson(nextId);
+        const relLabel = this.getRelationshipStepLabel(p, nextP);
+
+        const arrow = document.createElement('div');
+        arrow.style.textAlign = 'center';
+        arrow.style.color = 'var(--win-accent)';
+        arrow.style.fontSize = '11px';
+        arrow.style.fontWeight = '600';
+        arrow.style.margin = '4px 0';
+        arrow.style.display = 'flex';
+        arrow.style.flexDirection = 'column';
+        arrow.style.alignItems = 'center';
+        arrow.style.gap = '2px';
+        arrow.innerHTML = `
+          <span>↓</span>
+          <span style="font-size: 10px; background: var(--win-accent-subtle, rgba(0, 120, 212, 0.1)); color: var(--win-accent); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--win-accent-light, rgba(0, 120, 212, 0.25));">${relLabel}</span>
+        `;
+        resList.appendChild(arrow);
+      }
+    });
+  }
+
   calculateRelationshipPath() {
     const startId = document.getElementById('path-start-id').value;
     const endId = document.getElementById('path-end-id').value;
@@ -4199,73 +4438,26 @@ export class FamilyTreeUI {
     }
 
     const path = this.engine.findRelationshipPath(startId, endId);
+    this.renderPathCommon(path, resContainer, resList, true);
+  }
 
-    resContainer.classList.remove('hidden');
-    resList.innerHTML = '';
+  calculateSidebarRelationshipPath() {
+    const startId = document.getElementById('sidebar-path-start-id').value;
+    const endId = document.getElementById('sidebar-path-end-id').value;
+    const startVal = document.getElementById('sidebar-path-start-input').value.trim();
+    const endVal = document.getElementById('sidebar-path-end-input').value.trim();
 
-    if (!path || path.length === 0) {
-      resList.innerHTML = `<div style="font-size:12px; color:var(--win-text-secondary); padding:5px 0; text-align:center;">No relationship connection path found between these members.</div>`;
+    const resContainer = document.getElementById('sidebar-path-results-container');
+    const resList = document.getElementById('sidebar-path-results-list');
+    if (!resContainer || !resList) return;
+
+    if (!startId || !endId || !startVal || !endVal) {
+      this.showNotification("Please select both start and end members from suggestions.", "warning");
       return;
     }
 
-    // Render path list
-    path.forEach((personId, index) => {
-      const p = this.engine.getPerson(personId);
-      if (!p) return;
-      
-      const item = document.createElement('div');
-      item.style.display = 'flex';
-      item.style.alignItems = 'center';
-      item.style.justifyContent = 'space-between';
-      item.style.padding = '8px 12px';
-      item.style.borderRadius = '4px';
-      item.style.background = 'var(--win-card-bg)';
-      item.style.border = '1px solid var(--win-border-light)';
-      
-      let stepLabel = '';
-      if (index === 0) {
-        stepLabel = '<span style="font-size:9px; font-weight:bold; color:var(--win-accent); text-transform:uppercase;">Start</span>';
-      } else if (index === path.length - 1) {
-        stepLabel = '<span style="font-size:9px; font-weight:bold; color:var(--win-accent); text-transform:uppercase;">End</span>';
-      } else {
-        stepLabel = `<span style="font-size:9px; color:var(--win-text-secondary);">Step ${index}</span>`;
-      }
-
-      item.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-          <span style="font-size:12.5px; font-weight:600; color:var(--win-text-primary);">${p.name}</span>
-          <span style="font-size:10px; color:var(--win-text-secondary);">ID: ${p.id}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          ${stepLabel}
-          <span class="row-gender-badge badge-${p.gender}" style="font-size:9px; font-weight:bold; padding:2px 6px; border-radius:10px;">${p.gender}</span>
-        </div>
-      `;
-
-      item.style.cursor = 'pointer';
-      item.title = 'Make Focus in Explorer';
-      item.addEventListener('click', () => {
-        this.setFocusPerson(p.id);
-        this.switchTab('explorer');
-        document.getElementById('modal-v8-pathfinder').classList.add('hidden');
-        if (this.canvas) {
-          this.canvas.centerOnNode(p.id);
-        }
-      });
-
-      resList.appendChild(item);
-
-      // Add connection arrow between items
-      if (index < path.length - 1) {
-        const arrow = document.createElement('div');
-        arrow.style.textAlign = 'center';
-        arrow.style.color = 'var(--win-text-disabled)';
-        arrow.style.fontSize = '12px';
-        arrow.style.margin = '2px 0';
-        arrow.innerHTML = '⇄';
-        resList.appendChild(arrow);
-      }
-    });
+    const path = this.engine.findRelationshipPath(startId, endId);
+    this.renderPathCommon(path, resContainer, resList, false);
   }
 
   // ========================================================================
