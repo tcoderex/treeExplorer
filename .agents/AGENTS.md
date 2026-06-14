@@ -1,5 +1,9 @@
 # Agent Behavioral Rules
 
+## 🔍 Mandatory Rule & Skill File Consulting
+- **Consult Markdown Rules Every Turn**: At the start of every turn, the agent MUST consult the behavioral rules in `.agents/AGENTS.md` and any relevant `.agents/skills/**/*.md` files. You must explicitly reference or confirm that you have reviewed these guidelines to maintain context and constraint compliance.
+- **Instant Error Recovery & Proactive Verification**: If any error or warning is encountered during development or in a build/run check, the agent must instantly diagnose, fix, and rerun validation steps (like `npm run build`) without waiting for user instruction.
+
 ## 🤖 Interaction & Development Workflows (Antigravity Slash Commands)
 Future agents working on this project must know and utilize the following Antigravity slash commands based on their specific triggers:
 

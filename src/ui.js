@@ -1801,8 +1801,13 @@ export class FamilyTreeUI {
         const id = el.dataset.id || el.innerText.trim();
         const p = this.engine.getPerson(id);
         if (p) {
-          const name = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
-          if (sideStartInput) sideStartInput.value = name;
+          let displayName = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+          const isAr = localStorage.getItem('app-language') === 'ar';
+          if (isAr) {
+            const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+            displayName = cache[p.name] || displayName;
+          }
+          if (sideStartInput) sideStartInput.value = displayName;
           const startIdEl = document.getElementById('sidebar-path-start-id');
           if (startIdEl) startIdEl.value = p.id;
           
@@ -1812,7 +1817,8 @@ export class FamilyTreeUI {
           document.getElementById('modal-member-detail').classList.add('hidden');
           // Switch main tab to Explorer if not already there
           this.switchTab('explorer');
-          this.showNotification(`Set ${name} as Pathfinder Start.`, 'success');
+          const msg = isAr ? `تم تعيين ${displayName} كبداية لمكتشف المسار.` : `Set ${displayName} as Pathfinder Start.`;
+          this.showNotification(msg, 'success');
         }
       });
     }
@@ -1823,8 +1829,13 @@ export class FamilyTreeUI {
         const id = el.dataset.id || el.innerText.trim();
         const p = this.engine.getPerson(id);
         if (p) {
-          const name = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
-          if (sideEndInput) sideEndInput.value = name;
+          let displayName = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name).trim();
+          const isAr = localStorage.getItem('app-language') === 'ar';
+          if (isAr) {
+            const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+            displayName = cache[p.name] || displayName;
+          }
+          if (sideEndInput) sideEndInput.value = displayName;
           const endIdEl = document.getElementById('sidebar-path-end-id');
           if (endIdEl) endIdEl.value = p.id;
           
@@ -1834,7 +1845,8 @@ export class FamilyTreeUI {
           document.getElementById('modal-member-detail').classList.add('hidden');
           // Switch main tab to Explorer if not already there
           this.switchTab('explorer');
-          this.showNotification(`Set ${name} as Pathfinder End.`, 'success');
+          const msg = isAr ? `تم تعيين ${displayName} كنهاية لمكتشف المسار.` : `Set ${displayName} as Pathfinder End.`;
+          this.showNotification(msg, 'success');
         }
       });
     }
@@ -4377,7 +4389,7 @@ export class FamilyTreeUI {
       item.innerHTML = `
         <div style="display:flex; flex-direction:column; align-items:flex-start;">
           <span style="font-size:12.5px; font-weight:600; color:var(--win-text-primary);">${displayName}</span>
-          <span style="font-size:10px; color:var(--win-text-secondary);">ID: ${p.id}</span>
+          <span class="no-translate" style="font-size:10px; color:var(--win-text-secondary);">ID: ${p.id}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           ${stepLabel}
@@ -4932,6 +4944,16 @@ export class FamilyTreeUI {
       cache['Step '] = 'خطوة ';
       cache['Start'] = 'البداية';
       cache['End'] = 'النهاية';
+      cache['Lineage Path Finder'] = 'مكتشف مسار النسب';
+      cache['Find the exact relationship path between two family members.'] = 'ابحث عن مسار القرابة الدقيق بين فردين من العائلة.';
+      cache['Search start member...'] = 'البحث عن العضو البادئ...';
+      cache['Search target member...'] = 'البحث عن العضو المستهدف...';
+      cache['🔍 Calculate Path'] = '🔍 احسب المسار';
+      cache['Connection Details:'] = 'تفاصيل الاتصال:';
+      cache['📍 Set Pathfinder Start'] = '📍 تعيين كبداية للمسار';
+      cache['📍 Set Pathfinder End'] = '📍 تعيين كنهاية للمسار';
+      cache['Pedigree'] = 'شجرة النسب';
+      cache['Path Finder'] = 'مكتشف المسار';
 
       // Canvas labels & relation translations
       cache['Male'] = 'ذكر';

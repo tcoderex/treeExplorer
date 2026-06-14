@@ -9,6 +9,7 @@ description: Compiles the frontend assets and boots up the active desktop Electr
 Ensure the application compiles natively and launches the visual UI container without crashing.
 
 ## Procedural Steps
+0. **Read Rules First**: Before running, building, or modifying code, always consult `.agents/AGENTS.md` and this `SKILL.md` to ensure constraints and dependencies are fully loaded in memory.
 1. Open the project root directory in the local terminal shell tool.
 2. Execute the build engine script: `npm run build`
 3. If the compilation completes successfully, launch the application shell: `npm run electron:start`
