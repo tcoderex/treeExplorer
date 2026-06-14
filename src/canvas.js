@@ -44,6 +44,10 @@ export class LineageCanvas {
     // Photo Image Cache
     this.imageCache = new Map();
 
+    // Theme Cache
+    this.cachedTheme = null;
+    this.themeColors = null;
+
     // Initialize Event Listeners
     this.initEvents();
     this.resizeCanvas();
@@ -54,6 +58,29 @@ export class LineageCanvas {
     if (localStorage.getItem('app-language') !== 'ar') return str;
     const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
     return cache[str] || str;
+  }
+
+  loadThemeColors() {
+    if (typeof window === 'undefined') return;
+    const bodyStyles = getComputedStyle(document.body);
+    this.themeColors = {
+      connHover: bodyStyles.getPropertyValue('--conn-hover-color').trim() || '#0078d4',
+      connFocus: bodyStyles.getPropertyValue('--conn-focus-color').trim() || '#0078d4',
+      connDefaultWorld: bodyStyles.getPropertyValue('--conn-default-world-color').trim() || 'rgba(0, 0, 0, 0.06)',
+      connFocusWorld: bodyStyles.getPropertyValue('--conn-focus-world-color').trim() || 'rgba(0, 120, 212, 0.5)',
+      connDefaultTree: bodyStyles.getPropertyValue('--conn-default-tree-color').trim() || 'rgba(0, 0, 0, 0.3)',
+      spouseHover: bodyStyles.getPropertyValue('--spouse-hover-color').trim() || '#e3008c',
+      spouseDefault: bodyStyles.getPropertyValue('--spouse-default-color').trim() || '#e3008c',
+      spouseDefaultWorld: bodyStyles.getPropertyValue('--spouse-default-world-color').trim() || 'rgba(227, 0, 140, 0.35)',
+      siblingHover: bodyStyles.getPropertyValue('--sibling-hover-color').trim() || '#0078d4',
+      siblingDefault: bodyStyles.getPropertyValue('--sibling-default-color').trim() || '#8855cc',
+      siblingDefaultWorld: bodyStyles.getPropertyValue('--sibling-default-world-color').trim() || 'rgba(136, 85, 204, 0.35)',
+      timelineStroke: bodyStyles.getPropertyValue('--timeline-stroke').trim() || 'rgba(0, 0, 0, 0.05)',
+      timelineLabelFill: bodyStyles.getPropertyValue('--timeline-label-fill').trim() || 'rgba(0, 0, 0, 0.35)',
+      timelinePillBg: bodyStyles.getPropertyValue('--timeline-pill-bg').trim() || '#f0f0f0',
+      timelinePillBorder: bodyStyles.getPropertyValue('--timeline-pill-border').trim() || 'rgba(0, 0, 0, 0.15)',
+      timelinePillText: bodyStyles.getPropertyValue('--timeline-pill-text').trim() || '#333333'
+    };
   }
 
   // Adjust canvas resolution for sharp High-DPI screens
@@ -73,6 +100,118 @@ export class LineageCanvas {
   initEvents() {
     // Handle Window Resizing
     window.addEventListener('resize', () => this.resizeCanvas());
+
+    // Keyboard Panning, Zooming & Reset Controls
+    window.addEventListener('keydown', (e) => {
+      // Only handle events for the active canvas tab to prevent dual panning/zooming conflicts
+      const tabId = this.isWorldMode ? 'tab-world' : 'tab-explorer';
+      const tabEl = document.getElementById(tabId);
+      if (!tabEl || tabEl.classList.contains('hidden')) {
+        return;
+      }
+
+      // Ignore key events when typing in inputs/textareas/selects
+      const activeEl = document.activeElement;
+      if (activeEl && (
+        activeEl.tagName === 'INPUT' || 
+        activeEl.tagName === 'TEXTAREA' || 
+        activeEl.tagName === 'SELECT' || 
+        activeEl.isContentEditable
+      )) {
+        return;
+      }
+
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+
+      let handled = false;
+      const panStep = 50; // pixels to shift per press
+      const zoomFactor = 1.1;
+
+      switch (e.key) {
+        // Panning Up
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          this.panY += panStep;
+          handled = true;
+          break;
+        // Panning Down
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          this.panY -= panStep;
+          handled = true;
+          break;
+        // Panning Left
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          this.panX += panStep;
+          handled = true;
+          break;
+        // Panning Right
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          this.panX -= panStep;
+          handled = true;
+          break;
+        // Zooming In
+        case '+':
+        case '=':
+          {
+            const centerX = this.canvas.clientWidth / 2;
+            const centerY = this.canvas.clientHeight / 2;
+            const worldX = (centerX - this.panX) / this.zoom;
+            const worldY = (centerY - this.panY) / this.zoom;
+            
+            this.zoom = Math.min(this.maxZoom, this.zoom * zoomFactor);
+            this.panX = centerX - worldX * this.zoom;
+            this.panY = centerY - worldY * this.zoom;
+            handled = true;
+          }
+          break;
+        // Zooming Out
+        case '-':
+        case '_':
+          {
+            const centerX = this.canvas.clientWidth / 2;
+            const centerY = this.canvas.clientHeight / 2;
+            const worldX = (centerX - this.panX) / this.zoom;
+            const worldY = (centerY - this.panY) / this.zoom;
+            
+            this.zoom = Math.max(this.minZoom, this.zoom / zoomFactor);
+            this.panX = centerX - worldX * this.zoom;
+            this.panY = centerY - worldY * this.zoom;
+            handled = true;
+          }
+          break;
+        // Reset View
+        case 'Escape':
+        case '0':
+          this.zoom = 1;
+          this.panX = 0;
+          this.panY = 0;
+          
+          if (this.focusPersonId) {
+            const focusNode = this.nodes.find(n => String(n.id) === String(this.focusPersonId));
+            if (focusNode) {
+              this.panX = this.canvas.clientWidth / 2 - (focusNode.x + this.nodeWidth / 2) * this.zoom;
+              this.panY = this.canvas.clientHeight / 2 - (focusNode.y + this.nodeHeight / 2) * this.zoom;
+            }
+          }
+          handled = true;
+          break;
+      }
+
+      if (handled) {
+        e.preventDefault();
+        this.draw();
+      }
+    });
 
     // Mouse Down (Drag start or Select card candidate)
     this.canvas.addEventListener('mousedown', (e) => {
@@ -524,6 +663,66 @@ export class LineageCanvas {
     this.applySmartSpacing();
   }
 
+  applySmartSpacing() {
+    if (!this.nodes || this.nodes.length === 0) return;
+
+    // Group nodes by layerIdx
+    const layers = {};
+    this.nodes.forEach(node => {
+      if (!layers[node.layerIdx]) {
+        layers[node.layerIdx] = [];
+      }
+      layers[node.layerIdx].push(node);
+    });
+
+    const isVertical = this.layoutDirection === 'vertical';
+    const spacing = this.nodeSpacingX;
+
+    Object.keys(layers).forEach(layerKey => {
+      const layerNodes = layers[layerKey];
+      if (layerNodes.length <= 1) return;
+
+      // Sort nodes along the layout axis
+      if (isVertical) {
+        layerNodes.sort((a, b) => a.x - b.x);
+        const minDistance = this.nodeWidth + spacing;
+        for (let i = 1; i < layerNodes.length; i++) {
+          const prev = layerNodes[i - 1];
+          const curr = layerNodes[i];
+          if (curr.x - prev.x < minDistance) {
+            curr.x = prev.x + minDistance;
+          }
+        }
+        
+        // Center the layer around 0 again to maintain graph symmetry
+        const minX = layerNodes[0].x;
+        const maxX = layerNodes[layerNodes.length - 1].x;
+        const currentCenter = (minX + maxX) / 2;
+        layerNodes.forEach(node => {
+          node.x -= currentCenter;
+        });
+      } else {
+        layerNodes.sort((a, b) => a.y - b.y);
+        const minDistance = this.nodeHeight + spacing;
+        for (let i = 1; i < layerNodes.length; i++) {
+          const prev = layerNodes[i - 1];
+          const curr = layerNodes[i];
+          if (curr.y - prev.y < minDistance) {
+            curr.y = prev.y + minDistance;
+          }
+        }
+
+        // Center the layer around 0
+        const minY = layerNodes[0].y;
+        const maxY = layerNodes[layerNodes.length - 1].y;
+        const currentCenter = (minY + maxY) / 2;
+        layerNodes.forEach(node => {
+          node.y -= currentCenter;
+        });
+      }
+    });
+  }
+
   // --- NEW GENEALOGY LAYOUTS ---
   
   // 1. Strict Left-To-Right Pedigree Ancestor Layout (including Siblings)
@@ -912,6 +1111,13 @@ export class LineageCanvas {
      ========================================================================== */
 
   draw() {
+    // Check if theme changed, load variables to avoid layout thrashing in paint loop
+    const currentTheme = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'light';
+    if (this.cachedTheme !== currentTheme || !this.themeColors) {
+      this.cachedTheme = currentTheme;
+      this.loadThemeColors();
+    }
+
     // Clean screen
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.save();
@@ -952,16 +1158,17 @@ export class LineageCanvas {
     const isDark = document.body.classList.contains('theme-dark');
     const isWin7 = document.body.classList.contains('theme-win7');
     const isPs1 = document.body.classList.contains('theme-ps1');
+    const isWinxp = document.body.classList.contains('theme-winxp');
     this.ctx.save();
     
     // Set dashed line style
-    this.ctx.strokeStyle = isPs1 ? 'rgba(0, 0, 0, 0.15)' : (isWin7 ? 'rgba(255, 255, 255, 0.2)' : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'));
+    this.ctx.strokeStyle = this.themeColors.timelineStroke;
     this.ctx.lineWidth = 1;
     this.ctx.setLineDash([6, 4]);
 
     // Label style
-    this.ctx.fillStyle = isPs1 ? 'rgba(0, 0, 0, 0.5)' : (isWin7 ? 'rgba(255, 255, 255, 0.6)' : (isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)'));
-    this.ctx.font = isPs1 ? 'bold 10px monospace' : (isWin7 ? 'bold 10px "Segoe UI", Tahoma, sans-serif' : 'bold 10px Outfit, sans-serif');
+    this.ctx.fillStyle = this.themeColors.timelineLabelFill;
+    this.ctx.font = isPs1 ? 'bold 10px monospace' : (isWinxp ? 'bold 11px Tahoma, sans-serif' : (isWin7 ? 'bold 10px "Segoe UI", Tahoma, sans-serif' : 'bold 10px Outfit, sans-serif'));
 
     // Find the world bounds of the screen to draw the lines across the entire viewport
     const viewWidth = this.canvas.clientWidth;
@@ -1015,11 +1222,33 @@ export class LineageCanvas {
         this.ctx.lineTo(x, wBottom);
         this.ctx.stroke();
 
-        // Draw label text rotated
+        // Draw label text horizontally centered at x, near the top (wTop + 10) in a clean badge pill
         this.ctx.save();
-        this.ctx.translate(x - 6, wTop + 20);
-        this.ctx.rotate(-Math.PI / 2);
-        this.ctx.fillText(label.toUpperCase(), 0, 0);
+        this.ctx.font = isPs1 ? 'bold 10px monospace' : (isWinxp ? 'bold 11px Tahoma, sans-serif' : (isWin7 ? 'bold 10px "Segoe UI", Tahoma, sans-serif' : 'bold 10px Outfit, sans-serif'));
+        const textWidth = this.ctx.measureText(label.toUpperCase()).width;
+        
+        const pillW = textWidth + 16;
+        const pillH = 20;
+        const pillX = x - pillW / 2;
+        const pillY = wTop + 10;
+        
+        this.ctx.fillStyle = this.themeColors.timelinePillBg;
+        this.ctx.strokeStyle = this.themeColors.timelinePillBorder;
+        this.ctx.lineWidth = 1;
+        
+        if (isPs1) {
+          this.ctx.fillRect(pillX, pillY, pillW, pillH);
+          this.ctx.strokeRect(pillX, pillY, pillW, pillH);
+        } else {
+          this.drawRoundedRect(pillX, pillY, pillW, pillH, 4);
+          this.ctx.fill();
+          this.ctx.stroke();
+        }
+        
+        this.ctx.fillStyle = this.themeColors.timelinePillText;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(label.toUpperCase(), x, pillY + pillH / 2);
         this.ctx.restore();
       }
     });
@@ -1029,18 +1258,15 @@ export class LineageCanvas {
 
   // Draw relationship connection curves
   drawConnections() {
-    const isDark = document.body.classList.contains('theme-dark');
-    const isWin7 = document.body.classList.contains('theme-win7');
-    const isPs1 = document.body.classList.contains('theme-ps1');
     const isGenealogyWorld = this.isGenealogyMode && this.isWorldMode;
 
     // In world network mode, use much thinner, subtler lines
     if (isGenealogyWorld) {
       this.ctx.lineWidth = 1;
-      this.ctx.strokeStyle = isPs1 ? 'rgba(0, 0, 0, 0.25)' : (isWin7 ? 'rgba(255, 255, 255, 0.25)' : (isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.08)'));
+      this.ctx.strokeStyle = this.themeColors.connDefaultWorld;
     } else {
       this.ctx.lineWidth = 2;
-      this.ctx.strokeStyle = isPs1 ? 'rgba(0, 0, 0, 0.45)' : (isWin7 ? 'rgba(255, 255, 255, 0.45)' : (isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.12)'));
+      this.ctx.strokeStyle = this.themeColors.connDefaultTree;
     }
 
     this.nodes.forEach(node => {
@@ -1065,8 +1291,12 @@ export class LineageCanvas {
         if (person.spouses && person.spouses.length > 0) {
           person.spouses.forEach(spName => {
             const spouseNode = this.nodes.find(n => n.person.name === spName);
-            if (spouseNode && spouseNode.id > node.id && Math.abs(node.x - spouseNode.x) < 10) {
-              this.drawGenealogySpouseLine(node, spouseNode);
+            if (spouseNode && spouseNode.id > node.id) {
+              if (Math.abs(node.x - spouseNode.x) < 10) {
+                this.drawGenealogySpouseLine(node, spouseNode);
+              } else {
+                this.drawSpouseLine(node, spouseNode);
+              }
             }
           });
         }
@@ -1118,6 +1348,13 @@ export class LineageCanvas {
     }
     this.ctx.beginPath();
     
+    // Check if directly connected to the hovered node
+    const isHoveredLine = this.hoverNode && (String(startNode.id) === String(this.hoverNode.id) || String(endNode.id) === String(this.hoverNode.id));
+    if (isHoveredLine) {
+      this.ctx.lineWidth = 4.5;
+      this.ctx.strokeStyle = this.themeColors.connHover;
+    }
+
     let sx, sy, ex, ey, cp1x, cp1y, cp2x, cp2y;
 
     if (this.layoutDirection === 'vertical') {
@@ -1162,23 +1399,26 @@ export class LineageCanvas {
     }
     this.ctx.beginPath();
     
+    const isHoveredLine = this.hoverNode && (String(startNode.id) === String(this.hoverNode.id) || String(endNode.id) === String(this.hoverNode.id));
     const isFocusLine = this.focusPersonId && (String(startNode.id) === String(this.focusPersonId) || String(endNode.id) === String(this.focusPersonId));
-    const isDark = document.body.classList.contains('theme-dark');
-    const isWin7 = document.body.classList.contains('theme-win7');
-    const isPs1 = document.body.classList.contains('theme-ps1');
-    this.ctx.lineWidth = isFocusLine ? 3 : 2;
-    this.ctx.strokeStyle = isFocusLine 
-      ? (isPs1 ? '#e67e22' : (isWin7 ? '#82cae3' : (isDark ? '#60cdff' : '#0078d4'))) 
-      : (isPs1 ? 'rgba(0, 0, 0, 0.4)' : (isWin7 ? 'rgba(255, 255, 255, 0.5)' : (isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)')));
+
+    this.ctx.lineWidth = isHoveredLine ? 4.5 : (isFocusLine ? 3 : 2);
+    this.ctx.strokeStyle = isHoveredLine
+      ? this.themeColors.connHover
+      : (isFocusLine 
+        ? this.themeColors.connFocus 
+        : this.themeColors.connDefaultTree);
 
     let sx, sy, ex, ey;
 
     if (this.isWorldMode) {
        // In World Network mode, draw thin straight web lines
-       this.ctx.lineWidth = 1;
-       this.ctx.strokeStyle = isFocusLine 
-         ? (isPs1 ? 'rgba(230, 126, 34, 0.8)' : (isWin7 ? 'rgba(130, 202, 227, 0.8)' : (isDark ? 'rgba(96, 205, 255, 0.6)' : 'rgba(0, 120, 212, 0.5)'))) 
-         : (isPs1 ? 'rgba(0, 0, 0, 0.15)' : (isWin7 ? 'rgba(255, 255, 255, 0.2)' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.06)')));
+       this.ctx.lineWidth = isHoveredLine ? 2.5 : (isFocusLine ? 1.5 : 1);
+       this.ctx.strokeStyle = isHoveredLine
+         ? this.themeColors.connHover
+         : (isFocusLine 
+           ? this.themeColors.connFocusWorld 
+           : this.themeColors.connDefaultWorld);
        sx = startNode.x + this.nodeWidth / 2;
        sy = startNode.y + this.nodeHeight / 2;
        ex = endNode.x + this.nodeWidth / 2;
@@ -1217,11 +1457,12 @@ export class LineageCanvas {
   drawGenealogySpouseLine(nodeA, nodeB) {
     this.ctx.save();
     this.ctx.beginPath();
-    const isDark = document.body.classList.contains('theme-dark');
-    const isWin7 = document.body.classList.contains('theme-win7');
-    const isPs1 = document.body.classList.contains('theme-ps1');
-    this.ctx.strokeStyle = isPs1 ? '#ff8cda' : (isWin7 ? '#ff9ecb' : (isDark ? '#ff8cda' : '#e3008c')); // Pink solid
-    this.ctx.lineWidth = 2;
+    const isHoveredLine = this.hoverNode && (String(nodeA.id) === String(this.hoverNode.id) || String(nodeB.id) === String(this.hoverNode.id));
+
+    this.ctx.strokeStyle = isHoveredLine
+      ? this.themeColors.spouseHover
+      : this.themeColors.spouseDefault;
+    this.ctx.lineWidth = isHoveredLine ? 4 : 2;
     
     // Connect the left edges with a neat bracket to indicate marriage
     const x = nodeA.x;
@@ -1241,12 +1482,14 @@ export class LineageCanvas {
   drawGenealogySiblingBracket(nodeA, nodeB) {
     this.ctx.save();
     this.ctx.beginPath();
-    const isDark = document.body.classList.contains('theme-dark');
-    const isWin7 = document.body.classList.contains('theme-win7');
     const isPs1 = document.body.classList.contains('theme-ps1');
-    this.ctx.strokeStyle = isPs1 ? '#b277ff' : (isWin7 ? '#d2aeff' : (isDark ? '#b277ff' : '#8855cc')); // Purple-ish
-    this.ctx.lineWidth = 2;
-    this.ctx.setLineDash(isPs1 ? [] : [4, 4]); // Solid bracket for PS1, dashed for others
+    const isHoveredLine = this.hoverNode && (String(nodeA.id) === String(this.hoverNode.id) || String(nodeB.id) === String(this.hoverNode.id));
+
+    this.ctx.strokeStyle = isHoveredLine
+      ? this.themeColors.siblingHover
+      : this.themeColors.siblingDefault;
+    this.ctx.lineWidth = isHoveredLine ? 4 : 2;
+    this.ctx.setLineDash(isHoveredLine ? [] : (isPs1 ? [] : [4, 4])); // Solid bracket for PS1/hovered, dashed for others
     
     // Connect the right edges with a neat bracket to indicate siblings
     const x = nodeA.x + this.nodeWidth;
@@ -1272,9 +1515,8 @@ export class LineageCanvas {
         this.ctx.globalAlpha = 0.15;
       }
     }
-    this.ctx.strokeStyle = '#e3008c'; // Spousal pinkish/red accent indicator
-    this.ctx.lineWidth = 2;
-    this.ctx.setLineDash([4, 4]);
+    const isHoveredLine = this.hoverNode && (String(nodeA.id) === String(this.hoverNode.id) || String(nodeB.id) === String(this.hoverNode.id));
+
     this.ctx.beginPath();
 
     let ax, ay, bx, by;
@@ -1284,13 +1526,20 @@ export class LineageCanvas {
       ay = nodeA.y + this.nodeHeight / 2;
       bx = nodeB.x + this.nodeWidth / 2;
       by = nodeB.y + this.nodeHeight / 2;
-      const isDark = document.body.classList.contains('theme-dark');
-      const isWin7 = document.body.classList.contains('theme-win7');
-      const isPs1 = document.body.classList.contains('theme-ps1');
-      this.ctx.strokeStyle = isPs1 ? 'rgba(255, 140, 218, 0.45)' : (isWin7 ? 'rgba(255, 158, 203, 0.65)' : (isDark ? 'rgba(255, 140, 218, 0.45)' : 'rgba(227, 0, 140, 0.35)')); // Beautiful semi-transparent pink
-      this.ctx.lineWidth = 1.2;
+      this.ctx.strokeStyle = isHoveredLine
+        ? this.themeColors.spouseHover
+        : this.themeColors.spouseDefaultWorld;
+      this.ctx.lineWidth = isHoveredLine ? 2.5 : 1.2;
+      this.ctx.setLineDash(isHoveredLine ? [] : [2, 3]);
     } else {
-      if (this.layoutDirection === 'vertical') {
+      if (this.isGenealogyMode) {
+        const leftNode = nodeA.x <= nodeB.x ? nodeA : nodeB;
+        const rightNode = nodeA.x <= nodeB.x ? nodeB : nodeA;
+        ax = leftNode.x + this.nodeWidth;
+        ay = leftNode.y + (this.nodeHeight - 20) / 2;
+        bx = rightNode.x;
+        by = rightNode.y + (this.nodeHeight - 20) / 2;
+      } else if (this.layoutDirection === 'vertical') {
         ax = nodeA.x + this.nodeWidth;
         ay = nodeA.y + this.nodeHeight / 2;
         bx = nodeB.x;
@@ -1301,6 +1550,11 @@ export class LineageCanvas {
         bx = nodeB.x + this.nodeWidth / 2;
         by = nodeB.y;
       }
+      this.ctx.strokeStyle = isHoveredLine
+        ? this.themeColors.spouseHover
+        : this.themeColors.spouseDefault;
+      this.ctx.lineWidth = isHoveredLine ? 4 : 2;
+      this.ctx.setLineDash(isHoveredLine ? [] : [4, 4]);
     }
 
     this.ctx.moveTo(ax, ay);
@@ -1319,10 +1573,8 @@ export class LineageCanvas {
         this.ctx.globalAlpha = 0.15;
       }
     }
-    const isDark = document.body.classList.contains('theme-dark');
-    const isWin7 = document.body.classList.contains('theme-win7');
     const isPs1 = document.body.classList.contains('theme-ps1');
-    this.ctx.strokeStyle = isPs1 ? '#b277ff' : (isWin7 ? '#d2aeff' : (isDark ? '#b277ff' : '#8855cc')); // Purple-ish indicator for siblings
+    this.ctx.strokeStyle = this.themeColors.siblingDefault;
     this.ctx.lineWidth = 2;
     this.ctx.setLineDash(isPs1 ? [] : [2, 3]); // Solid for PS1
     this.ctx.beginPath();
@@ -1334,10 +1586,7 @@ export class LineageCanvas {
       ay = nodeA.y + this.nodeHeight / 2;
       bx = nodeB.x + this.nodeWidth / 2;
       by = nodeB.y + this.nodeHeight / 2;
-      const isDark = document.body.classList.contains('theme-dark');
-      const isWin7 = document.body.classList.contains('theme-win7');
-      const isPs1 = document.body.classList.contains('theme-ps1');
-      this.ctx.strokeStyle = isPs1 ? 'rgba(178, 119, 255, 0.45)' : (isWin7 ? 'rgba(210, 175, 255, 0.65)' : (isDark ? 'rgba(178, 119, 255, 0.45)' : 'rgba(136, 85, 204, 0.35)')); // Beautiful semi-transparent purple
+      this.ctx.strokeStyle = this.themeColors.siblingDefaultWorld;
       this.ctx.lineWidth = 1.2;
     } else {
       if (this.layoutDirection === 'vertical') {
@@ -1363,7 +1612,17 @@ export class LineageCanvas {
 
   // Render cards
   drawNodes() {
-    this.nodes.forEach(node => {
+    // Sort nodes to draw hovered node last (places it on top of other cards)
+    const sortedNodes = [...this.nodes];
+    if (this.hoverNode) {
+      sortedNodes.sort((a, b) => {
+        if (a.id === this.hoverNode.id) return 1;
+        if (b.id === this.hoverNode.id) return -1;
+        return 0;
+      });
+    }
+
+    sortedNodes.forEach(node => {
       const p = node.person;
       const isFocus = String(node.id) === String(this.focusPersonId);
       const isHovered = this.hoverNode && this.hoverNode.id === node.id;
@@ -1375,7 +1634,20 @@ export class LineageCanvas {
       node.screenY = node.y * this.zoom + this.panY;
 
       this.ctx.save();
-      
+
+      const isWin7 = document.body.classList.contains('theme-win7');
+      const isPs1 = document.body.classList.contains('theme-ps1');
+      const isWinxp = document.body.classList.contains('theme-winxp');
+
+      // Local translation and 8% scale around the card center if hovered
+      if (isHovered) {
+        const cx = node.x + this.nodeWidth / 2;
+        const cy = node.y + (this.isGenealogyMode && !this.isWorldMode ? (this.nodeHeight - 20) / 2 : this.nodeHeight / 2);
+        this.ctx.translate(cx, cy);
+        this.ctx.scale(1.08, 1.08);
+        this.ctx.translate(-cx, -cy);
+      }
+
       // Apply filter transparency
       if (this.filterType && this.filterType !== 'all') {
         if (!this.filterNodeMatches(p)) {
@@ -1383,20 +1655,23 @@ export class LineageCanvas {
         }
       }
 
-      const isWin7 = document.body.classList.contains('theme-win7');
-      const isPs1 = document.body.classList.contains('theme-ps1');
-
       // Card drop shadow
-      this.ctx.shadowColor = isPs1 ? 'rgba(0, 0, 0, 0.45)' : (isWin7 ? 'rgba(0, 0, 0, 0.25)' : (isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.05)'));
-      this.ctx.shadowBlur = isFocus ? 12 : 5;
-      this.ctx.shadowOffsetY = 2;
+      if (isHovered) {
+        this.ctx.shadowColor = isWinxp ? 'rgba(0, 88, 230, 0.4)' : (isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.15)');
+        this.ctx.shadowBlur = 15;
+        this.ctx.shadowOffsetY = 4;
+      } else {
+        this.ctx.shadowColor = isPs1 ? 'rgba(0, 0, 0, 0.45)' : (isWinxp ? 'rgba(0, 0, 0, 0.15)' : (isWin7 ? 'rgba(0, 0, 0, 0.25)' : (isDark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(0, 0, 0, 0.05)')));
+        this.ctx.shadowBlur = isFocus ? 12 : 5;
+        this.ctx.shadowOffsetY = 2;
+      }
 
       // Accent border
-      let strokeColor = isPs1 ? '#555555' : (isWin7 ? '#7ca4c0' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'));
+      let strokeColor = isPs1 ? '#555555' : (isWinxp ? '#7f9db9' : (isWin7 ? '#7ca4c0' : (isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)')));
       if (isFocus) {
-        strokeColor = isPs1 ? '#e67e22' : (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4'));
+        strokeColor = isPs1 ? '#e67e22' : (isWinxp ? '#003df5' : (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4')));
       } else if (isHovered) {
-        strokeColor = isPs1 ? '#888888' : (isWin7 ? '#5089af' : (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)'));
+        strokeColor = isPs1 ? '#888888' : (isWinxp ? '#245dd7' : (isWin7 ? '#5089af' : (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)')));
       }
 
       // Card Fill
@@ -1475,6 +1750,16 @@ export class LineageCanvas {
             }
           }
           fillColor = grad;
+        } else if (isWinxp) {
+          if (p.gender === 'M') {
+            if (isFocus) fillColor = '#d6dff7';
+            else if (isHovered) fillColor = '#e3efff';
+            else fillColor = '#f0f4fc';
+          } else {
+            if (isFocus) fillColor = '#ebd9e6';
+            else if (isHovered) fillColor = '#f3e5f0';
+            else fillColor = '#fbf0f8';
+          }
         } else {
           if (isPs1) {
             fillColor = '#bebebe';
@@ -1686,9 +1971,10 @@ export class LineageCanvas {
             this.drawCircularAvatar(p.photo, cx, cy, radius);
           } else {
             // Draw colored placeholder circle/square
+            // Draw colored placeholder circle/square
             this.ctx.fillStyle = p.gender === 'M' 
-              ? (isPs1 ? '#95a5a6' : (isWin7 ? '#b2d4f5' : (isDark ? '#3b78ab' : '#b2d4f5'))) 
-              : (isPs1 ? '#bdc3c7' : (isWin7 ? '#f5b2dc' : (isDark ? '#ab3b82' : '#f5b2dc')));
+              ? (isPs1 ? '#95a5a6' : (isWinxp ? '#3a95ff' : (isWin7 ? '#b2d4f5' : (isDark ? '#3b78ab' : '#b2d4f5')))) 
+              : (isPs1 ? '#bdc3c7' : (isWinxp ? '#ec407a' : (isWin7 ? '#f5b2dc' : (isDark ? '#ab3b82' : '#f5b2dc'))));
             if (isPs1) {
               this.ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
               this.ctx.strokeStyle = '#000000';
@@ -1701,8 +1987,8 @@ export class LineageCanvas {
             }
 
             // Draw initials
-            this.ctx.fillStyle = isPs1 ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33');
-            this.ctx.font = isPs1 ? 'bold 9px monospace' : (isWin7 ? 'bold 9px "Segoe UI", Tahoma, sans-serif' : 'bold 9px Outfit, sans-serif');
+            this.ctx.fillStyle = isPs1 ? '#000000' : (isWinxp ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33'));
+            this.ctx.font = isPs1 ? 'bold 9px monospace' : (isWinxp ? 'bold 9px Tahoma, sans-serif' : (isWin7 ? 'bold 9px "Segoe UI", Tahoma, sans-serif' : 'bold 9px Outfit, sans-serif'));
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             const rawFirst = p.firstName || (p.name ? p.name.split(' ')[0] : '');
@@ -1714,8 +2000,8 @@ export class LineageCanvas {
           }
 
           // Draw name next to photo
-          this.ctx.fillStyle = isPs1 ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33');
-          this.ctx.font = isPs1 ? 'bold 11px monospace' : (isWin7 ? 'bold 11px "Segoe UI", Tahoma, sans-serif' : 'bold 11px Outfit, sans-serif');
+          this.ctx.fillStyle = isPs1 ? '#000000' : (isWinxp ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33'));
+          this.ctx.font = isPs1 ? 'bold 11px monospace' : (isWinxp ? 'bold 11px Tahoma, sans-serif' : (isWin7 ? 'bold 11px "Segoe UI", Tahoma, sans-serif' : 'bold 11px Outfit, sans-serif'));
           this.ctx.textAlign = isAr ? 'right' : 'left';
           this.ctx.textBaseline = 'middle';
           const translatedName = this.t(p.name);
@@ -1729,8 +2015,8 @@ export class LineageCanvas {
           // Write name and lifespan
           const textX = isAr ? (node.x + this.nodeWidth - 48) : (node.x + 48);
           this.ctx.fillText(displayName, textX, node.y + cardH / 2 - 7);
-          this.ctx.font = isWin7 ? '500 9px "Segoe UI", Tahoma, sans-serif' : '500 9px Outfit, sans-serif';
-          this.ctx.fillStyle = (isDark && !isWin7) ? '#bbbbbb' : '#3b5266';
+          this.ctx.font = isWinxp ? '500 9px Tahoma, sans-serif' : (isWin7 ? '500 9px "Segoe UI", Tahoma, sans-serif' : '500 9px Outfit, sans-serif');
+          this.ctx.fillStyle = isWinxp ? '#4c4c4c' : ((isDark && !isWin7) ? '#bbbbbb' : '#3b5266');
           this.ctx.fillText(lifespanStr, textX, node.y + cardH / 2 + 7);
         }
 
@@ -1841,7 +2127,8 @@ export class LineageCanvas {
 
         this.ctx.restore();
       } else {
-        this.ctx.fillStyle = p.gender === 'M' ? (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4')) : (isWin7 ? '#cb2978' : (isDark ? '#ff8cda' : '#e3008c'));
+        const isWinxp = document.body.classList.contains('theme-winxp');
+        this.ctx.fillStyle = p.gender === 'M' ? (isWinxp ? '#245dd7' : (isWin7 ? '#2c7bb3' : (isDark ? '#60cdff' : '#0078d4'))) : (isWinxp ? '#d1307b' : (isWin7 ? '#cb2978' : (isDark ? '#ff8cda' : '#e3008c')));
         if (isAr) {
           this.drawRoundedRect(node.x + this.nodeWidth - 5, node.y + 1, 4, this.nodeHeight - 2, { tr: 5, br: 5, tl: 0, bl: 0 });
         } else {
@@ -1852,12 +2139,13 @@ export class LineageCanvas {
 
       // Draw Node Focus Ring
       if (isFocus) {
+        const isWinxp = document.body.classList.contains('theme-winxp');
         if (isPs1) {
           this.ctx.strokeStyle = '#e67e22';
           this.ctx.lineWidth = 2;
           this.ctx.strokeRect(node.x - 3, node.y - 3, this.nodeWidth + 6, this.nodeHeight + 6);
         } else {
-          this.ctx.strokeStyle = isWin7 ? 'rgba(44, 123, 179, 0.3)' : (isDark ? 'rgba(96, 205, 255, 0.2)' : 'rgba(0, 120, 212, 0.15)');
+          this.ctx.strokeStyle = isWinxp ? 'rgba(36, 93, 215, 0.45)' : (isWin7 ? 'rgba(44, 123, 179, 0.3)' : (isDark ? 'rgba(96, 205, 255, 0.2)' : 'rgba(0, 120, 212, 0.15)'));
           this.ctx.lineWidth = 5;
           this.drawRoundedRect(node.x - 2, node.y - 2, this.nodeWidth + 4, this.nodeHeight + 4, 8);
           this.ctx.stroke();
@@ -1941,7 +2229,7 @@ export class LineageCanvas {
       }
 
       // TEXT DRAWING
-      this.ctx.fillStyle = isPs1 ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33');
+      this.ctx.fillStyle = isPs1 ? '#000000' : (isWinxp ? '#000000' : ((isDark && !isWin7) ? '#ffffff' : '#0a1f33'));
       this.ctx.textAlign = isAr ? 'right' : 'left';
       
       const truncateText = (text, maxWidth) => {
@@ -1959,7 +2247,7 @@ export class LineageCanvas {
 
       if (p.firstName || p.familyName) {
         // Draw First Name
-        this.ctx.font = isPs1 ? 'bold 12px monospace' : (isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif');
+        this.ctx.font = isPs1 ? 'bold 12px monospace' : (isWinxp ? 'bold 12px Tahoma, sans-serif' : (isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif'));
         const rawFirst = p.firstName || p.name.split(' ')[0] || '';
         const dispFirstName = truncateText(this.t(rawFirst), this.nodeWidth - 24);
         if (!(this.isGenealogyMode && this.isWorldMode)) {
@@ -1967,7 +2255,7 @@ export class LineageCanvas {
         }
 
         // Draw Family Name
-        this.ctx.font = isPs1 ? '900 12px monospace' : (isWin7 ? '800 12px "Segoe UI", Tahoma, sans-serif' : '800 12px Outfit, sans-serif');
+        this.ctx.font = isPs1 ? '900 12px monospace' : (isWinxp ? '900 12px Tahoma, sans-serif' : (isWin7 ? '800 12px "Segoe UI", Tahoma, sans-serif' : '800 12px Outfit, sans-serif'));
         const rawFamily = p.familyName || p.name.split(' ').slice(1).join(' ') || '';
         const dispFamilyName = truncateText(this.t(rawFamily), this.nodeWidth - 24);
         if (!(this.isGenealogyMode && this.isWorldMode)) {
@@ -1975,7 +2263,7 @@ export class LineageCanvas {
         }
       } else {
         // Fallback for full name
-        this.ctx.font = isPs1 ? 'bold 12px monospace' : (isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif');
+        this.ctx.font = isPs1 ? 'bold 12px monospace' : (isWinxp ? 'bold 12px Tahoma, sans-serif' : (isWin7 ? 'bold 12px "Segoe UI", Tahoma, sans-serif' : 'bold 12px Outfit, sans-serif'));
         const dispName = truncateText(this.t(p.name), this.nodeWidth - 24);
         if (!(this.isGenealogyMode && this.isWorldMode)) {
           this.ctx.fillText(dispName, textX, node.y + (this.isGenealogyMode ? 24 : 26));
@@ -1983,8 +2271,8 @@ export class LineageCanvas {
       }
 
       // Draw subtitle (Gender label / Spouse / Generation badge)
-      this.ctx.font = isPs1 ? '500 9px monospace' : (isWin7 ? '500 9px "Segoe UI", Tahoma, sans-serif' : '500 9px Outfit, sans-serif');
-      this.ctx.fillStyle = isPs1 ? '#333333' : ((isDark && !isWin7) ? '#bbbbbb' : '#3b5266');
+      this.ctx.font = isPs1 ? '500 9px monospace' : (isWinxp ? '500 9px Tahoma, sans-serif' : (isWin7 ? '500 9px "Segoe UI", Tahoma, sans-serif' : '500 9px Outfit, sans-serif'));
+      this.ctx.fillStyle = isPs1 ? '#333333' : (isWinxp ? '#4c4c4c' : ((isDark && !isWin7) ? '#bbbbbb' : '#3b5266'));
       
       let subtitle = p.gender === 'M' ? this.t('Male') : this.t('Female');
       if (p.spouses && p.spouses.length > 0) {
@@ -1998,8 +2286,8 @@ export class LineageCanvas {
       this.ctx.fillText(subtitle, textX, node.y + 48);
 
       // Render mini badge indicating generation relationship to focus
-      this.ctx.font = isPs1 ? 'bold 7px monospace' : (isWin7 ? 'bold 7px "Segoe UI", Tahoma, sans-serif' : 'bold 7px Outfit, sans-serif');
-      this.ctx.fillStyle = isFocus ? (isPs1 ? '#d35400' : (isWin7 ? '#1e62a8' : (isDark ? '#60cdff' : '#0078d4'))) : (isPs1 ? '#555555' : ((isDark && !isWin7) ? '#888888' : '#3b5266'));
+      this.ctx.font = isPs1 ? 'bold 7px monospace' : (isWinxp ? 'bold 7px Tahoma, sans-serif' : (isWin7 ? 'bold 7px "Segoe UI", Tahoma, sans-serif' : 'bold 7px Outfit, sans-serif'));
+      this.ctx.fillStyle = isFocus ? (isPs1 ? '#d35400' : (isWinxp ? '#003df5' : (isWin7 ? '#1e62a8' : (isDark ? '#60cdff' : '#0078d4')))) : (isPs1 ? '#555555' : (isWinxp ? '#3b5266' : ((isDark && !isWin7) ? '#888888' : '#3b5266')));
       
       let badgeLabel = '';
       if (this.isWorldMode) {
@@ -2093,7 +2381,8 @@ export class LineageCanvas {
       const isDark = document.body.classList.contains('theme-dark');
       const isWin7 = document.body.classList.contains('theme-win7');
       const isPs1 = document.body.classList.contains('theme-ps1');
-      this.ctx.fillStyle = isPs1 ? '#a0a0a0' : (isWin7 ? '#c8dbe8' : (isDark ? '#444' : '#e0e0e0'));
+      const isWinxp = document.body.classList.contains('theme-winxp');
+      this.ctx.fillStyle = isPs1 ? '#a0a0a0' : (isWinxp ? '#ede9d8' : (isWin7 ? '#c8dbe8' : (isDark ? '#444' : '#e0e0e0')));
       this.ctx.beginPath();
       if (isPs1) {
         // Draw a blocky square placeholder

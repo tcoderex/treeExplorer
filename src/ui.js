@@ -550,6 +550,12 @@ export class FamilyTreeUI {
         this.transformThemeWithLoading('ps1');
       });
     }
+    const winxpCard = document.getElementById('theme-opt-winxp');
+    if (winxpCard) {
+      winxpCard.addEventListener('click', () => {
+        this.transformThemeWithLoading('winxp');
+      });
+    }
 
     // Sidebar Customization Event Bindings
     const selectSidebarStyle = document.getElementById('select-sidebar-style');
@@ -1039,141 +1045,7 @@ export class FamilyTreeUI {
       const el = document.getElementById('detail-id');
       const id = el.dataset.id || el.innerText.trim();
       if (id) {
-        const p = this.engine.getPerson(id);
-        if (p) {
-          this.pendingRelativeDataEdit = {}; // Reset
-
-          // Prefill modify form fields
-          document.getElementById('edit-person-id').value = p.id;
-          document.getElementById('edit-person-new-id').value = p.id;
-          document.getElementById('edit-person-name').value = p.firstName || p.name;
-          document.getElementById('edit-person-family-name').value = p.familyName || '';
-          document.getElementById('edit-person-gender').value = p.gender;
-          
-          const spouseContainer = document.getElementById('edit-spouse-rows');
-          if (spouseContainer) {
-            spouseContainer.innerHTML = '';
-            if (p.spouses && p.spouses.length > 0) {
-              p.spouses.forEach((spouseName, idx) => {
-                const spIds = this.engine.nameToIds.get(spouseName.toLowerCase()) || [];
-                if (spIds.length > 0) {
-                  const sp = this.engine.getPerson(spIds[0]);
-                  if (sp) {
-                    this.pendingRelativeDataEdit[`spouse_${idx}`] = { id: sp.id, gender: sp.gender, birthYear: sp.birthYear, deathYear: sp.deathYear, photo: sp.photo };
-                  }
-                }
-                const row = document.createElement('div');
-                row.className = 'dynamic-row';
-                row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
-                const parts = spouseName.split(' ');
-                const fName = parts[0] || '';
-                const lName = parts.slice(1).join(' ') || '';
-                row.innerHTML = `
-                  <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;" value="${fName}">
-                  <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;" value="${lName}">
-                  <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="${idx}" title="Add Details">[+]</button>
-                `;
-                spouseContainer.appendChild(row);
-              });
-            } else {
-              const index = spouseContainer.querySelectorAll('.dynamic-row').length;
-              const row = document.createElement('div');
-              row.className = 'dynamic-row';
-              row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
-              row.innerHTML = `
-                <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;">
-                <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;">
-                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="${index}" title="Add Details">[+]</button>
-              `;
-              spouseContainer.appendChild(row);
-            }
-          }
-          document.getElementById('edit-person-photo').value = p.photo || '';
-          document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0 ? p.birthYear : '';
-          document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null && p.deathYear !== 0 ? p.deathYear : '';
-          
-          if (p.fatherId) {
-            const f = this.engine.getPerson(p.fatherId);
-            if (f) this.pendingRelativeDataEdit['father'] = { id: f.id, gender: f.gender, birthYear: f.birthYear, deathYear: f.deathYear, photo: f.photo };
-          }
-          if (p.fatherName) {
-            const parts = p.fatherName.split(' ');
-            document.getElementById('edit-father-name').value = parts[0];
-            document.getElementById('edit-father-family-name').value = parts.slice(1).join(' ');
-          } else {
-            document.getElementById('edit-father-name').value = '';
-            document.getElementById('edit-father-family-name').value = '';
-          }
-          
-          if (p.motherId) {
-            const m = this.engine.getPerson(p.motherId);
-            if (m) this.pendingRelativeDataEdit['mother'] = { id: m.id, gender: m.gender, birthYear: m.birthYear, deathYear: m.deathYear, photo: m.photo };
-          }
-          if (p.motherName) {
-            const parts = p.motherName.split(' ');
-            document.getElementById('edit-mother-name').value = parts[0];
-            document.getElementById('edit-mother-family-name').value = parts.slice(1).join(' ');
-          } else {
-            document.getElementById('edit-mother-name').value = '';
-            document.getElementById('edit-mother-family-name').value = '';
-          }
-          
-          if (p.fatherId) {
-            const f = this.engine.getPerson(p.fatherId);
-            if (f && f.fatherId) {
-              const gf = this.engine.getPerson(f.fatherId);
-              if (gf) this.pendingRelativeDataEdit['grandfather'] = { id: gf.id, gender: gf.gender, birthYear: gf.birthYear, deathYear: gf.deathYear, photo: gf.photo };
-            }
-          }
-          if (p.grandfatherName) {
-            const parts = p.grandfatherName.split(' ');
-            document.getElementById('edit-grandfather-name').value = parts[0];
-            document.getElementById('edit-grandfather-family-name').value = parts.slice(1).join(' ');
-          } else {
-            document.getElementById('edit-grandfather-name').value = '';
-            document.getElementById('edit-grandfather-family-name').value = '';
-          }
-          
-          const siblingContainer = document.getElementById('edit-sibling-rows');
-          if (siblingContainer) {
-            siblingContainer.innerHTML = '';
-            if (p.siblings && p.siblings.length > 0) {
-              p.siblings.forEach((sibId, idx) => {
-                const sib = this.engine.people.get(sibId);
-                if (sib) {
-                  this.pendingRelativeDataEdit[`siblings_${idx}`] = { id: sib.id, gender: sib.gender, birthYear: sib.birthYear, deathYear: sib.deathYear, photo: sib.photo };
-                  const row = document.createElement('div');
-                  row.className = 'dynamic-row';
-                  row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
-                  const fName = sib.firstName || sib.name.split(' ')[0] || '';
-                  const lName = sib.familyName || sib.name.split(' ').slice(1).join(' ') || '';
-                  row.innerHTML = `
-                    <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;" value="${fName}">
-                    <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;" value="${lName}">
-                    <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="${idx}" title="Add Details">[+]</button>
-                  `;
-                  siblingContainer.appendChild(row);
-                }
-              });
-            }
-            if (siblingContainer.innerHTML === '') {
-              const index = siblingContainer.querySelectorAll('.dynamic-row').length;
-              const row = document.createElement('div');
-              row.className = 'dynamic-row';
-              row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
-              row.innerHTML = `
-                <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;">
-                <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;">
-                <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="${index}" title="Add Details">[+]</button>
-              `;
-              siblingContainer.appendChild(row);
-            }
-          }
-
-          // Open edit modal and close detail modal
-          document.getElementById('modal-member-detail').classList.add('hidden');
-          document.getElementById('modal-member-edit').classList.remove('hidden');
-        }
+        this.showEditModal(id);
       }
     });
 
@@ -1820,6 +1692,27 @@ export class FamilyTreeUI {
         this.calculateRelationshipPath();
       });
     }
+
+    // Dynastic Health Scanner bindings
+    const btnConflictsScan = document.getElementById('btn-conflicts-scan');
+    const btnConflictsRescan = document.getElementById('btn-conflicts-rescan');
+    const btnConflictsCancel = document.getElementById('btn-conflicts-cancel');
+
+    if (btnConflictsScan) {
+      btnConflictsScan.addEventListener('click', () => {
+        this.triggerConflictsScan();
+      });
+    }
+    if (btnConflictsRescan) {
+      btnConflictsRescan.addEventListener('click', () => {
+        this.triggerConflictsScan();
+      });
+    }
+    if (btnConflictsCancel) {
+      btnConflictsCancel.addEventListener('click', () => {
+        this.cancelConflictsScan();
+      });
+    }
   }
 
   // Initialize Canvas instance once Explorer tab becomes active
@@ -1872,6 +1765,387 @@ export class FamilyTreeUI {
     }
   }
 
+  renderSurnameRegistry() {
+    const people = this.engine.getAllPeople();
+    const surnameMap = {};
+    people.forEach(p => {
+      const surname = p.familyName ? p.familyName.trim() : '';
+      if (surname) {
+        surnameMap[surname] = (surnameMap[surname] || 0) + 1;
+      }
+    });
+
+    const sortedSurnames = Object.keys(surnameMap).sort((a, b) => a.localeCompare(b));
+    const listEl = document.getElementById('surname-list');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    if (sortedSurnames.length === 0) {
+      listEl.innerHTML = `<div class="surname-empty-state" style="padding:10px; font-size:12px;">No Surnames Found</div>`;
+      const gridEl = document.getElementById('surname-members-list');
+      if (gridEl) {
+        gridEl.innerHTML = `<div class="surname-empty-state"><span>No members found.</span></div>`;
+      }
+      return;
+    }
+
+    sortedSurnames.forEach(surname => {
+      const item = document.createElement('div');
+      item.className = 'surname-item';
+      if (this.selectedSurname === surname) {
+        item.classList.add('active');
+      }
+      item.innerHTML = `
+        <span>${surname}</span>
+        <span class="surname-badge">${surnameMap[surname]}</span>
+      `;
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.surname-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        this.selectSurname(surname);
+      });
+      listEl.appendChild(item);
+    });
+
+    if (this.selectedSurname && sortedSurnames.includes(this.selectedSurname)) {
+      this.selectSurname(this.selectedSurname);
+    } else if (sortedSurnames.length > 0) {
+      this.selectSurname(sortedSurnames[0]);
+    }
+  }
+
+  selectSurname(surname) {
+    this.selectedSurname = surname;
+    const titleEl = document.getElementById('surname-selected-title');
+    if (titleEl) {
+      titleEl.innerText = `${this.t ? this.t('Members with Surname') : 'Members with Surname'}: ${surname}`;
+    }
+    const people = this.engine.getAllPeople();
+    const matchingMembers = people.filter(p => p.familyName && p.familyName.trim() === surname);
+    
+    const gridEl = document.getElementById('surname-members-list');
+    if (!gridEl) return;
+    gridEl.innerHTML = '';
+
+    matchingMembers.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'surname-member-card';
+      const name = (p.firstName ? p.firstName + ' ' + (p.familyName || '') : p.name || 'Unknown').trim();
+      const lifespan = p.birthYear ? `${p.birthYear} - ${p.deathYear || (this.t ? this.t('Alive') : 'Alive')}` : '?';
+      
+      card.innerHTML = `
+        <span class="surname-member-name no-translate">${name}</span>
+        <span class="surname-member-lifespan">${lifespan}</span>
+        <button class="fluent-btn btn-secondary btn-view-in-tree" style="margin-top: 8px; padding: 4px 8px; font-size: 11px; font-weight: bold; width: 100%; text-align: center;">
+          🎯 ${this.t ? this.t('🎯 View in Explorer') : '🎯 View in Explorer'}
+        </button>
+      `;
+
+      card.querySelector('.btn-view-in-tree').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setFocusPerson(p.id);
+        this.switchTab('explorer');
+      });
+
+      card.addEventListener('click', () => {
+        this.showPersonDetail(p.id);
+      });
+
+      gridEl.appendChild(card);
+    });
+  }
+
+  triggerConflictsScan() {
+    const people = this.engine.getAllPeople();
+    if (people.length === 0) {
+      this.showNotification("Conflict scan failed: No family members registered. Please add members first.", "error");
+      return;
+    }
+
+    const readyPhase = document.getElementById('conflicts-phase-ready');
+    const scanningPhase = document.getElementById('conflicts-phase-scanning');
+    const resultsPhase = document.getElementById('conflicts-phase-results');
+    
+    if (readyPhase) readyPhase.classList.add('hidden');
+    if (resultsPhase) resultsPhase.classList.add('hidden');
+    if (scanningPhase) scanningPhase.classList.remove('hidden');
+
+    const progressBar = document.getElementById('conflicts-progress-bar');
+    const percentLabel = document.getElementById('conflicts-scanning-percent');
+    const titleLabel = document.getElementById('conflicts-scanning-title');
+    const descLabel = document.getElementById('conflicts-scanning-desc');
+
+    if (progressBar) progressBar.style.width = '0%';
+    if (percentLabel) percentLabel.innerText = '0% Audited';
+
+    this.worker.postMessage({
+      type: 'AUDIT_DYNASTIC_HEALTH',
+      payload: { people }
+    });
+
+    this.conflictsAnimRunning = true;
+    this.pendingConflictsResult = null;
+    let progress = 0;
+
+    this.conflictsInterval = setInterval(() => {
+      progress += 1;
+      const percent = Math.min(100, Math.floor((progress / 120) * 100));
+      
+      if (progressBar) progressBar.style.width = `${percent}%`;
+      if (percentLabel) percentLabel.innerText = `${percent}% Audited`;
+
+      if (percent < 20) {
+        if (titleLabel) titleLabel.innerText = "Verifying Birth Chronicles...";
+        if (descLabel) descLabel.innerText = `Analyzing birth coordinates for ${people.length} nodes...`;
+      } else if (percent < 50) {
+        if (titleLabel) titleLabel.innerText = "Inspecting Lifespan Spans...";
+        if (descLabel) descLabel.innerText = "Auditing mortality dates and checking maximum age limits...";
+      } else if (percent < 80) {
+        if (titleLabel) titleLabel.innerText = "Auditing Generation Gaps...";
+        if (descLabel) descLabel.innerText = "Running parent-child age correlation diagnostics...";
+      } else if (percent < 100) {
+        if (titleLabel) titleLabel.innerText = "Compiling Anomaly List...";
+        if (descLabel) descLabel.innerText = "Synthesizing dynamic data conflicts list...";
+      } else {
+        if (titleLabel) titleLabel.innerText = "Materializing Audits...";
+        if (descLabel) descLabel.innerText = "Formatting results index view...";
+      }
+
+      if (progress >= 120 && this.pendingConflictsResult) {
+        clearInterval(this.conflictsInterval);
+        this.conflictsInterval = null;
+        this.conflictsAnimRunning = false;
+        this.revealConflictsResults(this.pendingConflictsResult);
+        this.pendingConflictsResult = null;
+      } else if (progress >= 120) {
+        if (progressBar) progressBar.style.width = `99%`;
+        if (percentLabel) percentLabel.innerText = `99% Audited (Finalizing calculations...)`;
+      }
+    }, 100);
+  }
+
+  cancelConflictsScan() {
+    if (this.conflictsInterval) {
+      clearInterval(this.conflictsInterval);
+      this.conflictsInterval = null;
+    }
+    this.conflictsAnimRunning = false;
+    this.pendingConflictsResult = null;
+    this.resetConflictsPortal();
+    this.showNotification("Data validation scan cancelled by operator.", "warning");
+  }
+
+  resetConflictsPortal() {
+    const readyPhase = document.getElementById('conflicts-phase-ready');
+    const scanningPhase = document.getElementById('conflicts-phase-scanning');
+    const resultsPhase = document.getElementById('conflicts-phase-results');
+    
+    if (readyPhase) readyPhase.classList.remove('hidden');
+    if (scanningPhase) scanningPhase.classList.add('hidden');
+    if (resultsPhase) resultsPhase.classList.add('hidden');
+
+    this.conflictsAnimRunning = false;
+    this.pendingConflictsResult = null;
+  }
+
+  revealConflictsResults(conflicts) {
+    const scanningPhase = document.getElementById('conflicts-phase-scanning');
+    const resultsPhase = document.getElementById('conflicts-phase-results');
+    
+    if (scanningPhase) scanningPhase.classList.add('hidden');
+    if (resultsPhase) resultsPhase.classList.remove('hidden');
+
+    const successBadge = document.getElementById('conflicts-success-badge');
+    const tableContainer = document.getElementById('conflicts-table-container');
+    const tbody = document.getElementById('conflicts-table-body');
+
+    if (conflicts.length === 0) {
+      if (successBadge) successBadge.classList.remove('hidden');
+      if (tableContainer) tableContainer.classList.add('hidden');
+      this.showNotification("Dynastic health check: Database healthy!", "success");
+    } else {
+      if (successBadge) successBadge.classList.add('hidden');
+      if (tableContainer) tableContainer.classList.remove('hidden');
+      
+      if (tbody) {
+        tbody.innerHTML = '';
+        const isAr = localStorage.getItem('app-language') === 'ar';
+        
+        conflicts.forEach(c => {
+          const row = document.createElement('tr');
+          
+          const badgeClass = c.severity === 'error' ? 'conflict-severity-badge error' : 'conflict-severity-badge warning';
+          const badgeText = c.severity === 'error' ? (isAr ? 'خطأ' : 'ERROR') : (isAr ? 'تحذير' : 'WARNING');
+          const descText = isAr ? c.messageAr : c.message;
+
+          row.innerHTML = `
+            <td style="font-weight: 600;" class="no-translate">${c.personName}</td>
+            <td>${descText}</td>
+            <td><span class="${badgeClass}">${badgeText}</span></td>
+            <td style="text-align: center;">
+              <button class="btn-fix-conflict" data-id="${c.personId}">
+                ${isAr ? 'إصلاح' : 'Fix'}
+              </button>
+            </td>
+          `;
+
+          row.querySelector('.btn-fix-conflict').addEventListener('click', () => {
+            this.showEditModal(c.personId);
+          });
+
+          tbody.appendChild(row);
+        });
+      }
+      this.showNotification(`Data validation completed: Found ${conflicts.length} anomalies.`, "warning");
+    }
+  }
+
+  showEditModal(id) {
+    if (!id) return;
+    const p = this.engine.getPerson(id);
+    if (!p) return;
+
+    this.pendingRelativeDataEdit = {};
+
+    document.getElementById('edit-person-id').value = p.id;
+    document.getElementById('edit-person-new-id').value = p.id;
+    document.getElementById('edit-person-name').value = p.firstName || p.name;
+    document.getElementById('edit-person-family-name').value = p.familyName || '';
+    document.getElementById('edit-person-gender').value = p.gender;
+    
+    const spouseContainer = document.getElementById('edit-spouse-rows');
+    if (spouseContainer) {
+      spouseContainer.innerHTML = '';
+      if (p.spouses && p.spouses.length > 0) {
+        p.spouses.forEach((spouseName, idx) => {
+          const spIds = this.engine.nameToIds.get(spouseName.toLowerCase()) || [];
+          if (spIds.length > 0) {
+            const sp = this.engine.getPerson(spIds[0]);
+            if (sp) {
+              this.pendingRelativeDataEdit[`spouse_${idx}`] = { id: sp.id, gender: sp.gender, birthYear: sp.birthYear, deathYear: sp.deathYear, photo: sp.photo };
+            }
+          }
+          const row = document.createElement('div');
+          row.className = 'dynamic-row';
+          row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+          const parts = spouseName.split(' ');
+          const fName = parts[0] || '';
+          const lName = parts.slice(1).join(' ') || '';
+          row.innerHTML = `
+            <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;" value="${fName}">
+            <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;" value="${lName}">
+            <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="${idx}" title="Add Details">[+]</button>
+          `;
+          spouseContainer.appendChild(row);
+        });
+      } else {
+        const index = spouseContainer.querySelectorAll('.dynamic-row').length;
+        const row = document.createElement('div');
+        row.className = 'dynamic-row';
+        row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+        row.innerHTML = `
+          <input type="text" class="edit-spouse-first-name" placeholder="First Name" style="flex: 1;">
+          <input type="text" class="edit-spouse-family-name" placeholder="Family Name" style="flex: 1;">
+          <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="spouse" data-rel-index="${index}" title="Add Details">[+]</button>
+        `;
+        spouseContainer.appendChild(row);
+      }
+    }
+    document.getElementById('edit-person-photo').value = p.photo || '';
+    document.getElementById('edit-person-birth').value = p.birthYear !== undefined && p.birthYear !== null && p.birthYear !== 0 ? p.birthYear : '';
+    document.getElementById('edit-person-death').value = p.deathYear !== undefined && p.deathYear !== null && p.deathYear !== 0 ? p.deathYear : '';
+    
+    if (p.fatherId) {
+      const f = this.engine.getPerson(p.fatherId);
+      if (f) this.pendingRelativeDataEdit['father'] = { id: f.id, gender: f.gender, birthYear: f.birthYear, deathYear: f.deathYear, photo: f.photo };
+    }
+    if (p.fatherName) {
+      const parts = p.fatherName.split(' ');
+      document.getElementById('edit-father-name').value = parts[0];
+      document.getElementById('edit-father-family-name').value = parts.slice(1).join(' ');
+    } else {
+      document.getElementById('edit-father-name').value = '';
+      document.getElementById('edit-father-family-name').value = '';
+    }
+    
+    if (p.motherId) {
+      const m = this.engine.getPerson(p.motherId);
+      if (m) this.pendingRelativeDataEdit['mother'] = { id: m.id, gender: m.gender, birthYear: m.birthYear, deathYear: m.deathYear, photo: m.photo };
+    }
+    if (p.motherName) {
+      const parts = p.motherName.split(' ');
+      document.getElementById('edit-mother-name').value = parts[0];
+      document.getElementById('edit-mother-family-name').value = parts.slice(1).join(' ');
+    } else {
+      document.getElementById('edit-mother-name').value = '';
+      document.getElementById('edit-mother-family-name').value = '';
+    }
+    
+    if (p.fatherId) {
+      const f = this.engine.getPerson(p.fatherId);
+      if (f && f.fatherId) {
+        const gf = this.engine.getPerson(f.fatherId);
+        if (gf) this.pendingRelativeDataEdit['grandfather'] = { id: gf.id, gender: gf.gender, birthYear: gf.birthYear, deathYear: gf.deathYear, photo: gf.photo };
+      }
+    }
+    if (p.grandfatherName) {
+      const parts = p.grandfatherName.split(' ');
+      document.getElementById('edit-grandfather-name').value = parts[0];
+      document.getElementById('edit-grandfather-family-name').value = parts.slice(1).join(' ');
+    } else {
+      document.getElementById('edit-grandfather-name').value = '';
+      document.getElementById('edit-grandfather-family-name').value = '';
+    }
+    
+    const siblingContainer = document.getElementById('edit-sibling-rows');
+    if (siblingContainer) {
+      siblingContainer.innerHTML = '';
+      if (p.siblings && p.siblings.length > 0) {
+        p.siblings.forEach((sibId, idx) => {
+          const sib = this.engine.people.get(sibId);
+          if (sib) {
+            this.pendingRelativeDataEdit[`siblings_${idx}`] = { id: sib.id, gender: sib.gender, birthYear: sib.birthYear, deathYear: sib.deathYear, photo: sib.photo };
+            const row = document.createElement('div');
+            row.className = 'dynamic-row';
+            row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+            const fName = sib.firstName || sib.name.split(' ')[0] || '';
+            const lName = sib.familyName || sib.name.split(' ').slice(1).join(' ') || '';
+            row.innerHTML = `
+              <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;" value="${fName}">
+              <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;" value="${lName}">
+              <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="${idx}" title="Add Details">[+]</button>
+            `;
+            siblingContainer.appendChild(row);
+          }
+        });
+      }
+      if (siblingContainer.innerHTML === '') {
+        const index = siblingContainer.querySelectorAll('.dynamic-row').length;
+        const row = document.createElement('div');
+        row.className = 'dynamic-row';
+        row.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+        row.innerHTML = `
+          <input type="text" class="edit-sibling-first-name" placeholder="First Name" style="flex: 1;">
+          <input type="text" class="edit-sibling-family-name" placeholder="Family Name" style="flex: 1;">
+          <button type="button" class="fluent-btn btn-secondary btn-relative-details" data-rel-type="siblings" data-rel-index="${index}" title="Add Details">[+]</button>
+        `;
+        siblingContainer.appendChild(row);
+      }
+    }
+    document.getElementById('edit-person-notes').value = p.notes || '';
+
+    document.querySelectorAll('#modal-member-edit .btn-relative-details').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const type = btn.getAttribute('data-rel-type');
+        const index = btn.getAttribute('data-rel-index');
+        this.openRelativeDetailsModal(type, index, 'edit');
+      });
+    });
+
+    document.getElementById('modal-member-detail').classList.add('hidden');
+    document.getElementById('modal-member-edit').classList.remove('hidden');
+  }
+
   // Theme Initialization and Management
   initTheme() {
     const savedTheme = localStorage.getItem('family-tree-theme');
@@ -1894,23 +2168,26 @@ export class FamilyTreeUI {
   }
 
   setTheme(theme) {
-    document.body.classList.remove('theme-dark', 'theme-win7', 'theme-ps1');
+    document.body.classList.remove('theme-dark', 'theme-win7', 'theme-ps1', 'theme-winxp');
     localStorage.setItem('family-tree-theme', theme);
 
     const darkRadio = document.getElementById('radio-theme-dark');
     const lightRadio = document.getElementById('radio-theme-light');
     const win7Radio = document.getElementById('radio-theme-win7');
     const ps1Radio = document.getElementById('radio-theme-ps1');
+    const winxpRadio = document.getElementById('radio-theme-winxp');
 
     const darkCard = document.getElementById('theme-opt-dark');
     const lightCard = document.getElementById('theme-opt-light');
     const win7Card = document.getElementById('theme-opt-win7');
     const ps1Card = document.getElementById('theme-opt-ps1');
+    const winxpCard = document.getElementById('theme-opt-winxp');
 
     if (darkRadio) darkRadio.checked = (theme === 'dark');
     if (lightRadio) lightRadio.checked = (theme === 'light');
     if (win7Radio) win7Radio.checked = (theme === 'win7');
     if (ps1Radio) ps1Radio.checked = (theme === 'ps1');
+    if (winxpRadio) winxpRadio.checked = (theme === 'winxp');
 
     if (darkCard) {
       if (theme === 'dark') darkCard.classList.add('active');
@@ -1928,6 +2205,10 @@ export class FamilyTreeUI {
       if (theme === 'ps1') ps1Card.classList.add('active');
       else ps1Card.classList.remove('active');
     }
+    if (winxpCard) {
+      if (theme === 'winxp') winxpCard.classList.add('active');
+      else winxpCard.classList.remove('active');
+    }
 
     if (theme === 'dark') {
       document.body.classList.add('theme-dark');
@@ -1935,6 +2216,8 @@ export class FamilyTreeUI {
       document.body.classList.add('theme-win7');
     } else if (theme === 'ps1') {
       document.body.classList.add('theme-ps1');
+    } else if (theme === 'winxp') {
+      document.body.classList.add('theme-winxp');
     }
 
     // Immediately repaint canvas views to update colors!
@@ -2039,7 +2322,126 @@ export class FamilyTreeUI {
     });
   }
 
+  playWinXPChime() {
+    const audioContext = (window.App && window.App.v8 && window.App.v8.audioContext) || new (window.AudioContext || window.webkitAudioContext)();
+    if (window.App && window.App.v8 && !window.App.v8.isSoundsEnabled) return;
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    const now = audioContext.currentTime;
+    
+    // Create a compressor/master gain
+    const masterGain = audioContext.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(0.3, now + 0.5);
+    masterGain.gain.exponentialRampToValueAtTime(0.001, now + 6.0);
+    masterGain.connect(audioContext.destination);
+
+    // Warm pad chord notes (frequencies in Hz): G3 (196), D4 (293.66), G4 (392), B4 (493.88), D5 (587.33)
+    const freqs = [196.00, 293.66, 392.00, 493.88, 587.33];
+    
+    freqs.forEach((freq, idx) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      
+      osc.type = idx === 0 ? 'sine' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+      
+      const filter = audioContext.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1000, now);
+      
+      gain.gain.setValueAtTime(0, now);
+      const startTime = now + idx * 0.15;
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.08, startTime + 0.4);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 4.5);
+      
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      
+      osc.start(startTime);
+      osc.stop(startTime + 5.0);
+    });
+
+    // High bell chime notes: G5 (783.99), B5 (987.77), D6 (1174.66)
+    const bellFreqs = [783.99, 987.77, 1174.66];
+    bellFreqs.forEach((freq, idx) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      
+      const bellTime = now + 1.0 + idx * 0.1;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.setValueAtTime(0, bellTime);
+      gain.gain.linearRampToValueAtTime(0.05, bellTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, bellTime + 2.0);
+      
+      osc.connect(gain);
+      gain.connect(masterGain);
+      
+      osc.start(bellTime);
+      osc.stop(bellTime + 2.5);
+    });
+  }
+
   transformThemeWithLoading(targetTheme) {
+    if (targetTheme === 'winxp') {
+      const overlay = document.getElementById('winxp-transformation-overlay');
+      const statusText = document.getElementById('xp-loading-status');
+      
+      if (!overlay || !statusText) {
+        this.setTheme(targetTheme);
+        this.showNotification("Windows XP Theme Enabled.", "success");
+        return;
+      }
+
+      this.playWinXPChime();
+
+      overlay.classList.remove('hidden');
+      overlay.style.opacity = '1';
+      
+      let progress = 0;
+      
+      const xpEvents = [
+        "Analyzing Luna desktop configurations...",
+        "Initializing kernel services...",
+        "Setting up Tahoma high-contrast fonts...",
+        "Applying royal blue windows frames...",
+        "Executing startup sound synthesis...",
+        "Booting into Windows XP Luna environment..."
+      ];
+
+      statusText.innerText = `${xpEvents[0]} (0%)`;
+
+      const interval = setInterval(() => {
+        progress += Math.floor(Math.random() * 8) + 4;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          
+          this.setTheme(targetTheme);
+          
+          setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+              overlay.classList.add('hidden');
+              this.showNotification("Windows XP Luna Edition active!", "success");
+            }, 300);
+          }, 600);
+        }
+        
+        const msgIndex = Math.min(Math.floor((progress / 100) * xpEvents.length), xpEvents.length - 1);
+        statusText.innerText = `${xpEvents[msgIndex]} (${progress}%)`;
+      }, 100);
+
+      return;
+    }
+
     if (targetTheme === 'ps1') {
       const overlay = document.getElementById('ps1-transformation-overlay');
       const statusText = document.getElementById('ps1-bios-text');
@@ -2215,6 +2617,10 @@ export class FamilyTreeUI {
       }
     });
 
+    if (tabName === 'surnames') {
+      this.renderSurnameRegistry();
+    }
+
     // Prevent main container scrolling on explorer and world tabs
     const contentView = document.querySelector('.fluent-content-view');
     if (contentView) {
@@ -2277,6 +2683,10 @@ export class FamilyTreeUI {
 
     // Update Datagrid Rows
     this.updateGridData();
+
+    if (this.currentTab === 'surnames') {
+      this.renderSurnameRegistry();
+    }
 
     if (this.canvas) {
       this.canvas.computeLayout();
@@ -2373,7 +2783,6 @@ export class FamilyTreeUI {
     activeLevels.forEach(lvl => {
       const count = counts[lvl];
       const widthPct = maxGenCount > 0 ? (count / maxGenCount) * 100 : 0;
-      
       const row = document.createElement('div');
       row.className = 'gen-chart-row';
       row.innerHTML = `
@@ -2385,6 +2794,97 @@ export class FamilyTreeUI {
       `;
       genListContainer.appendChild(row);
     });
+
+    // Render Top Surnames (Version 11)
+    const surnameContainer = document.getElementById('surnames-chart-container');
+    if (surnameContainer) {
+      surnameContainer.innerHTML = '';
+      if (total === 0) {
+        surnameContainer.innerHTML = `<div class="empty-state">No surname records analyzed yet.</div>`;
+      } else {
+        const surnameCounts = {};
+        people.forEach(p => {
+          const name = (p.familyName || '').trim();
+          if (name) {
+            surnameCounts[name] = (surnameCounts[name] || 0) + 1;
+          }
+        });
+
+        const sortedSurnames = Object.entries(surnameCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+
+        if (sortedSurnames.length === 0) {
+          surnameContainer.innerHTML = `<div class="empty-state">No family names specified in the tree.</div>`;
+        } else {
+          const maxCount = sortedSurnames[0][1];
+          sortedSurnames.forEach(([name, count]) => {
+            const pct = maxCount > 0 ? (count / maxCount) * 100 : 0;
+            const row = document.createElement('div');
+            row.className = 'surname-bar-row';
+            row.innerHTML = `
+              <div class="surname-bar-header">
+                <span class="surname-name">${name}</span>
+                <span class="surname-count">${count} members</span>
+              </div>
+              <div class="surname-bar-track">
+                <div class="surname-bar-fill" style="width: ${pct}%"></div>
+              </div>
+            `;
+            surnameContainer.appendChild(row);
+          });
+        }
+      }
+    }
+
+    // Render Longevity Hall of Fame (Version 11)
+    const longevityContainer = document.getElementById('longevity-list-container');
+    if (longevityContainer) {
+      longevityContainer.innerHTML = '';
+      if (total === 0) {
+        longevityContainer.innerHTML = `<div class="empty-state">No age/lifespan data parsed yet.</div>`;
+      } else {
+        const withAge = people.filter(p => p.birthYear !== null && p.birthYear !== undefined)
+          .map(p => {
+            let age = 0;
+            let label = '';
+            if (p.deathYear) {
+              age = p.deathYear - p.birthYear;
+              label = `${p.birthYear} - ${p.deathYear} (Deceased)`;
+            } else {
+              age = 2026 - p.birthYear;
+              label = `${p.birthYear} - Present (Age ${age})`;
+            }
+            return { person: p, age, label };
+          })
+          .filter(item => item.age >= 0 && item.age <= 130)
+          .sort((a, b) => b.age - a.age)
+          .slice(0, 5);
+
+        if (withAge.length === 0) {
+          longevityContainer.innerHTML = `<div class="empty-state">No birth/death dates parsed for registered members.</div>`;
+        } else {
+          withAge.forEach(item => {
+            const p = item.person;
+            const div = document.createElement('div');
+            div.className = 'longevity-item';
+            div.style.cursor = 'pointer';
+            div.addEventListener('click', () => {
+              this.setFocusPerson(p.id);
+              this.switchTab('explorer');
+            });
+            div.innerHTML = `
+              <div class="longevity-info">
+                <span class="longevity-name">${p.name}</span>
+                <span class="longevity-lifespan">${item.label}</span>
+              </div>
+              <span class="longevity-badge ${p.gender.toLowerCase() === 'f' ? 'female' : 'male'}">${item.age} yrs</span>
+            `;
+            longevityContainer.appendChild(div);
+          });
+        }
+      }
+    }
   }
 
   /* ==========================================================================
@@ -2940,6 +3440,14 @@ export class FamilyTreeUI {
         this.refreshAllUI();
       } else {
         this.showNotification("Failed to parse relationships. Check lineage formatting syntax.", "error");
+      }
+    } else if (type === 'DYNASTIC_HEALTH_DONE') {
+      this.pendingConflictsResult = e.data.conflicts;
+      // If the 12-second timer is already finished, reveal immediately
+      if (!this.conflictsInterval && this.conflictsAnimRunning) {
+        this.conflictsAnimRunning = false;
+        this.revealConflictsResults(e.data.conflicts);
+        this.pendingConflictsResult = null;
       }
     }
   }
@@ -4106,6 +4614,7 @@ export class FamilyTreeUI {
       cache['No Children Recorded'] = 'لا يوجد أطفال مسجلين';
       cache['Children'] = 'الأطفال';
       cache['Descendants'] = 'الأحفاد';
+      cache['🖱 Left Click to Focus • 🔀 Drag or Arrow Keys/WASD to Pan • 📜 Scroll or +/- to Zoom • 0/ESC to Center'] = '🖱 نقر زر أيسر للتركيز • 🔀 سحب أو الأسهم/WASD للتحريك • 📜 التمرير أو +/- للتكبير • 0/ESC للمركزة';
 
       // Navigation bar translations
       cache['Dashboard'] = 'لوحة التحكم';
@@ -4113,6 +4622,32 @@ export class FamilyTreeUI {
       cache['World Forest'] = 'عالم العائلة';
       cache['All Members'] = 'جميع الأعضاء';
       cache['Add / Import'] = 'إضافة / استيراد';
+      cache['Surname Registry'] = 'سجل العائلات';
+      cache['Health Scanner'] = 'فاحص سلامة البيانات';
+      cache['Surname Registry & Family Index'] = 'سجل أسماء العائلات والفهرس';
+      cache['Browse unique surnames, count frequencies, and locate matching members.'] = 'تصفح أسماء العائلات الفريدة، واعرض تكرارها، وحدد الأعضاء المطابقين.';
+      cache['Select a Surname'] = 'اختر اسم عائلة';
+      cache['Select a surname from the list to view its members.'] = 'اختر اسم عائلة من القائمة لعرض أفرادها.';
+      cache['Members with Surname'] = 'الأعضاء الذين يحملون عائلة';
+      cache['🎯 View in Explorer'] = '🎯 عرض في المستكشف';
+      cache['Dynastic Health & Conflict Scanner'] = 'فاحص سلامة البيانات والتناقضات';
+      cache['Audit chronological consistency, impossible lifespans, and generation age gaps.'] = 'تدقيق الاتساق الزمني، فترات الحياة المستحيلة، والفجوات العمرية للأجيال.';
+      cache['Start Data Validation Scan'] = 'بدء فحص صحة البيانات';
+      cache['🛡️ Scan Family Tree'] = '🛡️ فحص شجرة العائلة';
+      cache['Scanning Family Tree...'] = 'فحص شجرة العائلة قيد التنفيذ...';
+      cache['Performing chronological audits across all family nodes.'] = 'إجراء تدقيق زمني عبر كافة العقد العائلية.';
+      cache['0% Audited'] = '0% تم تدقيقه';
+      cache['Cancel Scan'] = 'إلغاء الفحص';
+      cache['Family Tree Anomalies'] = 'تناقضات شجرة العائلة';
+      cache['Resolve chronological inversions, age gaps, and incorrect lifespan data.'] = 'حل الانقلابات الزمنية، الفجوات العمرية، وبيانات مدى الحياة غير الصحيحة.';
+      cache['🔄 Rescan Tree'] = '🔄 إعادة فحص الشجرة';
+      cache['Database Healthy'] = 'قاعدة البيانات سليمة';
+      cache['No chronological contradictions or lifespan anomalies found in this family tree!'] = 'لم يتم العثور على أي تناقضات زمنية أو شذوذ في فترات الحياة في هذه الشجرة العائلية!';
+      cache['Member'] = 'العضو';
+      cache['Issue Description'] = 'وصف المشكلة';
+      cache['Severity'] = 'الخطورة';
+      cache['Action'] = 'الإجراء';
+      cache['Fix'] = 'إصلاح';
 
       // Details Overlay Dialog translations
       cache['Lineage Details'] = 'تفاصيل النسب';

@@ -57,7 +57,7 @@
           <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
         </svg>
         <span class="app-title-text">Extra C</span>
-        <span class="app-build-badge">Version 9.0</span>
+        <span class="app-build-badge">Version 11.0.2 (Enterprise Build)</span>
       </div>
       <div class="titlebar-center">
         <div class="header-search-container">
@@ -194,12 +194,28 @@
             <span class="nav-text">Add / Import</span>
             <span class="nav-active-indicator"></span>
           </a>
+
+          <a href="#surnames" class="nav-item" data-tab="surnames" id="btn-nav-surnames">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            </svg>
+            <span class="nav-text">Surname Registry</span>
+            <span class="nav-active-indicator"></span>
+          </a>
+
+          <a href="#conflicts" class="nav-item" data-tab="conflicts" id="btn-nav-conflicts">
+            <svg class="nav-icon" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="currentColor" d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm-2 15l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+            </svg>
+            <span class="nav-text">Health Scanner</span>
+            <span class="nav-active-indicator"></span>
+          </a>
         </nav>
 
         <div class="sidebar-footer">
           <div class="footer-system-info">
             <div>Extra C</div>
-            <div class="os-version">Version 9.0 (Fluent Build)</div>
+            <div class="os-version">Version 11.0.2 (Enterprise Build)</div>
           </div>
         </div>
       </aside>
@@ -319,6 +335,25 @@
               </ul>
               <div class="diag-actions">
                 <button id="btn-goto-unlinked" class="fluent-btn btn-secondary">View unlinked members</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Version 11 Enterprise Insights Row -->
+          <div class="dashboard-row v11-insights-row">
+            <!-- Surname Distribution Card -->
+            <div class="fluent-card flex-1">
+              <h2 class="card-title">Top Surname Distribution</h2>
+              <div class="surnames-chart-container" id="surnames-chart-container">
+                <div class="empty-state">No surname records analyzed yet.</div>
+              </div>
+            </div>
+
+            <!-- Longevity Hall of Fame Card -->
+            <div class="fluent-card flex-1">
+              <h2 class="card-title">Longevity Records (Hall of Fame)</h2>
+              <div class="longevity-list-container" id="longevity-list-container">
+                <div class="empty-state">No age/lifespan data parsed yet.</div>
               </div>
             </div>
           </div>
@@ -471,7 +506,7 @@
                 
                 <!-- Floating canvas instructions overlay -->
                 <div class="canvas-overlay-tips">
-                  <span>🖱 Left click to Focus • 🔀 Drag to Pan • 📜 Scroll to Zoom</span>
+                  <span>🖱 Left Click to Focus • 🔀 Drag or Arrow Keys/WASD to Pan • 📜 Scroll or +/- to Zoom • 0/ESC to Center</span>
                 </div>
               </div>
             </div>
@@ -521,7 +556,7 @@
                 
                 <!-- Floating canvas instructions overlay -->
                 <div class="canvas-overlay-tips">
-                  <span>🖱 Left click to Focus • 🔀 Drag to Pan • 📜 Scroll to Zoom</span>
+                  <span>🖱 Left Click to Focus • 🔀 Drag or Arrow Keys/WASD to Pan • 📜 Scroll or +/- to Zoom • 0/ESC to Center</span>
                 </div>
               </div>
             </div>
@@ -871,7 +906,7 @@ Examples:
                 </button>
                 <div class="tutorial-content-panel hidden" id="tuto-content-3">
                   <div class="tuto-inner-body">
-                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 9.0 upgrades:</p>
+                    <p>Evaluate rendering, camera panning, and lookups at scale using our premium Version 11.0.2 upgrades:</p>
                     <ul class="tuto-bullet-list">
                       <li>Click the <strong>"🚀 Load 100,000 Mock Tree"</strong> button in the High-Scale Testing Suite. The database injects 100,000 members and rebuilds a fast token search index in under 500ms.</li>
                       <li><strong>8-Generation Local Pedigree:</strong> The visual tree explorer calculates and centers a complete 8-generation pedigree layout around the focused individual (4 generations up and 4 down) labeled from Great-Great-Grandparents to Great-Great-Grandgrandchildren.</li>
@@ -886,6 +921,112 @@ Examples:
             </div>
           </div>
 
+        </section>
+
+        <!-- ==================== SURNAME REGISTRY VIEW ==================== -->
+        <section id="tab-surnames" class="content-tab-panel hidden">
+          <div class="panel-header">
+            <div class="header-titles">
+              <h1 class="fluent-title">Surname Registry & Family Index</h1>
+              <p class="fluent-subtitle">Browse unique surnames, count frequencies, and locate matching members.</p>
+            </div>
+          </div>
+
+          <div class="surname-container">
+            <!-- Left: Sidebar List of Surnames -->
+            <div id="surname-list" class="surname-sidebar-list">
+              <!-- Dynamically populated surname items -->
+            </div>
+
+            <!-- Right: Details list of matching members -->
+            <div class="surname-details-pane">
+              <h2 id="surname-selected-title" class="surname-details-title">Select a Surname</h2>
+              <div id="surname-members-list" class="surname-members-grid">
+                <div class="surname-empty-state">
+                  <span>Select a surname from the list to view its members.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== DATA HEALTH SCANNER VIEW ==================== -->
+        <section id="tab-conflicts" class="content-tab-panel hidden">
+          <div class="panel-header">
+            <div class="header-titles">
+              <h1 class="fluent-title">Dynastic Health & Conflict Scanner</h1>
+              <p class="fluent-subtitle">Audit chronological consistency, impossible lifespans, and generation age gaps.</p>
+            </div>
+          </div>
+
+          <div class="conflict-scanner-container">
+            <!-- Phase 1: Ready to Scan -->
+            <div id="conflicts-phase-ready" class="fluent-card" style="width: 550px; max-width: 95%; text-align: center; padding: 40px 30px; border-radius: 12px; backdrop-filter: blur(20px); border: 1.5px solid var(--win-border-light); background: var(--win-card-bg); display: flex; flex-direction: column; align-items: center; gap: 20px; box-shadow: var(--win-shadow-medium);">
+              <div style="font-size: 64px; cursor: default;">🛡️</div>
+              <h2 style="font-size: 22px; font-weight: 600; color: var(--win-text-primary); margin: 0;">Start Data Validation Scan</h2>
+              <p style="font-size: 13px; color: var(--win-text-secondary); line-height: 1.6; margin: 0; max-width: 440px;">
+                Initialize database-wide audits to detect impossible lifespans, age inversions, or extreme parent age gaps within the lineage.
+              </p>
+              <button id="btn-conflicts-scan" class="fluent-btn btn-solid" style="padding: 12px 30px; font-size: 14px; font-weight: bold; background: var(--win-btn-primary-bg, #0078d4); border: none; box-shadow: 0 4px 15px rgba(0, 120, 212, 0.4); border-radius: 6px; color: #ffffff; cursor: pointer; transition: all 0.3s ease;">
+                🛡️ Scan Family Tree
+              </button>
+            </div>
+
+            <!-- Phase 2: Scanning Progress (12 seconds) -->
+            <div id="conflicts-phase-scanning" class="fluent-card hidden" style="width: 550px; max-width: 95%; text-align: center; padding: 40px 30px; border-radius: 12px; backdrop-filter: blur(20px); border: 1.5px solid var(--win-border-light); background: var(--win-card-bg); display: flex; flex-direction: column; align-items: center; gap: 25px; box-shadow: var(--win-shadow-medium);">
+              <div style="width: 80px; height: 80px; border: 4px solid var(--win-border-light); border-top: 4px solid var(--win-btn-primary-bg, #0078d4); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+              <div>
+                <h2 style="font-size: 20px; font-weight: 600; color: var(--win-text-primary); margin: 0;" id="conflicts-scanning-title">Scanning Family Tree...</h2>
+                <p style="font-size: 13px; color: var(--win-text-secondary); margin-top: 8px;" id="conflicts-scanning-desc">Performing chronological audits across all family nodes.</p>
+              </div>
+              <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; position: relative;">
+                <div id="conflicts-progress-bar" style="width: 0%; height: 100%; background: var(--win-btn-primary-bg, #0078d4); transition: width 0.1s linear;"></div>
+              </div>
+              <div id="conflicts-scanning-percent" style="font-size: 14px; font-weight: bold; color: var(--win-text-primary);">0% Audited</div>
+              <button id="btn-conflicts-cancel" class="fluent-btn btn-secondary" style="padding: 6px 16px; font-size: 12px;">
+                Cancel Scan
+              </button>
+            </div>
+
+            <!-- Phase 3: Results -->
+            <div id="conflicts-phase-results" class="fluent-card hidden" style="width: 750px; max-width: 100%; padding: 30px; border-radius: 12px; backdrop-filter: blur(20px); border: 1.5px solid var(--win-border-light); background: var(--win-card-bg); display: flex; flex-direction: column; gap: 20px; box-shadow: var(--win-shadow-medium);">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--win-border-light); padding-bottom: 15px;">
+                <div>
+                  <h2 style="font-size: 20px; font-weight: 600; color: var(--win-text-primary); margin: 0;">Family Tree Anomalies</h2>
+                  <p style="font-size: 12px; color: var(--win-text-secondary); margin: 4px 0 0 0;">Resolve chronological inversions, age gaps, and incorrect lifespan data.</p>
+                </div>
+                <button id="btn-conflicts-rescan" class="fluent-btn btn-secondary" style="padding: 6px 16px; font-size: 12px;">
+                  🔄 Rescan Tree
+                </button>
+              </div>
+
+              <!-- Success Badge (No Conflicts) -->
+              <div id="conflicts-success-badge" class="hidden" style="text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="font-size: 64px; color: #107c41;">✅</div>
+                <h3 style="font-size: 18px; font-weight: 600; color: var(--win-text-primary); margin: 0;">Database Healthy</h3>
+                <p style="font-size: 13px; color: var(--win-text-secondary); max-width: 420px; margin: 0;">
+                  No chronological contradictions or lifespan anomalies found in this family tree!
+                </p>
+              </div>
+
+              <!-- Conflict Table (Conflicts Found) -->
+              <div id="conflicts-table-container" class="conflict-table-wrapper hidden">
+                <table class="conflict-table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Issue Description</th>
+                      <th style="width: 100px;">Severity</th>
+                      <th style="width: 80px; text-align: center;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="conflicts-table-body">
+                    <!-- Dynamically populated rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- ==================== SETTINGS VIEW ==================== -->
@@ -956,6 +1097,19 @@ Examples:
                     <div style="display: flex; align-items: center; gap: 6px;">
                       <input type="radio" name="app-theme-radio" id="radio-theme-win7" style="pointer-events: none;">
                       <span class="theme-option-name" style="font-size: 11px; font-weight: 500; color: var(--win-text-primary);">Windows 7 Aero</span>
+                    </div>
+                  </div>
+
+                  <!-- Windows XP Theme Option Card -->
+                  <div class="theme-card-option" id="theme-opt-winxp" data-theme="winxp">
+                    <div class="theme-preview-box preview-winxp" style="width: 100px; height: 60px; border-radius: 4px; background: linear-gradient(180deg, #0058e6 0%, #3a95ff 100%); border: 1px solid #003df5; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                      <div class="mini-window" style="width: 80px; height: 40px; background: #f1f1e3; border-radius: 0px; border: 1.5px solid #003df5; box-shadow: 1px 1px 3px rgba(0,0,0,0.15); display: flex; gap: 4px; padding: 4px; box-sizing: border-box; font-family: Tahoma, sans-serif; font-size: 8px; color: #000000; align-items: center; justify-content: center;">
+                        <span style="font-weight: bold; color: #245dd7;">Windows XP</span>
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <input type="radio" name="app-theme-radio" id="radio-theme-winxp" style="pointer-events: none;">
+                      <span class="theme-option-name" style="font-size: 11px; font-weight: 500; color: var(--win-text-primary);">Windows XP Luna</span>
                     </div>
                   </div>
 
@@ -1167,7 +1321,7 @@ Examples:
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">Version</span>
-                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">10.0.0 (Aero Performance Edition)</span>
+                  <span class="info-val" style="color: var(--win-text-primary); font-weight: 500;">11.0.2 (Enterprise Performance Edition)</span>
                 </div>
                 <div class="about-info-item" style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0;">
                   <span class="info-label" style="color: var(--win-text-secondary);">High-Performance Engine</span>
@@ -1730,6 +1884,41 @@ Examples:
       <div class="ps1-progress-bar-container" style="width: 380px; height: 18px; background: #222222; border: 2px solid #555555; padding: 2px; box-sizing: border-box; overflow: hidden; margin: 0 auto;">
         <div id="ps1-progress-bar-fill" style="width: 0%; height: 100%; background: #f39c12; transition: width 0.1s linear; box-shadow: inset -4px 0 0 #d35400;"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Windows XP Transformation Loading Overlay -->
+  <div id="winxp-transformation-overlay" class="fluent-modal-overlay hidden" style="z-index: 999999; background: #000000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease; opacity: 0;">
+    <div class="winxp-loading-box" style="text-align: center; color: #ffffff; font-family: Tahoma, 'Segoe UI', sans-serif;">
+      <!-- Classic CSS warped flag logo -->
+      <div class="xp-flag" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 64px; height: 64px; transform: rotate(-10deg) skewX(-10deg); margin: 0 auto 24px auto; filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.25));">
+        <div style="background: #e74c3c; border-radius: 50% 50% 0 50%; width: 28px; height: 28px;"></div>
+        <div style="background: #2ecc71; border-radius: 50% 50% 50% 0; width: 28px; height: 28px;"></div>
+        <div style="background: #2980b9; border-radius: 50% 0 50% 50%; width: 28px; height: 28px;"></div>
+        <div style="background: #f1c40f; border-radius: 0 50% 50% 50%; width: 28px; height: 28px;"></div>
+      </div>
+      
+      <div style="color: #ffffff; text-align: center; margin-bottom: 30px;">
+        <span style="font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #888888; text-transform: uppercase;">Microsoft</span>
+        <div style="font-size: 28px; font-weight: bold; line-height: 1.1; margin-top: 2px;">
+          Windows<span style="color: #ff6600; font-weight: bold; font-style: italic; margin-left: 5px;">xp</span>
+        </div>
+        <div style="font-size: 10px; letter-spacing: 1.5px; color: #ffffff; text-transform: uppercase; margin-top: 4px; border-top: 1.5px solid #333333; padding-top: 4px; display: inline-block;">
+          Professional
+        </div>
+      </div>
+      
+      <!-- Classic Windows XP loader track -->
+      <div class="xp-loader-container" style="width: 140px; height: 14px; border: 1.5px solid #777777; background: #000000; border-radius: 3px; padding: 2px; box-sizing: border-box; overflow: hidden; margin: 0 auto; position: relative;">
+        <!-- The classic 3 blue dashes container moving horizontally -->
+        <div id="xp-loader-bar" style="position: absolute; top: 1.5px; bottom: 1.5px; width: 32px; display: flex; gap: 2px; animation: xp-scroll 1.6s infinite linear;">
+          <div style="width: 8px; height: 100%; background: linear-gradient(to right, #00d0ff, #0058e6, #003df5); border-radius: 1px;"></div>
+          <div style="width: 8px; height: 100%; background: linear-gradient(to right, #00d0ff, #0058e6, #003df5); border-radius: 1px;"></div>
+          <div style="width: 8px; height: 100%; background: linear-gradient(to right, #00d0ff, #0058e6, #003df5); border-radius: 1px;"></div>
+        </div>
+      </div>
+      
+      <p id="xp-loading-status" style="font-size: 11px; color: #888888; margin-top: 15px;">Starting up Windows XP...</p>
     </div>
   </div>
 

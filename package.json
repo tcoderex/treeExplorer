@@ -1,7 +1,7 @@
 {
   "name": "extra-c",
-  "version": "10.0.0",
-  "description": "Extra C: Windows 11 styled family tree explorer for handling 1000+ members",
+  "version": "11.0.2",
+  "description": "Extra C: Windows 11 Enterprise Family Tree Explorer for handling 1000+ members",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -42,9 +42,12 @@
       "allowToChangeInstallationDirectory": true,
       "installerSidebar": "build/installerSidebar.png",
       "installerHeader": "build/installerHeader.png",
-      "uninstallDisplayName": "Extra C",
+      "uninstallDisplayName": "Extra C Family Tree Explorer",
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "Extra C Family Tree Explorer",
+      "runAfterFinish": true,
+      "multiLanguageInstaller": true
     },
     "directories": {
       "output": "dist-electron"

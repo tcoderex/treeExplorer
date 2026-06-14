@@ -107,9 +107,13 @@ export class V8Features {
           <ul id="palette-results"></ul>
         </div>
       </div>
-      <div id="v8-minimap" class="fluent-modal-card hidden" style="position:fixed; bottom:20px; right:20px; width:200px; height:150px; padding:10px; z-index:500;">
-        <h4 style="margin-bottom:8px; font-size:11px;">Radar Map</h4>
-        <canvas id="minimap-canvas" width="180" height="110" style="background:rgba(0,0,0,0.05); border-radius:4px;"></canvas>
+      <div id="v8-minimap" class="canvas-minimap-panel hidden" style="position:fixed; z-index:500;">
+        <div class="minimap-header">
+          <span>Navigator</span>
+        </div>
+        <div class="minimap-canvas-container">
+          <canvas id="minimap-canvas" width="160" height="110"></canvas>
+        </div>
       </div>
     `;
     document.body.insertAdjacentHTML('beforeend', paletteHtml);
@@ -778,6 +782,8 @@ export class V8Features {
     const offsetY = (canvas.height - worldH * scale) / 2;
     
     const isDark = document.body.classList.contains('theme-dark');
+    const isWin7 = document.body.classList.contains('theme-win7');
+    const isPs1 = document.body.classList.contains('theme-ps1');
 
     // Draw all nodes as tiny colored rectangles on the minimap
     lineageCanvas.nodes.forEach(node => {
@@ -786,10 +792,18 @@ export class V8Features {
       const rw = lineageCanvas.nodeWidth * scale;
       const rh = lineageCanvas.nodeHeight * scale;
       
-      ctx.fillStyle = node.person.gender === 'M' 
-        ? (isDark ? '#60cdff' : '#0078d4') 
-        : (isDark ? '#ff8cda' : '#e3008c');
+      let nodeColor = '';
+      if (isPs1) {
+        nodeColor = node.person.gender === 'M' ? '#39ff14' : '#f39c12';
+      } else if (isWin7) {
+        nodeColor = node.person.gender === 'M' ? '#1e70a4' : '#cb2978';
+      } else if (isDark) {
+        nodeColor = node.person.gender === 'M' ? '#60cdff' : '#ff8cda';
+      } else {
+        nodeColor = node.person.gender === 'M' ? '#0078d4' : '#e3008c';
+      }
       
+      ctx.fillStyle = nodeColor;
       ctx.fillRect(rx, ry, Math.max(4, rw), Math.max(3, rh));
     });
 
@@ -807,10 +821,27 @@ export class V8Features {
     const mvw = vw * scale;
     const mvh = vh * scale;
 
-    ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
+    let strokeColor = '';
+    let fillColor = '';
+    
+    if (isPs1) {
+      strokeColor = '#39ff14';
+      fillColor = 'rgba(57, 255, 20, 0.12)';
+    } else if (isWin7) {
+      strokeColor = '#2c7bb3';
+      fillColor = 'rgba(44, 123, 179, 0.18)';
+    } else if (isDark) {
+      strokeColor = '#60cdff';
+      fillColor = 'rgba(96, 205, 255, 0.1)';
+    } else {
+      strokeColor = '#0078d4';
+      fillColor = 'rgba(0, 120, 212, 0.08)';
+    }
+
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(mvx, mvy, mvw, mvh);
-    ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+    ctx.fillStyle = fillColor;
     ctx.fillRect(mvx, mvy, mvw, mvh);
   }
 }

@@ -12,45 +12,165 @@
       padding: 0;
       height: 100vh;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: transparent !important;
+      overflow: hidden;
+      user-select: none;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Floating Card Container */
+    .splash-card {
+      width: 360px;
+      height: 460px;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background-color: #f3f3f3;
-      font-family: 'Outfit', sans-serif;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      background-color: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #1f1f1f;
+      padding: 32px;
+      box-sizing: border-box;
+      position: relative;
       overflow: hidden;
-      user-select: none;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .theme-dark {
+    /* Dark Theme */
+    .theme-dark .splash-card {
       background-color: #202020;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       color: #ffffff;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    }
+
+    /* Windows 7 Aero Theme */
+    .theme-win7 .splash-card {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: rgba(200, 225, 248, 0.65) !important;
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+      border-radius: 8px;
+      color: #0a1f33;
+      box-shadow: 
+        0 20px 50px rgba(0, 40, 80, 0.35), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -10px 30px rgba(255, 255, 255, 0.2);
+    }
+    /* Aero Glass shine reflection */
+    .theme-win7 .splash-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(
+        115deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 35%,
+        rgba(255, 255, 255, 0.3) 45%,
+        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0) 60%
+      );
+      transform: skewX(-25deg);
+      pointer-events: none;
+    }
+
+    /* PlayStation 1 Theme */
+    .theme-ps1 .splash-card {
+      font-family: monospace;
+      background-color: #000000;
+      border: 2px solid #39ff14;
+      border-radius: 0px;
+      color: #39ff14;
+      box-shadow: 0 0 25px rgba(57, 255, 20, 0.45);
+    }
+    
+    /* PlayStation 1 CRT Scanline Simulation */
+    .theme-ps1 .splash-card::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 4px, 6px 100%;
+      z-index: 10;
+      pointer-events: none;
+      animation: flicker 0.15s infinite;
+    }
+    /* Windows XP Theme */
+    .theme-winxp .splash-card {
+      font-family: 'Tahoma', 'Segoe UI', sans-serif;
+      background-color: #000000 !important;
+      border: 1px solid #1a1a1a !important;
+      border-radius: 4px;
+      color: #ffffff;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+      padding: 40px;
+    }
+
+    @keyframes xp-scroll {
+      0% { left: -35px; }
+      100% { left: 140px; }
     }
 
     .app-icon {
-      font-size: 64px;
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       margin-bottom: 24px;
       animation: float 3s ease-in-out infinite;
+      transition: all 0.3s ease;
+    }
+    
+    .theme-win7 .app-icon {
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 30, 60, 0.25), inset 0 1px 0 rgba(255,255,255,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.4);
     }
 
     .app-title {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 600;
-      color: #1f1f1f;
       margin-bottom: 8px;
+      transition: all 0.3s ease;
     }
-
-    .theme-dark .app-title {
-      color: #ffffff;
+    .theme-win7 .app-title {
+      font-weight: bold;
+      color: #0b2240;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(255,255,255,0.9);
+    }
+    .theme-ps1 .app-title {
+      color: #39ff14;
+      text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
+      font-weight: bold;
     }
 
     .app-subtitle {
-      font-size: 14px;
+      font-size: 13px;
       color: #666666;
       margin-bottom: 40px;
+      transition: all 0.3s ease;
     }
-
     .theme-dark .app-subtitle {
       color: #aaaaaa;
+    }
+    .theme-win7 .app-subtitle {
+      color: #204060;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    .theme-ps1 .app-subtitle {
+      color: #39ff14;
+      text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
     }
 
     /* Windows 11 style loading dots */
@@ -58,7 +178,6 @@
       display: flex;
       gap: 6px;
     }
-
     .dot {
       width: 8px;
       height: 8px;
@@ -66,16 +185,38 @@
       background-color: #0078d4;
       animation: fluent-bounce 1.5s infinite cubic-bezier(0.2, 0.6, 0.4, 1);
     }
-
     .theme-dark .dot {
       background-color: #60cdff;
     }
-
     .dot:nth-child(1) { animation-delay: 0s; }
     .dot:nth-child(2) { animation-delay: 0.1s; }
     .dot:nth-child(3) { animation-delay: 0.2s; }
     .dot:nth-child(4) { animation-delay: 0.3s; }
     .dot:nth-child(5) { animation-delay: 0.4s; }
+
+    /* Windows 7 Aero spinning ring loader */
+    .win7-ring-loader {
+      display: none;
+      width: 32px;
+      height: 32px;
+      border: 3.5px solid rgba(44, 123, 179, 0.15);
+      border-top-color: #1a74b3;
+      border-left-color: #2da1e7;
+      border-radius: 50%;
+      animation: win7-spin 0.8s linear infinite;
+      box-shadow: 0 0 10px rgba(45, 161, 231, 0.2);
+    }
+    .theme-win7 .win7-ring-loader {
+      display: block;
+    }
+    .theme-win7 .fluent-loader {
+      display: none;
+    }
+
+    @keyframes win7-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
     @keyframes float {
       0% { transform: translateY(0px); }
@@ -84,43 +225,163 @@
     }
 
     @keyframes fluent-bounce {
-      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      0%, 100% { transform: translateY(0); opacity: 0.3; }
       50% { transform: translateY(-8px); opacity: 1; }
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.99; }
+      50% { opacity: 0.97; }
+      100% { opacity: 1.0; }
     }
   </style>
   <script>
     // Apply theme from localStorage before render to prevent flash
     const savedTheme = localStorage.getItem('family-tree-theme');
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (savedTheme === 'ps1') {
+      document.documentElement.classList.add('theme-ps1');
+    } else if (savedTheme === 'winxp') {
+      document.documentElement.classList.add('theme-winxp');
+    } else if (savedTheme === 'win7') {
+      document.documentElement.classList.add('theme-win7');
+    } else if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('theme-dark');
     }
+    
     window.addEventListener('DOMContentLoaded', () => {
       const lang = localStorage.getItem('app-language');
       const cache = JSON.parse(localStorage.getItem('ar-translation-cache') || '{}');
+      
+      // If PS1 mode, replace normal image avatar with a custom vector glowing Triangle symbol!
+      if (savedTheme === 'ps1') {
+        const iconEl = document.querySelector('.app-icon');
+        if (iconEl) {
+          iconEl.style.display = 'none';
+          const tri = document.createElement('div');
+          tri.innerHTML = '🔺';
+          tri.style.fontSize = '80px';
+          tri.style.marginBottom = '24px';
+          tri.style.animation = 'float 3s ease-in-out infinite';
+          tri.style.textShadow = '0 0 20px #f39c12';
+          iconEl.parentNode.insertBefore(tri, iconEl);
+        }
+        document.querySelector('.app-title').style.fontFamily = 'monospace';
+        document.querySelector('.app-subtitle').style.fontFamily = 'monospace';
+        
+        // Also customize the dots for PS1: blocky, orange, inline
+        const dots = document.querySelectorAll('.fluent-loader .dot');
+        dots.forEach(d => {
+          d.style.backgroundColor = '#f39c12';
+          d.style.borderRadius = '0px';
+        });
+      } else if (savedTheme === 'winxp') {
+        const iconEl = document.querySelector('.app-icon');
+        if (iconEl) {
+          iconEl.style.display = 'none';
+          const flagContainer = document.createElement('div');
+          flagContainer.innerHTML = `
+            <div class="xp-flag" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 64px; height: 64px; transform: rotate(-10deg) skewX(-10deg); margin: 0 auto 24px auto; filter: drop-shadow(0 0 12px rgba(255,255,255,0.25));">
+              <div style="background: #e74c3c; border-radius: 50% 50% 0 50%; width: 28px; height: 28px;"></div>
+              <div style="background: #2ecc71; border-radius: 50% 50% 50% 0; width: 28px; height: 28px;"></div>
+              <div style="background: #2980b9; border-radius: 50% 0 50% 50%; width: 28px; height: 28px;"></div>
+              <div style="background: #f1c40f; border-radius: 0 50% 50% 50%; width: 28px; height: 28px;"></div>
+            </div>
+          `;
+          iconEl.parentNode.insertBefore(flagContainer, iconEl);
+        }
+        
+        document.querySelector('.app-title').innerHTML = `
+          <div style="font-family: 'Tahoma', sans-serif; text-align: center; color: #ffffff; margin-bottom: 8px;">
+            <span style="font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #888888; text-transform: uppercase;">Microsoft</span>
+            <div style="font-size: 28px; font-weight: bold; line-height: 1.1; margin-top: 2px;">
+              Windows<span style="color: #ff6600; font-weight: bold; font-style: italic; margin-left: 5px;">xp</span>
+            </div>
+          </div>
+        `;
+        
+        const subtitle = document.querySelector('.app-subtitle');
+        if (subtitle) {
+          subtitle.style.fontFamily = 'Tahoma, sans-serif';
+          subtitle.style.fontSize = '10px';
+          subtitle.style.letterSpacing = '1px';
+          subtitle.style.textTransform = 'uppercase';
+          subtitle.style.borderTop = '1px solid #333';
+          subtitle.style.paddingTop = '6px';
+          subtitle.style.color = '#888888';
+          subtitle.style.marginTop = '4px';
+          subtitle.style.display = 'inline-block';
+          if (lang === 'ar') {
+            subtitle.innerText = 'نسخة برو';
+          } else {
+            subtitle.innerText = 'Professional';
+          }
+        }
+        
+        const fluentLoader = document.querySelector('.fluent-loader');
+        if (fluentLoader) {
+          fluentLoader.style.display = 'none';
+        }
+        
+        const xpLoader = document.createElement('div');
+        xpLoader.className = 'xp-loader-container';
+        xpLoader.style.cssText = 'width: 140px; height: 14px; border: 1.5px solid #777777; background: #000000; border-radius: 3px; padding: 2px; box-sizing: border-box; overflow: hidden; margin: 30px auto 10px auto; position: relative;';
+        xpLoader.innerHTML = `
+          <div id="xp-loader-bar" style="position: absolute; top: 1.5px; bottom: 1.5px; width: 32px; display: flex; gap: 2px; animation: xp-scroll 1.6s infinite linear;">
+            <div style="width: 8px; height: 100%; background: linear-gradient(to right, #00d0ff, #0058e6, #003df5); border-radius: 1px;"></div>
+            <div style="width: 8px; height: 100%; background: linear-gradient(to right, #00d0ff, #0058e6, #003df5); border-radius: 1px;"></div>
+            <div style="width: 8px; height: 100%; background: linear-gradient(to right, #00d0ff, #0058e6, #003df5); border-radius: 1px;"></div>
+          </div>
+        `;
+        const splashCard = document.querySelector('.splash-card');
+        if (splashCard) {
+          splashCard.appendChild(xpLoader);
+        }
+      }
+
       if (lang === 'ar') {
         document.querySelector('.app-title').innerText = 'Extra C';
         const subtitle = document.querySelector('.app-subtitle');
-        if (Object.keys(cache).length < 50) {
-            subtitle.innerText = 'إعداد لأول مرة: جاري تنزيل الترجمة العربية... يرجى الانتظار (قد يستغرق بعض الوقت)';
+        if (savedTheme === 'ps1') {
+          subtitle.innerText = 'جاري التحميل...';
+        } else if (savedTheme === 'winxp') {
+          subtitle.innerText = 'جاري بدء تشغيل ويندوز... يرجى الانتظار';
+        } else if (savedTheme === 'win7') {
+          subtitle.innerText = 'جاري بدء تشغيل النظام... يرجى الانتظار';
+        } else if (Object.keys(cache).length < 50) {
+          subtitle.innerText = 'إعداد لأول مرة: جاري تنزيل الترجمة العربية... يرجى الانتظار (قد يستغرق بعض الوقت)';
         } else {
-            subtitle.innerText = 'جاري تحميل التطبيق... يرجى الانتظار قليلاً';
+          subtitle.innerText = 'جاري تحميل التطبيق... يرجى الانتظار قليلاً';
         }
-        subtitle.style.fontSize = '15px';
+        subtitle.style.fontSize = '14px';
         subtitle.style.fontWeight = 'bold';
+      } else {
+        if (savedTheme === 'ps1') {
+          document.querySelector('.app-subtitle').innerText = 'SYSTEM BOOTING...';
+        } else if (savedTheme === 'winxp') {
+          const subtitle = document.querySelector('.app-subtitle');
+          if (subtitle) {
+            subtitle.innerText = 'Professional';
+          }
+        } else if (savedTheme === 'win7') {
+          document.querySelector('.app-subtitle').innerText = 'Welcome';
+        }
       }
     });
   </script>
 </head>
 <body>
-  <img class="app-icon" src="build/icon.png" alt="App Icon" style="width: 96px; height: 96px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);">
-  <div class="app-title">Extra C: Family Tree Explorer</div>
-  <div class="app-subtitle">Initializing workspace...</div>
-  <div class="fluent-loader">
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
+  <div class="splash-card">
+    <img class="app-icon" src="build/icon.png" alt="App Icon">
+    <div class="app-title">Extra C: Family Tree Explorer</div>
+    <div class="app-subtitle">Initializing workspace...</div>
+    <div class="fluent-loader">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    <div class="win7-ring-loader"></div>
   </div>
 </body>
 </html>
